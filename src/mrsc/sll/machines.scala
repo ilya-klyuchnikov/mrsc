@@ -50,7 +50,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
     }
 
   // only simple whistle for now -- will continue
-  def whistle(ps: PState[Expr, Contraction]): Boolean = wh.accept(ps)
+  def whistle(ps: PState[Expr, Contraction]): Boolean = wh.blame(ps).isEmpty
 
   def drivingStep(configuration: Expr): List[SubStep[Expr, Contraction]] = decompose(configuration) match {
     case DecLet(Let(term, bs)) =>

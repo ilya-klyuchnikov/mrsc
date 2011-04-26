@@ -56,12 +56,15 @@ object RebuilderTactics extends Enumeration {
 }
 
 import FoldStrategy._
+import RebuilduingStrategy._
 // P here means "with parameters"
+// the only "creative" parameters are: whistle + tricks
 class PSLLMultiMachine(
   val program: Program,
   val foldStrategy: FoldStrategy = Ancestors,
   val whistle: Whistle = HEWhistle,
-  val speculate: Boolean = false) extends BaseMultiMachine[Expr, SubStepInfo] {
+  val speculate: Boolean = true,
+  val rebuilduingStrategy: RebuilduingStrategy = CurrentByWhistle) extends BaseMultiMachine[Expr, SubStepInfo] {
 
   val speculator = new Speculator(program)
 
@@ -119,34 +122,33 @@ class PSLLMultiMachine(
 
   }
 
-  def terminate(pState: PState[Expr, SubStepInfo]): Whistle.Value = pState.node.info match {
-    case StopStep => Whistle.Complete
-    case _ => if (whistle.accept(pState)) Whistle.OK else {
-      /*
-      println("***")
-      println(pState.node.configuration)
-      for (as <- pState.node.ancestors) {
-        println(as.configuration)
-      }
-      println("***")
-      */
-      Whistle.SoftPrune
+  def blame(pState: PState[Expr, SubStepInfo]) = pState.node.info match {
+    case StopStep => Blaming(None, Whistle.Complete)
+    case _ => whistle.blame(pState) match {
+      case None => Blaming(None, Whistle.OK)
+      case s@Some(_) => Blaming(s, Whistle.SoftPrune)
     }
   }
 
-  def rebuildings(pState: PState[Expr, SubStepInfo], signal: Whistle.Value) =
-    Nil
+  def rebuildings(pState: PState[Expr, SubStepInfo], signal: Blaming[Expr, SubStepInfo]) = rebuilduingStrategy match {
+    //case CurrentByWhistle => MSG.msg();
+    case _ => Nil
+  }
 
   def rebuildStep(gs: SubStep[Expr, SubStepInfo]) =
     null
 
-  def tricks(pState: PState[Expr, SubStepInfo], signal: Whistle.Value): List[SubStep[Expr, SubStepInfo]] = {
+  def msgToLet(g: Gen) = {
+    if (g.t.isInstanceOf[Var]) {
+      throw new Error("Please check")
+    }
+    Let(g.t, g.m1.toList)
+  }
+
+  def tricks(pState: PState[Expr, SubStepInfo], signal: Blaming[Expr, SubStepInfo]): List[SubStep[Expr, SubStepInfo]] = {
     if (speculate) {
       val from = pState.node.configuration
       val res = speculator.speculate(from) map { e => SubStep(e, SpeculationStep(from, e)) }
-      if (!res.isEmpty) {
-        //println(res)
-      }
       res
     } else {
       Nil

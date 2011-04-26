@@ -4,27 +4,28 @@ import mrsc._
 
 trait Whistle {
   def name: String
-  def accept(ps: PState[Expr, Any]): Boolean
+  def blame[I](ps: PState[Expr, I]): Option[CoNode[Expr, I]]
 }
 
 case class ExpressionSize(size: Int) extends Whistle {
   val name = "size < " + size
-  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
-    case Let(_, _) => true
-    case Ctr(_, _) => true
-    case x => x.size < size
+  def blame[I](ps: PState[Expr, I]) = ps.node.configuration match {
+    case Let(_, _) => None
+    case Ctr(_, _) => None
+    case x if x.size < size => Some(ps.node)
+    case _ => None
   }
 }
 
 object HEWhistle extends Whistle {
   val name = "homeomorphic embedding"
-  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
-    case Let(_, _) => true
-    case Ctr(_, _) => true
-    case x => ps.node.ancestors.forall { a =>
+  def blame[I](ps: PState[Expr, I]) = ps.node.configuration match {
+    case Let(_, _) => None
+    case Ctr(_, _) => None
+    case x => ps.node.ancestors.find { a =>
       a.configuration match {
         case Let(_, _) => true
-        case ae => !HE.he(ae, x)
+        case ae => HE.he(ae, x)
       }
     }
   }
@@ -32,13 +33,13 @@ object HEWhistle extends Whistle {
 
 object HEWithRedexWhistle extends Whistle {
   val name = "homeomorphic embedding with redex"
-  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
-    case Let(_, _) => true
-    case Ctr(_, _) => true
-    case x => ps.node.ancestors.forall { a =>
+  def blame[I](ps: PState[Expr, I]) = ps.node.configuration match {
+    case Let(_, _) => None
+    case Ctr(_, _) => None
+    case x => ps.node.ancestors.find { a =>
       a.configuration match {
         case Let(_, _) => true
-        case ae => !HE.he_*(ae, x)
+        case ae => HE.he_*(ae, x)
       }
     }
   }
@@ -46,13 +47,13 @@ object HEWithRedexWhistle extends Whistle {
 
 object HEByCouplingWhistle extends Whistle {
   val name = "homeomorphic embedding via coupling"
-  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
-    case Let(_, _) => true
-    case Ctr(_, _) => true
-    case x => ps.node.ancestors.forall { a =>
+  def blame[I](ps: PState[Expr, I]) = ps.node.configuration match {
+    case Let(_, _) => None
+    case Ctr(_, _) => None
+    case x => ps.node.ancestors.find { a =>
       a.configuration match {
         case Let(_, _) => true
-        case ae => !HE.heByCoupling(ae, x)
+        case ae => HE.heByCoupling(ae, x)
       }
     }
   }
@@ -60,13 +61,13 @@ object HEByCouplingWhistle extends Whistle {
 
 object HEByCouplingWithRedexWhistle extends Whistle {
   val name = "homeomorphic embedding via coupling with redex"
-  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
-    case Let(_, _) => true
-    case Ctr(_, _) => true
-    case x => ps.node.ancestors.forall { a =>
+  def blame[I](ps: PState[Expr, I]) = ps.node.configuration match {
+    case Let(_, _) => None
+    case Ctr(_, _) => None
+    case x => ps.node.ancestors.find { a =>
       a.configuration match {
         case Let(_, _) => true
-        case ae => !(HE.heByCoupling(ae, x) && HE.b(ae) == HE.b(x))
+        case ae => (HE.heByCoupling(ae, x) && HE.b(ae) == HE.b(x))
       }
     }
   }

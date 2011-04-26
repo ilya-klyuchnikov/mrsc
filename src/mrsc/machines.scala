@@ -4,6 +4,8 @@ object Whistle extends Enumeration {
   type Whistle = Value
   val OK, SoftPrune, HardPrune, Complete = Value
 }
+
+case class Blaming[+C, +I](blamed: Option[CoNode[C, I]], signal: Whistle.Whistle)
 /*
  * AbstractMultiMachine represents some common behavior logic.
  * It is more to help create "reference implementations", it is not for
@@ -28,16 +30,16 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
       foldPaths map { MFold(_) }
 
     case _ =>
-      val whistle = terminate(pState)
+      val whistle = blame(pState)
       lazy val genSteps = rebuildings(pState, whistle).map(rebuildStep)
       lazy val trickySteps = tricks(pState, whistle).map(trickyStep)
 
-      lazy val driveSteps = whistle match {
+      lazy val driveSteps = whistle.signal match {
         case Whistle.OK => List(MForest(drive(pState)))
         case _ => List(MPrune)
       }
 
-      whistle match {
+      whistle.signal match {
         case Whistle.Complete => List(MComplete)
         case Whistle.HardPrune => driveSteps
         case _ => driveSteps ++ (trickySteps ++ genSteps)
@@ -46,13 +48,13 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
 
   def fold(pState: PState[C, I]): List[Path]
 
-  def terminate(pState: PState[C, I]): Whistle.Value
+  def blame(pState: PState[C, I]): Blaming[C, I]
 
   def drive(pState: PState[C, I]): List[SubStep[C, I]]
 
-  def rebuildings(pState: PState[C, I], signal: Whistle.Value): List[SubStep[C, I]]
+  def rebuildings(pState: PState[C, I], blaming: Blaming[C, I]): List[SubStep[C, I]]
   def rebuildStep(gs: SubStep[C, I]): MStep[C, I]
 
-  def tricks(pState: PState[C, I], signal: Whistle.Value): List[SubStep[C, I]]
+  def tricks(pState: PState[C, I], blaming: Blaming[C, I]): List[SubStep[C, I]]
   def trickyStep(gs: SubStep[C, I]): MStep[C, I]
 }
