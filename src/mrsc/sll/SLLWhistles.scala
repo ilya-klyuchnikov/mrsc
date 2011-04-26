@@ -24,7 +24,7 @@ object HEWhistle extends Whistle {
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>
       a.configuration match {
-        case Let(_, _) => true
+        case Let(_, _) => false
         case ae => HE.he(ae, x)
       }
     }
@@ -38,7 +38,7 @@ object HEWithRedexWhistle extends Whistle {
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>
       a.configuration match {
-        case Let(_, _) => true
+        case Let(_, _) => false
         case ae => HE.he_*(ae, x)
       }
     }
@@ -52,7 +52,7 @@ object HEByCouplingWhistle extends Whistle {
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>
       a.configuration match {
-        case Let(_, _) => true
+        case Let(_, _) => false
         case ae => HE.heByCoupling(ae, x)
       }
     }
@@ -66,7 +66,7 @@ object HEByCouplingWithRedexWhistle extends Whistle {
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>
       a.configuration match {
-        case Let(_, _) => true
+        case Let(_, _) => false
         case ae => (HE.heByCoupling(ae, x) && HE.b(ae) == HE.b(x))
       }
     }

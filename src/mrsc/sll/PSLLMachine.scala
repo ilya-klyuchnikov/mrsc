@@ -126,27 +126,68 @@ class PSLLMultiMachine(
     case StopStep => Blaming(None, Whistle.Complete)
     case _ => whistle.blame(pState) match {
       case None => Blaming(None, Whistle.OK)
-      case s@Some(_) => Blaming(s, Whistle.SoftPrune)
+      case s @ Some(_) => Blaming(s, Whistle.SoftPrune)
     }
   }
 
-  def rebuildings(pState: PState[Expr, SubStepInfo], signal: Blaming[Expr, SubStepInfo]) = rebuilduingStrategy match {
-    //case CurrentByWhistle => MSG.msg();
-    case _ => Nil
-  }
+  def rebuildings(pState: PState[Expr, SubStepInfo], signal: Blaming[Expr, SubStepInfo]) =
+    rebuilduingStrategy match {
+      case CurrentByWhistle =>
+        signal.signal match {
+          case Whistle.SoftPrune =>
+            rebuilduingStrategy match {
+              case CurrentByWhistle => {
+                val blamedNode = signal.blamed.get
+                val blamedExpr = blamedNode.configuration
+                val currentExpr = pState.node.configuration
+                //println(currentExpr)
+                //println(blamedExpr)
+                val rebuilt = msgToLet(currentExpr, MSG.msg(currentExpr, blamedExpr))
+                //println(rebuilt)
+                //println("----")
+                List(SubStep(rebuilt, GeneralizationStep(currentExpr)))
+              }
+              case _ => Nil
+            }
+          case _ => Nil
+        }
+      case _ => Nil
+    }
 
-  def rebuildStep(gs: SubStep[Expr, SubStepInfo]) =
-    null
+  def rebuildStep(gs: SubStep[Expr, SubStepInfo]) = MForest(List(gs))
+    //MReplace(gs.configuration, gs.info)
 
-  def msgToLet(g: Gen) = {
+  def msgToLet(ce: Expr, g: Gen) = {
     if (g.t.isInstanceOf[Var]) {
       throw new Error("Please check")
     }
-    Let(g.t, g.m1.toList)
+    if (renaming(g.t, ce)) {
+      split(ce)
+    } else {
+      Let(g.t, g.m1.toList)
+    }
+  }
+
+  def split(e: Expr): Expr = {
+    e match {
+      case Ctr(name, args) => {
+        val vs = args map freshVar
+        Let(Ctr(name, vs), vs zip args)
+      }
+      case FCall(name, args) => {
+        val vs = args map freshVar
+        Let(FCall(name, vs), vs zip args)
+      }
+      case GCall(name, args) => {
+        val vs = args map freshVar
+        Let(GCall(name, vs), vs zip args)
+      }
+    }
   }
 
   def tricks(pState: PState[Expr, SubStepInfo], signal: Blaming[Expr, SubStepInfo]): List[SubStep[Expr, SubStepInfo]] = {
     if (speculate) {
+      println("speculating")
       val from = pState.node.configuration
       val res = speculator.speculate(from) map { e => SubStep(e, SpeculationStep(from, e)) }
       res

@@ -67,13 +67,13 @@ case class PartialCoGraph[C, I](
             new PartialCoGraph(aLeaf :: completeLeaves, ls, aLeaf :: completeNodes)
           case MPrune =>
             throw new Error()
-          case MReplace(c, i) =>
-            val newNode = CoNode(c, i, aLeaf.parent, None, aLeaf.coPath)
+          case MReplace(c, _) =>
+            val newNode = CoNode(c, aLeaf.info, aLeaf.parent, None, aLeaf.coPath)
             new PartialCoGraph(completeLeaves, newNode :: ls, completeNodes)
-          case MRollback(dangNode, c, i) =>
+          case MRollback(dangNode, c, _) =>
             // dangerous is a completed node:
             // remove all its successors from the stuff
-            val newNode = CoNode(c, i, dangNode.parent, None, dangNode.coPath)
+            val newNode = CoNode(c, aLeaf.info, dangNode.parent, None, dangNode.coPath)
             val newCompleteNodes = completeNodes.remove(n => n.path.startsWith(dangNode.path))
             val newCompleteLeaves = completeLeaves.remove(n => n.path.startsWith(dangNode.path))
             val newIncompleteLeaves = ls.remove( n => n.path.startsWith(dangNode.path))

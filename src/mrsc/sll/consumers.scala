@@ -94,7 +94,11 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo] {
   def showResults(): Unit = {
     println(completedCoGraphsCount + " completed graphs")
     println(prunedCoGraphsCount + " pruned graphs")
-
+    
+    for (cg <- coGraphs; graph = Transformations.transpose(cg)) {
+      //println(graph)
+    }
+    
     val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NSLLResiduator2(graph).result, graph)
     val mapProg = Map(allProgs:_*)
     programs = allProgs map {_._1} sortBy{_.size} distinct
@@ -104,9 +108,9 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo] {
     println("""showing first 10 "minimal" programs""")
     for (p <- programs.take(10)) {
       println(p)
-      println("============")
-      println(mapProg(p))
-      println()
+      //println("============")
+      //println(mapProg(p))
+      //println()
     }
 
   }

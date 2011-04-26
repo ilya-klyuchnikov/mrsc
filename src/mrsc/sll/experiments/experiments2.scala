@@ -4,16 +4,19 @@ import mrsc._
 import mrsc.sll._
 
 object experiments2 extends App {
-  
+
   val t1 = SLLTasks.namedTasks("gApp(x, y)")
   //countPrograms(t1, new PSLLMultiMachine(program = t1.program))
-  
+
   val t2 = SLLTasks.namedTasks("gApp(gApp(x, x), x)")
   //countPrograms(t2, new PSLLMultiMachine(program = t2.program, whistle = HEWithRedexWhistle))
-  
+
   val t3 = SLLTasks.namedTasks("gOr(gEven(x), gOdd(x))")
-  countPrograms(t3, new PSLLMultiMachine(program = t3.program, whistle = HEWithRedexWhistle, speculate = true))
-  
+  //countPrograms(t3, new PSLLMultiMachine(program = t3.program, 
+  //    whistle = HEWithRedexWhistle, speculate = true, rebuilduingStrategy = RebuilduingStrategy.Never))
+
+  countPrograms(t3, new PSLLMultiMachine(program = t3.program, whistle = HEWithRedexWhistle, speculate = false))
+
   def countPrograms(task: SLLTask, machine: PSLLMultiMachine) = {
     println(task.target)
     //println(machine.name)
