@@ -12,7 +12,7 @@ object experiments2 extends App {
   //countPrograms(t2, new PSLLMultiMachine(program = t2.program, whistle = HEWithRedexWhistle))
   
   val t3 = SLLTasks.namedTasks("gOr(gEven(x), gOdd(x))")
-  countPrograms(t3, new PSLLMultiMachine(program = t3.program, whistle = HEWithRedexWhistle))
+  countPrograms(t3, new PSLLMultiMachine(program = t3.program, whistle = HEWithRedexWhistle, speculate = true))
   
   def countPrograms(task: SLLTask, machine: PSLLMultiMachine) = {
     println(task.target)

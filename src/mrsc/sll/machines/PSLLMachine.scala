@@ -60,7 +60,8 @@ import FoldStrategy._
 class PSLLMultiMachine(
   val program: Program,
   val foldStrategy: FoldStrategy = Ancestors,
-  val whistle: Whistle = HEWhistle) extends BaseMultiMachine[Expr, SubStepInfo] {
+  val whistle: Whistle = HEWhistle,
+  val speculate: Boolean = false) extends BaseMultiMachine[Expr, SubStepInfo] {
 
   val speculator = new Speculator(program)
 
@@ -133,20 +134,24 @@ class PSLLMultiMachine(
     }
   }
 
-  def generalizations(pState: PState[Expr, SubStepInfo], signal: Whistle.Value) =
+  def rebuildings(pState: PState[Expr, SubStepInfo], signal: Whistle.Value) =
     Nil
 
-  def tricks(pState: PState[Expr, SubStepInfo], signal: Whistle.Value): List[SubStep[Expr, SubStepInfo]] = {
-    val from = pState.node.configuration
-    val res = speculator.speculate(from) map { e => SubStep(e, SpeculationStep(from, e)) }
-    if (!res.isEmpty) {
-      //println(res)
-    }
-    res
-  }
-
-  def generalizationStep(gs: SubStep[Expr, SubStepInfo]) =
+  def rebuildStep(gs: SubStep[Expr, SubStepInfo]) =
     null
+
+  def tricks(pState: PState[Expr, SubStepInfo], signal: Whistle.Value): List[SubStep[Expr, SubStepInfo]] = {
+    if (speculate) {
+      val from = pState.node.configuration
+      val res = speculator.speculate(from) map { e => SubStep(e, SpeculationStep(from, e)) }
+      if (!res.isEmpty) {
+        //println(res)
+      }
+      res
+    } else {
+      Nil
+    }
+  }
 
   def trickyStep(gs: SubStep[Expr, SubStepInfo]): MStep[Expr, SubStepInfo] =
     MForest(List(gs))

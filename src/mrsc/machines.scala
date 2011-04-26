@@ -16,7 +16,7 @@ object Whistle extends Enumeration {
  * 2. Whistle
  *    a) OK - everything is good
  *    b) SoftPrune - no driving, but generalization and tricks are possible
- *    c) HardPrune - delete this tree
+ *    c) HardPrune - delete this tree. Examples: a lemma was applied twice without result
  *    d) Complete - mark the current node as a complete one
  */
 
@@ -29,7 +29,7 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
 
     case _ =>
       val whistle = terminate(pState)
-      lazy val genSteps = generalizations(pState, whistle).map(generalizationStep)
+      lazy val genSteps = rebuildings(pState, whistle).map(rebuildStep)
       lazy val trickySteps = tricks(pState, whistle).map(trickyStep)
 
       lazy val driveSteps = whistle match {
@@ -38,12 +38,9 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
       }
 
       whistle match {
-        case Whistle.Complete =>
-          List(MComplete)
-        case Whistle.HardPrune =>
-          driveSteps
-        case _ =>
-          driveSteps ++ (trickySteps ++ genSteps)
+        case Whistle.Complete => List(MComplete)
+        case Whistle.HardPrune => driveSteps
+        case _ => driveSteps ++ (trickySteps ++ genSteps)
       }
   }
 
@@ -53,11 +50,9 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
 
   def drive(pState: PState[C, I]): List[SubStep[C, I]]
 
-  def generalizations(pState: PState[C, I], signal: Whistle.Value): List[SubStep[C, I]]
+  def rebuildings(pState: PState[C, I], signal: Whistle.Value): List[SubStep[C, I]]
+  def rebuildStep(gs: SubStep[C, I]): MStep[C, I]
 
   def tricks(pState: PState[C, I], signal: Whistle.Value): List[SubStep[C, I]]
-
-  def generalizationStep(gs: SubStep[C, I]): MStep[C, I]
-
   def trickyStep(gs: SubStep[C, I]): MStep[C, I]
 }
