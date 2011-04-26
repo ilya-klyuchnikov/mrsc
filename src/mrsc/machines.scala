@@ -2,7 +2,7 @@ package mrsc
 
 object Whistle extends Enumeration {
   type Whistle = Value
-  val OK, SoftPrune, HardPrune = Value
+  val OK, SoftPrune, HardPrune, Complete = Value
 }
 /*
  * AbstractMultiMachine represents some common behavior logic.
@@ -17,8 +17,10 @@ object Whistle extends Enumeration {
  *    a) OK - everything is good
  *    b) SoftPrune - no driving, but generalization and tricks are possible
  *    c) HardPrune - delete this tree
+ *    d) Complete - mark the current node as a complete one
  */
 
+// TODO: there may be many drive case - propagate/not propagate info
 trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
   override def makeSteps(pState: PState[C, I]): List[MStep[C, I]] = fold(pState) match {
 
@@ -26,25 +28,28 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
       foldPaths map { MFold(_) }
 
     case _ =>
-      val whistle = prune_?(pState)
+      val whistle = terminate(pState)
       lazy val genSteps = generalizations(pState, whistle).map(generalizationStep)
       lazy val trickySteps = tricks(pState, whistle).map(trickyStep)
-      lazy val driveSteps = List(MForest(drive(pState)))
-      lazy val pruneSteps = List(MPrune)
 
-      prune_?(pState) match {
+      lazy val driveSteps = whistle match {
+        case Whistle.OK => List(MForest(drive(pState)))
+        case _ => List(MPrune)
+      }
+
+      whistle match {
+        case Whistle.Complete =>
+          List(MComplete)
         case Whistle.HardPrune =>
-          pruneSteps
-        case Whistle.SoftPrune =>
-          trickySteps ++ genSteps
-        case Whistle.OK =>
+          driveSteps
+        case _ =>
           driveSteps ++ (trickySteps ++ genSteps)
       }
   }
 
   def fold(pState: PState[C, I]): List[Path]
 
-  def prune_?(pState: PState[C, I]): Whistle.Value
+  def terminate(pState: PState[C, I]): Whistle.Value
 
   def drive(pState: PState[C, I]): List[SubStep[C, I]]
 

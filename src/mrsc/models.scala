@@ -1,7 +1,7 @@
 package mrsc
 
 /* Language-agnostic modeling of abstract computations */
-class SubStep[C, I](val configuration: C, val info: I)
+case class SubStep[+C, +I](configuration: C, info: I)
 
 // the step is performed on "active node" 
 abstract sealed class MStep[+C, +I]
@@ -11,8 +11,11 @@ case object MComplete extends MStep[Nothing, Nothing]
 case object MPrune extends MStep[Nothing, Nothing]
 // add children to the current node
 case class MForest[C, I](val subSteps: List[SubStep[C, I]]) extends MStep[C, I]
-// replace the current node
+// replace the current node - "generalization" of current expression
 case class MReplace[C, I](val configuration: C, val info: I) extends MStep[C, I]
+// rollback to the dangerous node and replaces it with new configuration -
+// generalization of dangerous expression
+case class MRollback[C, I](val dangerous: CoNode[C, I], val safe: C, val info: I) extends MStep[C, I]
 // folding
 case class MFold(val path: Path) extends MStep[Nothing, Nothing]
 
@@ -31,6 +34,6 @@ trait CoGraphConsumer[C, I] {
   def consume(graph: Option[CoGraph[C, I]]): Unit
 }
 
-// just to distinguish modeling inconcistencies 
+// just to distinguish modeling inconsistencies 
 // (the main one is "to much results")
 class ModelingError(val message: String) extends Exception(message: String)

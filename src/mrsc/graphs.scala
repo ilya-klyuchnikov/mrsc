@@ -24,6 +24,9 @@ case class Node[C, I](configuration: C, info: I, children: List[Node[C, I]], bas
 
   def toString(indent: String): String = {
     val sb = new StringBuilder(indent + "|__" + configuration)
+    if (base.isDefined) {
+      sb.append("*******")
+    }
     for (edge <- children) {
       sb.append("\n  " + indent + "|" + (if (edge.info != null) edge.info else ""))
       sb.append("\n" + edge.toString(indent + "  "))
@@ -37,13 +40,13 @@ case class Node[C, I](configuration: C, info: I, children: List[Node[C, I]], bas
 case class CoGraph[C, I](root: CoNode[C, I], leaves: List[CoNode[C, I]], nodes: List[CoNode[C, I]]) {
   override def toString = nodes.toString
 }
-case class CoNode[C, I](configuration: C, info: I, parent: CoNode[C, I], base: Option[Path], coPath: CoPath) {
+case class CoNode[+C, +I](configuration: C, info: I, parent: CoNode[C, I], base: Option[Path], coPath: CoPath) {
   lazy val path = coPath.reverse
   val ancestors: List[CoNode[C, I]] = if (parent == null) Nil else parent :: parent.ancestors
   override def toString = configuration.toString
 }
 
-case class PState[C, I](val node: CoNode[C, I], val completeNodes: List[CoNode[C, I]])
+case class PState[+C, +I](val node: CoNode[C, I], val completeNodes: List[CoNode[C, I]])
 
 case class PartialCoGraph[C, I](
   completeLeaves: List[CoNode[C, I]],
@@ -55,27 +58,38 @@ case class PartialCoGraph[C, I](
   val pState = PState(activeLeaf.getOrElse(null), completeNodes)
 
   // step is suggested for the current active leaf
-  def addStep(step: MStep[C, I]): PartialCoGraph[C, I] = incompleteLeaves match {
-    case aLeaf :: ls =>
-      step match {
-        case MComplete =>
-          new PartialCoGraph(aLeaf :: completeLeaves, ls, aLeaf :: completeNodes)
-        case MPrune =>
-          throw new Error()
-        case MReplace(c, i) =>
-          val newNode = CoNode(c, i, aLeaf.parent, None, aLeaf.coPath)
-          new PartialCoGraph(completeLeaves, newNode :: ls, completeNodes)
-        case MForest(subSteps) =>
-          val deltaLeaves = subSteps.zipWithIndex map {
-            case (subStep, i) => CoNode(subStep.configuration, subStep.info, aLeaf, None, i :: aLeaf.coPath)
-          }
-          new PartialCoGraph(completeLeaves, deltaLeaves ++ ls, aLeaf :: completeNodes)
-        case MFold(basePath) =>
-          val l1 = CoNode(aLeaf.configuration, aLeaf.info, aLeaf.parent, Some(basePath), aLeaf.coPath)
-          new PartialCoGraph(l1 :: completeLeaves, ls, l1 :: completeNodes)
-      }
-    case _ =>
-      throw new Error()
+  def addStep(step: MStep[C, I]): PartialCoGraph[C, I] = {
+    //println(step)
+    incompleteLeaves match {
+      case aLeaf :: ls =>
+        step match {
+          case MComplete =>
+            new PartialCoGraph(aLeaf :: completeLeaves, ls, aLeaf :: completeNodes)
+          case MPrune =>
+            throw new Error()
+          case MReplace(c, i) =>
+            val newNode = CoNode(c, i, aLeaf.parent, None, aLeaf.coPath)
+            new PartialCoGraph(completeLeaves, newNode :: ls, completeNodes)
+          case MRollback(dangNode, c, i) =>
+            // dangerous is a completed node:
+            // remove all its successors from the stuff
+            val newNode = CoNode(c, i, dangNode.parent, None, dangNode.coPath)
+            val newCompleteNodes = completeNodes.remove(n => n.path.startsWith(dangNode.path))
+            val newCompleteLeaves = completeLeaves.remove(n => n.path.startsWith(dangNode.path))
+            val newIncompleteLeaves = ls.remove( n => n.path.startsWith(dangNode.path))
+            new PartialCoGraph(newCompleteLeaves, newNode :: newIncompleteLeaves, newCompleteNodes)
+          case MForest(subSteps) =>
+            val deltaLeaves = subSteps.zipWithIndex map {
+              case (subStep, i) => CoNode(subStep.configuration, subStep.info, aLeaf, None, i :: aLeaf.coPath)
+            }
+            new PartialCoGraph(completeLeaves, deltaLeaves ++ ls, aLeaf :: completeNodes)
+          case MFold(basePath) =>
+            val l1 = CoNode(aLeaf.configuration, aLeaf.info, aLeaf.parent, Some(basePath), aLeaf.coPath)
+            new PartialCoGraph(l1 :: completeLeaves, ls, l1 :: completeNodes)
+        }
+      case _ =>
+        throw new Error()
+    }
   }
 }
 
