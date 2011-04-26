@@ -4,12 +4,12 @@ import mrsc._
 
 trait Whistle {
   def name: String
-  def accept(ps: PState[Expr, Contraction]): Boolean
+  def accept(ps: PState[Expr, Any]): Boolean
 }
 
 case class ExpressionSize(size: Int) extends Whistle {
   val name = "size < " + size
-  def accept(ps: PState[Expr, Contraction]) = ps.node.configuration match {
+  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
     case Let(_, _) => true
     case Ctr(_, _) => true
     case x => x.size < size
@@ -18,7 +18,7 @@ case class ExpressionSize(size: Int) extends Whistle {
 
 object HEWhistle extends Whistle {
   val name = "homeomorphic embedding"
-  def accept(ps: PState[Expr, Contraction]) = ps.node.configuration match {
+  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
     case Let(_, _) => true
     case Ctr(_, _) => true
     case x => ps.node.ancestors.forall { a =>
@@ -32,7 +32,7 @@ object HEWhistle extends Whistle {
 
 object HEWithRedexWhistle extends Whistle {
   val name = "homeomorphic embedding with redex"
-  def accept(ps: PState[Expr, Contraction]) = ps.node.configuration match {
+  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
     case Let(_, _) => true
     case Ctr(_, _) => true
     case x => ps.node.ancestors.forall { a =>
@@ -46,7 +46,7 @@ object HEWithRedexWhistle extends Whistle {
 
 object HEByCouplingWhistle extends Whistle {
   val name = "homeomorphic embedding via coupling"
-  def accept(ps: PState[Expr, Contraction]) = ps.node.configuration match {
+  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
     case Let(_, _) => true
     case Ctr(_, _) => true
     case x => ps.node.ancestors.forall { a =>
@@ -60,7 +60,7 @@ object HEByCouplingWhistle extends Whistle {
 
 object HEByCouplingWithRedexWhistle extends Whistle {
   val name = "homeomorphic embedding via coupling with redex"
-  def accept(ps: PState[Expr, Contraction]) = ps.node.configuration match {
+  def accept(ps: PState[Expr, Any]) = ps.node.configuration match {
     case Let(_, _) => true
     case Ctr(_, _) => true
     case x => ps.node.ancestors.forall { a =>

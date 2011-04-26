@@ -1,0 +1,37 @@
+app(Nil(), vs) = vs;
+app(Cons(u, us), vs) = Cons(u, app(us, vs));
+rev(Nil()) = Nil();
+rev(Cons(x, xs))=app(rev(xs), Cons(x, Nil()));
+---
+
+|__(rev es)
+  |
+      |__es
+      |  es = Cons $4 5
+      |__app (rev $5) (Cons $4 Nil) - /// case (case ($5) of ... !! Hooray - this is not an MSG!!!
+         |
+         | $5 = Cons $18 $19
+         |__ app (app (rev $19) (Cons $18 Nil)) (Cons $4 Nil) // case (((app (rev $19))
+             |
+             | 
+----
+
+Cons v4 Nil -> a
+
+----
+app (rev $5) (Cons $4 Nil) => 
+app (rev $5) a
+---
+v5 = Cons v18 v19
+app (app (rev v19) (Cons v18 Nil)) a
+      
+Map(v5 -> v19, a -> (Cons v18 +a))
+
+app (app (rev v19) (Cons v18 Nil)) a = app (rev v5) a // [v5 -> v19, a -> (Cons v18 +a)] = app (rev 19) (Cons v18 +a)
+---------
+
+SLL Lemma (is much easier)
+app (app (rev v19) (Cons v18 Nil)) a = app (rev 19) (Cons v18 +a)
+
+or:
+app (app (rev xs) (Cons y Nil)) ys = app (rev xs) (Cons y ys)

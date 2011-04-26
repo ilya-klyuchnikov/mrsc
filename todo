@@ -2,9 +2,10 @@ Generating residual program. Options - free vars. No free vars. ETC.
 
 Applications:
 
-1. "Minimal" programs (search the most descriptive and consice variant of the given program).
+1. "Minimal" programs (search the most descriptive and concise variant of the given program).
 2. Transformations with lemmas/theorems.
 3. Different approximation - as in Klimov paper.
+4. Implement call-by-name (reference implementation), call-by-value and call-by-need.
 
 
 
@@ -19,3 +20,8 @@ Experiment configuration:
 7) replace/forest on generalization
 8) global/local control
 9) (maximal) free expression extraction - reducing number of argument of function
+
+
+
+
+TODO: find the case where e1 < e2 but msg = e2. Can it be done by just driving??

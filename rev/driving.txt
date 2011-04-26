@@ -1,0 +1,48 @@
+EXAMPLE 10
+|__(rev es)
+  |
+  |__((\$1 -> case ($1) of {Cons $2 $3 -> ((app (rev $3)) (Cons $2 (Nil))); Nil  -> (Nil);}) es)
+    |
+    |__case (es) of {Cons $4 $5 -> ((app (rev $5)) (Cons $4 (Nil))); Nil  -> (Nil);}
+      |
+      |__es
+      |
+      |__((app (rev $5)) (Cons $4 (Nil)))
+        |
+        |__(((\$6 -> (\$7 -> case ($6) of {Cons $8 $9 -> (Cons $8 ((app $9) $7)); Nil  -> $7;})) (rev $5)) (Cons $4 (Nil)))
+          |
+          |__((\$10 -> case ((rev $5)) of {Cons $11 $12 -> (Cons $11 ((app $12) $10)); Nil  -> $10;}) (Cons $4 (Nil)))
+            |
+            |__case ((rev $5)) of {Cons $13 $14 -> (Cons $13 ((app $14) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+              |
+              |__case (((\$15 -> case ($15) of {Cons $16 $17 -> ((app (rev $17)) (Cons $16 (Nil))); Nil  -> (Nil);}) $5)) of {Cons $13 $14 -> (Cons $13 ((app $14) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                |
+                |__case (case ($5) of {Cons $18 $19 -> ((app (rev $19)) (Cons $18 (Nil))); Nil  -> (Nil);}) of {Cons $20 $21 -> (Cons $20 ((app $21) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                  |
+                  |__$5
+                  |
+                  |__case (((app (rev $19)) (Cons $18 (Nil)))) of {Cons $22 $23 -> (Cons $22 ((app $23) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                    |
+                    |__case ((((\$26 -> (\$27 -> case ($26) of {Cons $28 $29 -> (Cons $28 ((app $29) $27)); Nil  -> $27;})) (rev $19)) (Cons $18 (Nil)))) of {Cons $22 $23 -> (Cons $22 ((app $23) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                      |
+                      |__case (((\$30 -> case ((rev $19)) of {Cons $31 $32 -> (Cons $31 ((app $32) $30)); Nil  -> $30;}) (Cons $18 (Nil)))) of {Cons $33 $34 -> (Cons $33 ((app $34) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                        |
+                        |__case (case ((rev $19)) of {Cons $35 $36 -> (Cons $35 ((app $36) (Cons $18 (Nil)))); Nil  -> (Cons $18 (Nil));}) of {Cons $37 $38 -> (Cons $37 ((app $38) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                          |
+                          |__case (case (((\$39 -> case ($39) of {Cons $40 $41 -> ((app (rev $41)) (Cons $40 (Nil))); Nil  -> (Nil);}) $19)) of {Cons $35 $36 -> (Cons $35 ((app $36) (Cons $18 (Nil)))); Nil  -> (Cons $18 (Nil));}) of {Cons $37 $38 -> (Cons $37 ((app $38) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                            |
+                            |__case (case (case ($19) of {Cons $42 $43 -> ((app (rev $43)) (Cons $42 (Nil))); Nil  -> (Nil);}) of {Cons $44 $45 -> (Cons $44 ((app $45) (Cons $18 (Nil)))); Nil  -> (Cons $18 (Nil));}) of {Cons $46 $47 -> (Cons $46 ((app $47) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                  |
+                  |__case ((Nil)) of {Cons $24 $25 -> (Cons $24 ((app $25) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+                    |
+                    |__(Cons $4 (Nil))
+                      |
+                      |__$4
+                      |
+                      |__(Nil)
+      |
+      |__(Nil)
+EMBEDDING DETECTED:
+case (case ($5) of {Cons $18 $19 -> ((app (rev $19)) (Cons $18 (Nil))); Nil  -> (Nil);}) of {Cons $20 $21 -> (Cons $20 ((app $21) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}
+<
+case (case (case ($19) of {Cons $42 $43 -> ((app (rev $43)) (Cons $42 (Nil))); Nil  -> (Nil);}) of {Cons $44 $45 -> (Cons $44 ((app $45) (Cons $18 (Nil)))); Nil  -> (Cons $18 (Nil));}) of {Cons $46 $47 -> (Cons $46 ((app $47) (Cons $4 (Nil)))); Nil  -> (Cons $4 (Nil));}

@@ -7,7 +7,7 @@ case class Contraction(v: Var, pat: Pat) {
 	override def toString = v + " = " + pat
 }
 
-abstract class Expr {
+abstract sealed class Expr {
   def size(): Int
 }
 

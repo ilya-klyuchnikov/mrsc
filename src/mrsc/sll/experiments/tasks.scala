@@ -31,6 +31,14 @@ object SLLTasks {
 
     gAddAcc(Z(), y) = y;
     gAddAcc(S(x), y) = gAddAcc(x, S(y));
+
+    gEven(Z()) = True();
+    gEven(S(x)) = gOdd(x);
+    gOdd(Z()) = False();
+    gOdd(S(x)) = gEven(x);
+
+    gOr(True(), x) = True();
+    gOr(False(), x) = x;
 	"""
 
   val listProgram: Program =
@@ -61,8 +69,9 @@ object SLLTasks {
     SLLTask("gFib(S(S(x)))", peanoProgram),
     SLLTask("gAddAcc(x, y)", peanoProgram),
     SLLTask("gEq(gAdd(a, b), gAdd(c, d))", peanoProgram),
-    SLLTask("gEq(gAdd(a, S(b)), gAdd(c, S(d)))", peanoProgram))
+    SLLTask("gEq(gAdd(a, S(b)), gAdd(c, S(d)))", peanoProgram),
+    SLLTask("gOr(gEven(x), gOdd(x))", peanoProgram))
 
-  val namedTasks = Map(tasks map {t => (t.target.toString, t)}: _*)
+  val namedTasks = Map(tasks map { t => (t.target.toString, t) }: _*)
 
 }
