@@ -77,7 +77,8 @@ case class PartialCoGraph[C, I](
             val newCompleteNodes = completeNodes.remove(n => n.path.startsWith(dangNode.path))
             val newCompleteLeaves = completeLeaves.remove(n => n.path.startsWith(dangNode.path))
             val newIncompleteLeaves = ls.remove( n => n.path.startsWith(dangNode.path))
-            new PartialCoGraph(newCompleteLeaves, newNode :: newIncompleteLeaves, newCompleteNodes)
+            val newg = new PartialCoGraph(newCompleteLeaves, newNode :: newIncompleteLeaves, newCompleteNodes)
+            newg
           case MForest(subSteps) =>
             val deltaLeaves = subSteps.zipWithIndex map {
               case (subStep, i) => CoNode(subStep.configuration, subStep.info, aLeaf, None, i :: aLeaf.coPath)

@@ -27,3 +27,8 @@ Experiment configuration:
 TODO: find the case where e1 < e2 but msg = e2. Can it be done by just driving??
 
 TODO: we can blame all expressions
+
+-----
+
+replace/rollback - how to be with info??? Seems that we need two kinds of info, but I am not sure.
+The current hack: copy/not copy it.

@@ -63,6 +63,7 @@ object SLLTasks {
     SLLTask("gApp(gApp(x, y), x)", listProgram),
     SLLTask("gApp(gApp(x, x), x)", listProgram),
     SLLTask("gRev(x)", listProgram),
+    SLLTask("gApp(gApp(gRev(xs), Cons(y, Nil())), ys)", listProgram),
     SLLTask("gEq(x, x)", peanoProgram),
     SLLTask("gEq(gAdd(x, y), gAdd(y, x1))", peanoProgram),
     SLLTask("gFib(x)", peanoProgram),

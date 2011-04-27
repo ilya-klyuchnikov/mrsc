@@ -4,10 +4,11 @@ import scala.annotation.tailrec
 
 class SingleCoGraphBuilder[C, I](machine: SingleMachine[C, I]) {
   def buildCoGraph(conf: C, info: I): CoGraph[C, I] = {
-    val rootNode = CoNode[C, I](conf, info, null, None, Nil)
-    val initialCoGraph = new PartialCoGraph(List(), List(rootNode), Nil)
+    val rootNode_ = CoNode[C, I](conf, info, null, None, Nil)
+    val initialCoGraph = new PartialCoGraph(List(), List(rootNode_), Nil)
     val finalCoGraph = build(initialCoGraph)
     val orderedNodes = finalCoGraph.completeNodes.sortBy(_.coPath)(PathOrdering)
+    val rootNode = orderedNodes.head
     CoGraph(rootNode, finalCoGraph.completeLeaves, orderedNodes)
   }
 

@@ -130,32 +130,45 @@ class PSLLMultiMachine(
     }
   }
 
+  var toReplace: CoNode[Expr, SubStepInfo] = null
+  
   def rebuildings(pState: PState[Expr, SubStepInfo], signal: Blaming[Expr, SubStepInfo]) =
-    rebuilduingStrategy match {
-      case CurrentByWhistle =>
-        signal.signal match {
-          case Whistle.SoftPrune =>
-            rebuilduingStrategy match {
-              case CurrentByWhistle => {
-                val blamedNode = signal.blamed.get
-                val blamedExpr = blamedNode.configuration
-                val currentExpr = pState.node.configuration
-                //println(currentExpr)
-                //println(blamedExpr)
-                val rebuilt = msgToLet(currentExpr, MSG.msg(currentExpr, blamedExpr))
-                //println(rebuilt)
-                //println("----")
-                List(SubStep(rebuilt, GeneralizationStep(currentExpr)))
-              }
-              case _ => Nil
-            }
+    signal.signal match {
+      case Whistle.SoftPrune =>
+        rebuilduingStrategy match {
+          case CurrentByWhistle => {
+            val blamedNode = signal.blamed.get
+            val blamedExpr = blamedNode.configuration
+            val currentExpr = pState.node.configuration
+            //println(currentExpr)
+            //println(blamedExpr)
+            val rebuilt = msgToLet(currentExpr, MSG.msg(currentExpr, blamedExpr))
+            //println(rebuilt)
+            //println("----")
+            List(SubStep(rebuilt, GeneralizationStep(currentExpr)))
+          }
+          case DangerousByWhistle => {
+            val blamedNode = signal.blamed.get
+            val blamedExpr = blamedNode.configuration
+            val currentExpr = pState.node.configuration
+            println(currentExpr)
+            println(blamedExpr)
+            val rebuilt = msgToLet(blamedExpr, MSG.msg(blamedExpr, currentExpr))
+            println(rebuilt)
+            println("----")
+            toReplace = blamedNode
+            List(SubStep(rebuilt, GeneralizationStep(blamedExpr)))
+          }
           case _ => Nil
         }
       case _ => Nil
     }
 
-  def rebuildStep(gs: SubStep[Expr, SubStepInfo]) = MForest(List(gs))
-    //MReplace(gs.configuration, gs.info)
+  def rebuildStep(gs: SubStep[Expr, SubStepInfo]) = //MForest(List(gs))
+    rebuilduingStrategy match {
+      case CurrentByWhistle => MReplace(gs.configuration, gs.info)
+      case DangerousByWhistle => MRollback(toReplace, gs.configuration, gs.info)
+    }
 
   def msgToLet(ce: Expr, g: Gen) = {
     if (g.t.isInstanceOf[Var]) {
@@ -187,7 +200,6 @@ class PSLLMultiMachine(
 
   def tricks(pState: PState[Expr, SubStepInfo], signal: Blaming[Expr, SubStepInfo]): List[SubStep[Expr, SubStepInfo]] = {
     if (speculate) {
-      println("speculating")
       val from = pState.node.configuration
       val res = speculator.speculate(from) map { e => SubStep(e, SpeculationStep(from, e)) }
       res
