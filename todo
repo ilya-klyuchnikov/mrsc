@@ -32,3 +32,5 @@ TODO: we can blame all expressions
 
 replace/rollback - how to be with info??? Seems that we need two kinds of info, but I am not sure.
 The current hack: copy/not copy it.
+
+for now there is a hack of passing blamed node in p SLL machine

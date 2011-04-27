@@ -95,11 +95,12 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo] {
     println(completedCoGraphsCount + " completed graphs")
     println(prunedCoGraphsCount + " pruned graphs")
     
+    /*
     for (cg <- coGraphs; graph = Transformations.transpose(cg)) {
-      //println(graph)
-    }
+      println(graph)
+    }*/
     
-    val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg); z =println(graph)) yield (new NSLLResiduator2(graph).result, graph)
+    val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NSLLResiduator2(graph).result, graph)
     val mapProg = Map(allProgs:_*)
     programs = allProgs map {_._1} sortBy{_.size} distinct
 

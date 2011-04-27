@@ -38,6 +38,9 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
         case Whistle.OK => List(MForest(drive(pState)))
         case _ => List(MPrune)
       }
+      
+      //println("drive:::")
+      //println(driveSteps)
 
       whistle.signal match {
         case Whistle.Complete => List(MComplete)
