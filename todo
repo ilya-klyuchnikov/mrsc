@@ -34,3 +34,9 @@ replace/rollback - how to be with info??? Seems that we need two kinds of info, 
 The current hack: copy/not copy it.
 
 for now there is a hack of passing blamed node in p SLL machine
+
+we need to pass blamed node into subsequent calls
+
+TODO: ticks
+
+to fill form for Microsoft research (commission)
