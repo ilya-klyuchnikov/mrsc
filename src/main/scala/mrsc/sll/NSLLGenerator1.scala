@@ -46,7 +46,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
   
   import StepKind._
   private def make(n: Node[Expr, SubStepInfo]): NExpr = {
-    val children @ (n1 :: ns) = n.outs map {_.to}
+    val children @ (n1 :: ns) = n.outs map {_.node}
     
     n1.info.stepKind match {
       case Stop =>

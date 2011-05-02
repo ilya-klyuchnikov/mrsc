@@ -35,6 +35,6 @@ trait CoGraphConsumer[C, I] {
   def consume(graph: Option[CoGraph[C, I]]): Unit
 }
 
-// just to distinguish modeling inconsistencies 
-// (the main one is "to much results")
+// just to distinguish modeling inconsistencies
+// (the main one is "too much results")
 class ModelingError(val message: String) extends Exception(message: String)

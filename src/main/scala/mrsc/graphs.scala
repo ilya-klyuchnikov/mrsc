@@ -32,6 +32,10 @@ import scala.annotation.tailrec
  
  */
 
+/*! The labeled edge.
+ */
+case class Edge[T, I](node: T, label: I)
+
 /*! `Graph[C, I]`. `C` (label) is a type of node label and `I` (info) is a type of edge label.
  */
 case class Graph[C, I](root: Node[C, I], leaves: Nodes[C, I]) {
@@ -41,20 +45,17 @@ case class Graph[C, I](root: Node[C, I], leaves: Nodes[C, I]) {
 
 /*! `Node[C,I]` is a very simple and straightforward implementation. 
  */
-// TODO: extract edge into separate class
-case class Node[C, I](label: C, info: I, outs: List[Edge[Node[C, I], I]], base: Loopback, path: Path) {
+case class Node[C, I](label: C, info: I, outs: List[Out[C, I]], base: Loopback, path: Path) {
   lazy val coPath = path.reverse
 
   @tailrec
   final def get(relPath: Path): Node[C, I] = relPath match {
     case Nil => this
-    case i :: rp => outs(i).to.get(rp)
+    case i :: rp => outs(i).node.get(rp)
   }
 
   override def toString = GraphPrettyPrinter.toString(this)
 }
-
-case class Edge[T, +I](to: T, label: I)
 
 /*! `CoGraph[C, I]` is dual to `Graph[C, I]`. It has additionally the list of all nodes (vertices).
  */
@@ -62,9 +63,12 @@ case class CoGraph[C, I](root: CoNode[C, I], leaves: CoNodes[C, I], nodes: CoNod
 
 /*! `CoNode[C,I]` is straightforward. 
  */
-case class CoNode[+C, +I](label: C, info: I, in: CoNode[C, I], base: Loopback, coPath: CoPath) {
+case class CoNode[C, I](label: C, info: I, in: In[C, I], base: Loopback, coPath: CoPath) {
   lazy val path = coPath.reverse
-  val ancestors: List[CoNode[C, I]] = if (in == null) List() else in :: in.ancestors
+
+  val ancestors: List[CoNode[C, I]] =
+    if (in == null) List() else in.node :: in.node.ancestors
+
   override def toString = label.toString
 }
 
@@ -76,7 +80,7 @@ case class PartialCoGraph[C, I](
   completeNodes: CoNodes[C, I]) {
 
   val activeLeaf: Option[CoNode[C, I]] = incompleteLeaves.headOption
-  /*! Partial state is exposed passed to SCP machines.
+  /*! Partial state is exposed to SCP machines.
    */
   val pState = PState(activeLeaf.getOrElse(null), completeNodes)
 
@@ -100,9 +104,10 @@ case class PartialCoGraph[C, I](
           PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
 
         case MForest(subSteps) =>
-          val deltaLeaves = subSteps.zipWithIndex map {
+          val deltaLeaves: CoNodes[C, I] = subSteps.zipWithIndex map {
             case (subStep, i) =>
-              CoNode(subStep.label, subStep.info, active, None, i :: active.coPath)
+              val edge: Edge[CoNode[C, I], I] = Edge[CoNode[C, I], I](active, null.asInstanceOf[I])
+              CoNode(subStep.label, subStep.info, edge, None, i :: active.coPath)
           }
           PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)
 
@@ -120,7 +125,7 @@ case class PartialCoGraph[C, I](
 
 /*! Based on the current `PState`, SCP machine should decide what should be done next.
  */
-case class PState[+C, +I](val node: CoNode[C, I], val completeNodes: List[CoNode[C, I]])
+case class PState[C, I](val node: CoNode[C, I], val completeNodes: List[CoNode[C, I]])
 
 /*! The simple lexicographic order on paths.
  */

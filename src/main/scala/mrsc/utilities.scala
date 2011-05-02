@@ -45,7 +45,7 @@ object GraphPrettyPrinter {
     }
     for (edge <- node.outs) {
       sb.append("\n  " + indent + "|" + (if (edge.label != null) edge.label else ""))
-      sb.append("\n" + toString(edge.to, indent + "  "))
+      sb.append("\n" + toString(edge.node, indent + "  "))
     }
     sb.toString
   }

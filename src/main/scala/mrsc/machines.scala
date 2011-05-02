@@ -5,7 +5,7 @@ object Whistle extends Enumeration {
   val OK, SoftPrune, HardPrune, Complete = Value
 }
 
-case class Blaming[+C, +I](blamed: Option[CoNode[C, I]], signal: Whistle.Whistle)
+case class Blaming[C, I](blamed: Option[CoNode[C, I]], signal: Whistle.Whistle)
 /*
  * AbstractMultiMachine represents some common behavior logic.
  * It is more to help create "reference implementations", it is not for

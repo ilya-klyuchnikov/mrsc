@@ -14,7 +14,7 @@ class CountGraphConsumer extends CoGraphConsumer[Expr, Contraction] {
       case Some(cg) => completed = completed + 1
     }
     if (completed > 50000 || pruned > 50000) {
-      throw new ModelingError("to many results")
+      throw new ModelingError("too many results")
     }
   }
 
@@ -44,7 +44,7 @@ class CountProgramConsumer extends CoGraphConsumer[Expr, Contraction] {
         coGraphs = cg :: coGraphs
     }
     if (completedCoGraphsCount > 1000 || prunedCoGraphsCount > 1000) {
-      throw new ModelingError("to many results")
+      throw new ModelingError("too many results")
     }
   }
 
@@ -87,7 +87,7 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo] {
         coGraphs = cg :: coGraphs
     }
     if (completedCoGraphsCount > 100000) {
-      throw new ModelingError("to many results")
+      throw new ModelingError("too many results")
     }
   }
 

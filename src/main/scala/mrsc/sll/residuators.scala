@@ -46,20 +46,20 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction]) {
 
   private def make(n: Node[Expr, Contraction]): NExpr = n.label match {
     case Var(vn) => NVar(vn)
-    case Ctr(cn, _) => NCtr(cn, n.outs.map{_.to}.map(fold))
+    case Ctr(cn, _) => NCtr(cn, n.outs.map{_.node}.map(fold))
     case Let(_, bs) => {
-      val n0 :: ns = n.outs.map{_.to}
+      val n0 :: ns = n.outs.map{_.node}
       val sub = Map() ++ (bs map { kv => NVar(kv._1.name) } zip (ns map fold))
       nSubst(fold(n0), sub)
     }
     case _ =>
-      if (n.outs.head.to.info == null) {
+      if (n.outs.head.node.info == null) {
         // transient step
-        fold(n.outs.head.to)
+        fold(n.outs.head.node)
       } else {
         // variants
-        val sortedChildren = n.outs.map{_.to} sortWith { (n1, n2) => (n1.info.pat.name compareTo n2.info.pat.name) < 0 }
-        val sel = NVar(n.outs.head.to.info.v.name)
+        val sortedChildren = n.outs.map{_.node} sortWith { (n1, n2) => (n1.info.pat.name compareTo n2.info.pat.name) < 0 }
+        val sel = NVar(n.outs.head.node.info.v.name)
         val bs = sortedChildren map { c => (convert(c.info.pat), fold(c)) }
         NCase(sel, bs)
       }
@@ -131,25 +131,25 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
     case Var(vn) => Var(vn)
     case Ctr(cn, _) => {
       // TODO
-      Ctr(cn, n.outs.map{_.to}.map(fold))
+      Ctr(cn, n.outs.map{_.node}.map(fold))
     }
     case Let(_, bs) => {
-      val n0 :: ns = n.outs.map{_.to}
+      val n0 :: ns = n.outs.map{_.node}
       val body = fold(n0)
       val sub = Map() ++ (bs map { kv => Var(kv._1.name) } zip (ns map fold))
       subst(body, sub)
     }
     case _ =>
-      if (n.outs.head.to.info == null) {
+      if (n.outs.head.node.info == null) {
         // transient step
-        lazy val traversed = fold(n.outs.head.to)
+        lazy val traversed = fold(n.outs.head.node)
         for ((fname, fargs) <- sig)
           defs += FFun(fname, fargs, traversed)
         traversed
       } else {
         val sig1@(gname, gargs) = sig.getOrElse(createSignature(n))
         sigs(n.path) = sig1
-        for (cn <- n.outs.map{_.to})
+        for (cn <- n.outs.map{_.node})
           defs += GFun(gname, cn.info.pat, gargs.tail, fold(cn))
         GCall(gname, gargs)
       }

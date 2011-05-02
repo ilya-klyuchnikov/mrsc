@@ -38,7 +38,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
           val driveStep =
             if (whistle(ps)) MForest(drivingStep(e)) else MPrune
           val notGen =
-            (ps.node.in != null) && (ps.node.in.label match { case Let(_, _) => true; case _ => false })
+            (ps.node.in != null) && (ps.node.in.node.label match { case Let(_, _) => true; case _ => false })
           // we do not try to generalize if previous step was a generalization
           val genSteps =
             if (notGen) Nil else SLLGeneralizations.gens(e) map { e1 =>
@@ -55,7 +55,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
   def drivingStep(configuration: Expr): List[SubStep[Expr, Contraction]] = decompose(configuration) match {
     case DecLet(Let(term, bs)) =>
       new SubStep[Expr, Contraction](term, null) :: bs.map { case (_, v) => new SubStep[Expr, Contraction](v, null) }
-    case ObservableCtr(Ctr(_, args)) => args map { a => new SubStep[Expr, Contraction](a, null) }
+    case ObservableCtr(Ctr(_, args)) => args map { a => SubStep[Expr, Contraction](a, null) }
     case context @ Context(red) =>
       red match {
         case RedexFCall(FCall(name, args)) => {
@@ -100,7 +100,7 @@ class SLLMachine1(p: Program, wh: Whistle) extends SLLMachine(p, wh) {
           val driveStep = 
             if (accept) MForest(drivingStep(e)) else MPrune
           val notGen =
-            (ps.node.in != null) && (ps.node.in.label match { case Let(_, _) => true; case _ => false })
+            (ps.node.in != null) && (ps.node.in.node.label match { case Let(_, _) => true; case _ => false })
           // we do not try to generalize if previous step was a generalization
           val genSteps =
             if (notGen || (!accept)) Nil else SLLGeneralizations.gens(e) map { e1 =>

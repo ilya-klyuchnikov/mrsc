@@ -81,7 +81,7 @@ class PSLLMultiMachine(
         case _ =>
           ps.node.ancestors.dropWhile { n => n.info.isInstanceOf[SpeculationStep] } match {
             case Nil => Nil
-            case n1 :: ns if ps.node.info.isInstanceOf[SpeculationStep] && n1.path == ps.node.in.path => ns filter { renamingFilter(ps.node) } map { _.path }
+            case n1 :: ns if ps.node.info.isInstanceOf[SpeculationStep] && n1.path == ps.node.in.node.path => ns filter { renamingFilter(ps.node) } map { _.path }
             case ns => ns filter { renamingFilter(ps.node) } map { _.path }
           }
         //case Ancestors => ps.node.ancestors.remove { n => n.info.isInstanceOf[SpeculationStep] } filter { renamingFilter(ps.node) } map { _.path }
