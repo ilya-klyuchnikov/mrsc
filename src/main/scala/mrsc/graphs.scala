@@ -42,17 +42,19 @@ case class Graph[C, I](root: Node[C, I], leaves: Nodes[C, I]) {
 /*! `Node[C,I]` is a very simple and straightforward implementation. 
  */
 // TODO: extract edge into separate class
-case class Node[C, I](label: C, info: I, outs: Nodes[C, I], base: Loopback, path: Path) {
+case class Node[C, I](label: C, info: I, outs: List[Edge[Node[C, I], I]], base: Loopback, path: Path) {
   lazy val coPath = path.reverse
 
   @tailrec
   final def get(relPath: Path): Node[C, I] = relPath match {
     case Nil => this
-    case i :: rp => outs(i).get(rp)
+    case i :: rp => outs(i).to.get(rp)
   }
 
   override def toString = GraphPrettyPrinter.toString(this)
 }
+
+case class Edge[T, +I](to: T, label: I)
 
 /*! `CoGraph[C, I]` is dual to `Graph[C, I]`. It has additionally the list of all nodes (vertices).
  */
