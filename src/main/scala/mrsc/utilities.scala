@@ -12,7 +12,7 @@ object Transformations {
     nodes match {
       case Nil => (Nil, Nil)
       case ns1 :: Nil =>
-        val newNodes = ns1 map { n => new Node(n.configuration, n.info, Nil, n.base, n.path) }
+        val newNodes = ns1 map { n => new Node(n.label, n.info, Nil, n.base, n.path) }
         val newLeaves = newNodes.filter { n => leaves.contains(n.coPath) }
         (newNodes, newLeaves)
       case ns1 :: ns => {
@@ -20,10 +20,24 @@ object Transformations {
         val allchildren = allCh.groupBy { _.coPath.tail }
         val newNodes = ns1 map { n =>
           val children = allchildren.getOrElse(n.coPath, Nil)
-          new Node(n.configuration, n.info, children, n.base, n.path)
+          new Node(n.label, n.info, children, n.base, n.path)
         }
         val newLeaves = newNodes.filter { n => leaves.contains(n.coPath) }
         (newNodes, newLeaves ++ leaves1)
       }
     }
+}
+
+object GraphPrettyPrinter {
+  def toString[C, I](node: Node[C, I], indent: String = ""): String = {
+    val sb = new StringBuilder(indent + "|__" + node.label)
+    if (node.base.isDefined) {
+      sb.append("*******")
+    }
+    for (edge <- node.outs) {
+      sb.append("\n  " + indent + "|" + (if (edge.info != null) edge.info else ""))
+      sb.append("\n" + toString(edge, indent + "  "))
+    }
+    sb.toString
+  }
 }

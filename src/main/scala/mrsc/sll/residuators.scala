@@ -38,35 +38,35 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction]) {
       val (name, args) = sigs(fpath)
       val fnode = tree.get(fpath)
 
-      val sub = findSubst(fnode.configuration, n.configuration)
+      val sub = findSubst(fnode.label, n.label)
       val sub1 = sub map { case (k, v) => (NVar(k.name), convert(v)) }
       NCall(name, args map { nSubst(_, sub1) })
     }
   }
 
-  private def make(n: Node[Expr, Contraction]): NExpr = n.configuration match {
+  private def make(n: Node[Expr, Contraction]): NExpr = n.label match {
     case Var(vn) => NVar(vn)
-    case Ctr(cn, _) => NCtr(cn, n.children.map(fold))
+    case Ctr(cn, _) => NCtr(cn, n.outs.map(fold))
     case Let(_, bs) => {
-      val n0 :: ns = n.children
+      val n0 :: ns = n.outs
       val sub = Map() ++ (bs map { kv => NVar(kv._1.name) } zip (ns map fold))
       nSubst(fold(n0), sub)
     }
     case _ =>
-      if (n.children.head.info == null) {
+      if (n.outs.head.info == null) {
         // transient step
-        fold(n.children.head)
+        fold(n.outs.head)
       } else {
         // variants
-        val sortedChildren = n.children sortWith { (n1, n2) => (n1.info.pat.name compareTo n2.info.pat.name) < 0 }
-        val sel = NVar(n.children.head.info.v.name)
+        val sortedChildren = n.outs sortWith { (n1, n2) => (n1.info.pat.name compareTo n2.info.pat.name) < 0 }
+        val sel = NVar(n.outs.head.info.v.name)
         val bs = sortedChildren map { c => (convert(c.info.pat), fold(c)) }
         NCase(sel, bs)
       }
   }
 
   private def createSignature(fNode: Node[Expr, Contraction], recNodes: List[Node[Expr, Contraction]]): (String, List[NVar]) = {
-    var fVars: List[Var] = vars(fNode.configuration)
+    var fVars: List[Var] = vars(fNode.label)
     (createFName(), fVars map { v => NVar(v.name) })
   }
 
@@ -109,7 +109,7 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
     case Some(fpath) => {
       val (name, args) = sigs(fpath)
       val fnode = tree.get(fpath)
-      val sub = findSubst(fnode.configuration, n.configuration)
+      val sub = findSubst(fnode.label, n.label)
       val res = FCall(name, args map { subst(_, sub) })
       
       tree.leaves.filter { _.base == Some(n.path) } match {
@@ -127,36 +127,36 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
     }
   }
 
-  private def make(n: Node[Expr, Contraction], sig: Option[Sig]): Expr = n.configuration match {
+  private def make(n: Node[Expr, Contraction], sig: Option[Sig]): Expr = n.label match {
     case Var(vn) => Var(vn)
     case Ctr(cn, _) => {
       // TODO
-      Ctr(cn, n.children.map(fold))
+      Ctr(cn, n.outs.map(fold))
     }
     case Let(_, bs) => {
-      val n0 :: ns = n.children
+      val n0 :: ns = n.outs
       val body = fold(n0)
       val sub = Map() ++ (bs map { kv => Var(kv._1.name) } zip (ns map fold))
       subst(body, sub)
     }
     case _ =>
-      if (n.children.head.info == null) {
+      if (n.outs.head.info == null) {
         // transient step
-        lazy val traversed = fold(n.children.head)
+        lazy val traversed = fold(n.outs.head)
         for ((fname, fargs) <- sig)
           defs += FFun(fname, fargs, traversed)
         traversed
       } else {
         val sig1@(gname, gargs) = sig.getOrElse(createSignature(n))
         sigs(n.path) = sig1
-        for (cn <- n.children)
+        for (cn <- n.outs)
           defs += GFun(gname, cn.info.pat, gargs.tail, fold(cn))
         GCall(gname, gargs)
       }
   }
 
   private def createSignature(fNode: Node[Expr, Contraction]): (String, List[Var]) = {
-    var fVars: List[Var] = vars(fNode.configuration)
+    var fVars: List[Var] = vars(fNode.label)
     (createFName(), fVars)
   }
 

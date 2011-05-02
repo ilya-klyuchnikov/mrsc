@@ -39,24 +39,24 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
       val (name, args) = sigs(fpath)
       val fnode = tree.get(fpath)
 
-      val sub = findSubst(fnode.configuration, n.configuration)
+      val sub = findSubst(fnode.label, n.label)
       val sub1 = sub map { case (k, v) => (NVar(k.name), convert(v)) }
       NCall(name, args map { nSubst(_, sub1) })
   }
   
   import StepKind._
   private def make(n: Node[Expr, SubStepInfo]): NExpr = {
-    val children @ (n1 :: ns) = n.children
+    val children @ (n1 :: ns) = n.outs
     
     n1.info.stepKind match {
       case Stop =>
-        convert(n1.configuration)
+        convert(n1.label)
 
       case Transient =>
         fold(n1)
 
       case CtrDecompose =>
-        val ctrName = n.configuration.asInstanceOf[Ctr].name
+        val ctrName = n.label.asInstanceOf[Ctr].name
         NCtr(ctrName, children.map(fold))
 
       case LetDecompose =>
@@ -83,7 +83,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
   }
 
   private def createSignature(fNode: Node[Expr, SubStepInfo], recNodes: List[Node[Expr, SubStepInfo]]): (String, List[NVar]) = {
-    var fVars: List[Var] = vars(fNode.configuration)
+    var fVars: List[Var] = vars(fNode.label)
     (createFName(), fVars map { v => NVar(v.name) })
   }
 

@@ -7,18 +7,18 @@ sealed trait Step[+C, +I]
 case object MComplete extends Step[Nothing, Nothing]
 // prune the current tree
 case object MPrune extends Step[Nothing, Nothing]
-// add children to the current node
+// add outs to the current node
 case class MForest[C, I](val subSteps: List[SubStep[C, I]]) extends Step[C, I]
 // replace the current node - "generalization" of current expression
-case class MReplace[C, I](val configuration: C, val info: I) extends Step[C, I]
-// rollback to the dangerous node and replaces it with new configuration -
+case class MReplace[C, I](val label: C, val info: I) extends Step[C, I]
+// rollback to the dangerous node and replaces it with new label -
 // generalization of dangerous expression
 case class MRollback[C, I](val dangerous: CoNode[C, I], val safe: C, val info: I) extends Step[C, I]
 // folding
 case class MFold(val path: Path) extends Step[Nothing, Nothing]
 
 /* Language-agnostic modeling of abstract computations */
-case class SubStep[+C, +I](configuration: C, info: I)
+case class SubStep[+C, +I](label: C, info: I)
 
 trait SingleMachine[C, I] {
   def makeStep(pState: PState[C, I]): Step[C, I]

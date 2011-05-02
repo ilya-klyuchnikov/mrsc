@@ -4,10 +4,13 @@ import scala.annotation.tailrec
 /*! # SCP Graph Abstraction
  
  At the heart of MRSC is a mini-framework for manipulating SCP graphs.
- In MRSC SC Graph is a special kind of graph that can be seen as a tree (skeleton), some leaves of which can have loopbacks.
+ In MRSC SC Graph is a special kind of graph that can be seen as a tree (skeleton), 
+ some leaves of which can have loopbacks.
  Note that loopbacks can start only from leaves. 
+ /Q: Is there a term for such graphs in graph theory?/
  
- Here is the simplest SCP graph. There are two loopbacks: j⇢c and h⇢d.
+ Here is the simplest SCP graph. There are two loopbacks: j⇢c and h⇢d. 
+ There is also a concept of a path. The path to the node g is [0,0,1].
 
          . c
         .  ↓
@@ -21,101 +24,104 @@ import scala.annotation.tailrec
        
  SCP graphs in MRSC are used in three forms:
  
- * `Graph` - good for top-down traversals.
- * `CoGraph` - good for easy bottom-up traversals.
- * `PartialCoGraph` - good for using in multi-result supercompilation.
+ * `Graph` - good for top-down traversals (a node knows about its outs).
+ * `CoGraph` - good for easy bottom-up traversals (a node knows about in).
+ * `PartialCoGraph` - good for using in multi-result supercompilation 
+    (cograph consists of complete and incomplete parts, 
+    and operation to add outs to incomplete nodes is cheap).
  
  */
 
-
-case class Graph[C, I](root: Node[C, I], leaves: List[Node[C, I]]) {
-  def get(path: Path): Node[C, I] = {
-    root.get(path)
-  }
+/*! `Graph[C, I]`. `C` (label) is a type of node label and `I` (info) is a type of edge label.
+ */
+case class Graph[C, I](root: Node[C, I], leaves: Nodes[C, I]) {
+  def get(path: Path): Node[C, I] = root.get(path)
   override def toString = root.toString
 }
 
-case class Node[C, I](configuration: C, info: I, children: List[Node[C, I]], base: Option[Path], path: Path) {
+/*! `Node[C,I]` is a very simple and straightforward implementation. 
+ */
+// TODO: extract edge into separate class
+case class Node[C, I](label: C, info: I, outs: Nodes[C, I], base: Loopback, path: Path) {
   lazy val coPath = path.reverse
 
   @tailrec
-  final def get(sp: Path): Node[C, I] = {
-    sp match {
-      case Nil => this
-      case i :: sp1 => children(i).get(sp1)
-    }
+  final def get(relPath: Path): Node[C, I] = relPath match {
+    case Nil => this
+    case i :: rp => outs(i).get(rp)
   }
 
-  def toString(indent: String): String = {
-    val sb = new StringBuilder(indent + "|__" + configuration)
-    if (base.isDefined) {
-      sb.append("*******")
-    }
-    for (edge <- children) {
-      sb.append("\n  " + indent + "|" + (if (edge.info != null) edge.info else ""))
-      sb.append("\n" + edge.toString(indent + "  "))
-    }
-    sb.toString
-  }
-
-  override def toString = toString("")
+  override def toString = GraphPrettyPrinter.toString(this)
 }
 
-case class CoGraph[C, I](root: CoNode[C, I], leaves: List[CoNode[C, I]], nodes: List[CoNode[C, I]]) {
-  override def toString = nodes.toString
-}
-case class CoNode[+C, +I](configuration: C, info: I, parent: CoNode[C, I], base: Option[Path], coPath: CoPath) {
+/*! `CoGraph[C, I]` is dual to `Graph[C, I]`. It has additionally the list of all nodes (vertices).
+ */
+case class CoGraph[C, I](root: CoNode[C, I], leaves: CoNodes[C, I], nodes: CoNodes[C, I])
+
+/*! `CoNode[C,I]` is straightforward. 
+ */
+case class CoNode[+C, +I](label: C, info: I, in: CoNode[C, I], base: Loopback, coPath: CoPath) {
   lazy val path = coPath.reverse
-  val ancestors: List[CoNode[C, I]] = if (parent == null) Nil else parent :: parent.ancestors
-  override def toString = configuration.toString
+  val ancestors: List[CoNode[C, I]] = if (in == null) List() else in :: in.ancestors
+  override def toString = label.toString
 }
 
-case class PState[+C, +I](val node: CoNode[C, I], val completeNodes: List[CoNode[C, I]])
-
+/*! `PartialCoGraph[C, I]` is a central concept of MRSC. It represents a SCP "work in progress".
+ */
 case class PartialCoGraph[C, I](
-  completeLeaves: List[CoNode[C, I]],
-  incompleteLeaves: List[CoNode[C, I]],
-  completeNodes: List[CoNode[C, I]]) { // accumulator of nodes
+  completeLeaves: CoNodes[C, I],
+  incompleteLeaves: CoNodes[C, I],
+  completeNodes: CoNodes[C, I]) {
 
   val activeLeaf: Option[CoNode[C, I]] = incompleteLeaves.headOption
-  // "partial state" of this partial co-graph
+  /*! Partial state is exposed passed to SCP machines.
+   */
   val pState = PState(activeLeaf.getOrElse(null), completeNodes)
 
-  // step is suggested for the current active leaf
-  def addStep(step: Step[C, I]): PartialCoGraph[C, I] = {
-    //println(step)
-    incompleteLeaves match {
-      case aLeaf :: ls =>
-        step match {
-          case MComplete =>
-            new PartialCoGraph(aLeaf :: completeLeaves, ls, aLeaf :: completeNodes)
-          case MPrune =>
-            throw new Error()
-          case MReplace(c, _) =>
-            val newNode = CoNode(c, aLeaf.info, aLeaf.parent, None, aLeaf.coPath)
-            new PartialCoGraph(completeLeaves, newNode :: ls, completeNodes)
-          case MRollback(dangNode, c, _) =>
-            val newNode = CoNode(c, dangNode.info, dangNode.parent, None, dangNode.coPath)
-            val newCompleteNodes = completeNodes.remove(n => n.path.startsWith(dangNode.path))
-            val newCompleteLeaves = completeLeaves.remove(n => n.path.startsWith(dangNode.path))
-            val newIncompleteLeaves = ls.remove( n => n.path.startsWith(dangNode.path))
-            val newg = new PartialCoGraph(newCompleteLeaves, newNode :: newIncompleteLeaves, newCompleteNodes)
-            newg
-          case MForest(subSteps) =>
-            val deltaLeaves = subSteps.zipWithIndex map {
-              case (subStep, i) => CoNode(subStep.configuration, subStep.info, aLeaf, None, i :: aLeaf.coPath)
-            }
-            new PartialCoGraph(completeLeaves, deltaLeaves ++ ls, aLeaf :: completeNodes)
-          case MFold(basePath) =>
-            val l1 = CoNode(aLeaf.configuration, aLeaf.info, aLeaf.parent, Some(basePath), aLeaf.coPath)
-            new PartialCoGraph(l1 :: completeLeaves, ls, l1 :: completeNodes)
-        }
-      case _ =>
-        throw new Error()
-    }
+  /*! Step is "applied" to the current active leaf.
+   */
+  def addStep(step: Step[C, I]): PartialCoGraph[C, I] = incompleteLeaves match {
+    case active :: ls =>
+      step match {
+        case MComplete =>
+          PartialCoGraph(active :: completeLeaves, ls, active :: completeNodes)
+
+        case MReplace(l, _) =>
+          val node = CoNode(l, active.info, active.in, None, active.coPath)
+          PartialCoGraph(completeLeaves, node :: ls, completeNodes)
+
+        case MRollback(dangNode, c, _) =>
+          val node = CoNode(c, dangNode.info, dangNode.in, None, dangNode.coPath)
+          val completeNodes1 = completeNodes.remove(n => n.path.startsWith(dangNode.path))
+          val completeLeaves1 = completeLeaves.remove(n => n.path.startsWith(dangNode.path))
+          val incompleteLeaves1 = ls.remove(n => n.path.startsWith(dangNode.path))
+          PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
+
+        case MForest(subSteps) =>
+          val deltaLeaves = subSteps.zipWithIndex map {
+            case (subStep, i) =>
+              CoNode(subStep.label, subStep.info, active, None, i :: active.coPath)
+          }
+          PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)
+
+        case MFold(basePath) =>
+          val node = CoNode(active.label, active.info, active.in, Some(basePath), active.coPath)
+          PartialCoGraph(node :: completeLeaves, ls, node :: completeNodes)
+
+        case MPrune =>
+          throw new Error()
+      }
+    case _ =>
+      throw new Error()
   }
 }
 
+/*! Based on the current `PState`, SCP machine should decide what should be done next.
+ */
+case class PState[+C, +I](val node: CoNode[C, I], val completeNodes: List[CoNode[C, I]])
+
+/*! The simple lexicographic order on paths.
+ */
 object PathOrdering extends Ordering[Path] {
   @tailrec
   final def compare(p1: Path, p2: Path) =
