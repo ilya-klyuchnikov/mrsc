@@ -232,7 +232,7 @@ class PSLLMultiMachine(
     }
   }
 
-  def trickyStep(gs: SubStep[Expr, SubStepInfo]): MStep[Expr, SubStepInfo] =
+  def trickyStep(gs: SubStep[Expr, SubStepInfo]): Step[Expr, SubStepInfo] =
     MForest(List(gs))
 
   private def freshPat(p: Pat) = Pat(p.name, p.args map freshVar)

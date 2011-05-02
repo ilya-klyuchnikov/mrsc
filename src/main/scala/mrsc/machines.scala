@@ -24,7 +24,7 @@ case class Blaming[+C, +I](blamed: Option[CoNode[C, I]], signal: Whistle.Whistle
 
 // TODO: there may be many drive case - propagate/not propagate info
 trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
-  override def makeSteps(pState: PState[C, I]): List[MStep[C, I]] = fold(pState) match {
+  override def makeSteps(pState: PState[C, I]): List[Step[C, I]] = fold(pState) match {
 
     case foldPaths if !foldPaths.isEmpty =>
       foldPaths map { MFold(_) }
@@ -56,8 +56,8 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
   def drive(pState: PState[C, I]): List[SubStep[C, I]]
 
   def rebuildings(pState: PState[C, I], blaming: Blaming[C, I]): List[SubStep[C, I]]
-  def rebuildStep(gs: SubStep[C, I]): MStep[C, I]
+  def rebuildStep(gs: SubStep[C, I]): Step[C, I]
 
   def tricks(pState: PState[C, I], blaming: Blaming[C, I]): List[SubStep[C, I]]
-  def trickyStep(gs: SubStep[C, I]): MStep[C, I]
+  def trickyStep(gs: SubStep[C, I]): Step[C, I]
 }

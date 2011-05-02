@@ -1,9 +1,33 @@
 package mrsc
 
 import scala.annotation.tailrec
-/*
- * This graph is suitable for top-down traversion and/or modification
+/*! # SCP Graph Abstraction
+ 
+ At the heart of MRSC is a mini-framework for manipulating SCP graphs.
+ In MRSC SC Graph is a special kind of graph that can be seen as a tree (skeleton), some leaves of which can have loopbacks.
+ Note that loopbacks can start only from leaves. 
+ 
+ Here is the simplest SCP graph. There are two loopbacks: j⇢c and h⇢d.
+
+         . c
+        .  ↓
+      .    d
+     .     ↓  .  
+    .      e   . 
+    .   ↙ ↓ ↘ .  
+    .  f   g   h
+     . ↓
+       j
+       
+ SCP graphs in MRSC are used in three forms:
+ 
+ * `Graph` - good for top-down traversals.
+ * `CoGraph` - good for easy bottom-up traversals.
+ * `PartialCoGraph` - good for using in multi-result supercompilation.
+ 
  */
+
+
 case class Graph[C, I](root: Node[C, I], leaves: List[Node[C, I]]) {
   def get(path: Path): Node[C, I] = {
     root.get(path)
@@ -58,7 +82,7 @@ case class PartialCoGraph[C, I](
   val pState = PState(activeLeaf.getOrElse(null), completeNodes)
 
   // step is suggested for the current active leaf
-  def addStep(step: MStep[C, I]): PartialCoGraph[C, I] = {
+  def addStep(step: Step[C, I]): PartialCoGraph[C, I] = {
     //println(step)
     incompleteLeaves match {
       case aLeaf :: ls =>
