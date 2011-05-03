@@ -7,14 +7,14 @@ import mrsc.sll.NSLLExpressions._
 // generator of residual programs in NSLL
 // It generate a correct program for graphs where folding links to the upper node in the same path.
 // TODO: ensure that all cases of folding are considered here
-class NSLLResiduator(val tree: Graph[Expr, Contraction]) {
+class NSLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
   lazy val result = fixNames(fold(tree.root))
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make
-  private def fold(n: Node[Expr, Contraction]): NExpr = n.base match {
+  private def fold(n: Node[Expr, Contraction, Extra]): NExpr = n.base match {
 
     case None => {
       lazy val traversed = make(n)
@@ -44,7 +44,7 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction]) {
     }
   }
 
-  private def make(n: Node[Expr, Contraction]): NExpr = n.label match {
+  private def make(n: Node[Expr, Contraction, Extra]): NExpr = n.label match {
     case Var(vn) => NVar(vn)
     case Ctr(cn, _) => NCtr(cn, n.outs.map{_.node}.map(fold))
     case Let(_, bs) => {
@@ -53,19 +53,19 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction]) {
       nSubst(fold(n0), sub)
     }
     case _ =>
-      if (n.outs.head.node.extra == null) {
+      if (n.outs.head.label == null) {
         // transient step
         fold(n.outs.head.node)
       } else {
         // variants
-        val sortedChildren = n.outs.map{_.node} sortWith { (n1, n2) => (n1.extra.pat.name compareTo n2.extra.pat.name) < 0 }
-        val sel = NVar(n.outs.head.node.extra.v.name)
-        val bs = sortedChildren map { c => (convert(c.extra.pat), fold(c)) }
+        val sortedChildren = n.outs sortWith { (n1, n2) => (n1.label.pat.name compareTo n2.label.pat.name) < 0 }
+        val sel = NVar(n.outs.head.label.v.name)
+        val bs = sortedChildren map { c => (convert(c.label.pat), fold(c.node)) }
         NCase(sel, bs)
       }
   }
 
-  private def createSignature(fNode: Node[Expr, Contraction], recNodes: List[Node[Expr, Contraction]]): (String, List[NVar]) = {
+  private def createSignature(fNode: Node[Expr, Contraction, Extra], recNodes: List[Node[Expr, Contraction, Extra]]): (String, List[NVar]) = {
     var fVars: List[Var] = vars(fNode.label)
     (createFName(), fVars map { v => NVar(v.name) })
   }
@@ -84,13 +84,13 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction]) {
 }
 
 // Can create a correct program for any (almost any :)) graph
-class SLLResiduator(val tree: Graph[Expr, Contraction]) {
+class SLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
   type Sig = (String, List[Var])
   private val sigs = scala.collection.mutable.Map[Path, Sig]()
   private val defs = new scala.collection.mutable.ListBuffer[Def]
   lazy val result = (fold(tree.root), Program(defs.toList))
 
-  private def fold(n: Node[Expr, Contraction]): Expr = n.base match {
+  private def fold(n: Node[Expr, Contraction, Extra]): Expr = n.base match {
 
     case None => {
       tree.leaves.filter { _.base == Some(n.path) } match {
@@ -127,7 +127,7 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
     }
   }
 
-  private def make(n: Node[Expr, Contraction], sig: Option[Sig]): Expr = n.label match {
+  private def make(n: Node[Expr, Contraction, Extra], sig: Option[Sig]): Expr = n.label match {
     case Var(vn) => Var(vn)
     case Ctr(cn, _) => {
       // TODO
@@ -140,7 +140,7 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
       subst(body, sub)
     }
     case _ =>
-      if (n.outs.head.node.extra == null) {
+      if (n.outs.head.label == null) {
         // transient step
         lazy val traversed = fold(n.outs.head.node)
         for ((fname, fargs) <- sig)
@@ -149,13 +149,13 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
       } else {
         val sig1@(gname, gargs) = sig.getOrElse(createSignature(n))
         sigs(n.path) = sig1
-        for (cn <- n.outs.map{_.node})
-          defs += GFun(gname, cn.extra.pat, gargs.tail, fold(cn))
+        for (out <- n.outs)
+          defs += GFun(gname, out.label.pat, gargs.tail, fold(out.node))
         GCall(gname, gargs)
       }
   }
 
-  private def createSignature(fNode: Node[Expr, Contraction]): (String, List[Var]) = {
+  private def createSignature(fNode: Node[Expr, Contraction, Extra]): (String, List[Var]) = {
     var fVars: List[Var] = vars(fNode.label)
     (createFName(), fVars)
   }

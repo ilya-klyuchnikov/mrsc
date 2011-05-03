@@ -2,9 +2,9 @@ package mrsc
 
 import scala.annotation.tailrec
 
-class SingleCoGraphBuilder[C, I](machine: SingleMachine[C, I]) {
-  def buildCoGraph(conf: C, info: I): CoGraph[C, I] = {
-    val rootNode_ = CoNode[C, I](conf, info, null, None, Nil)
+class SingleCoGraphBuilder[C, D, E](machine: SingleMachine[C, D, E]) {
+  def buildCoGraph(conf: C, info: E): CoGraph[C, D, E] = {
+    val rootNode_ = CoNode[C, D, E](conf, info, null, None, Nil)
     val initialCoGraph = new PartialCoGraph(List(), List(rootNode_), Nil)
     val finalCoGraph = build(initialCoGraph)
     val orderedNodes = finalCoGraph.completeNodes.sortBy(_.coPath)(PathOrdering)
@@ -13,20 +13,20 @@ class SingleCoGraphBuilder[C, I](machine: SingleMachine[C, I]) {
   }
 
   @tailrec
-  private def build(g: PartialCoGraph[C, I]): PartialCoGraph[C, I] = g.activeLeaf match {
+  private def build(g: PartialCoGraph[C, D, E]): PartialCoGraph[C, D, E] = g.activeLeaf match {
     case None => g
     case Some(leaf) => build(g.addStep(machine.makeStep(g.pState)))
   }
 }
 
 // Sinlge-thread builder
-class MultiCoGraphBuilder[C, I](machine: MultiMachine[C, I], consumer: CoGraphConsumer[C, I]) {
+class MultiCoGraphBuilder[C, D, E](machine: MultiMachine[C, D, E], consumer: CoGraphConsumer[C, D, E]) {
 
-  var partialGraphs: List[PartialCoGraph[C, I]] = null
-  var rootNode: CoNode[C, I] = null
+  var partialGraphs: List[PartialCoGraph[C, D, E]] = null
+  var rootNode: CoNode[C, D, E] = null
 
-  def buildCoGraph(conf: C, info: I): Unit = {
-    rootNode = CoNode[C, I](conf, info, null, None, Nil)
+  def buildCoGraph(conf: C, info: E): Unit = {
+    rootNode = CoNode[C, D, E](conf, info, null, None, Nil)
     partialGraphs = List(new PartialCoGraph(List(), List(rootNode), Nil))
     loop()
   }

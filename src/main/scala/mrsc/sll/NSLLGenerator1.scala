@@ -9,14 +9,14 @@ import mrsc.sll.NSLLExpressions._
 // generator of residual programs in NSLL
 // It generate a correct program for graphs where folding links to the upper node in the same path.
 // TODO: ensure that all cases of folding are considered here
-class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
+class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
   lazy val result = fixNames(fold(tree.root))
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make
-  private def fold(n: Node[Expr, SubStepInfo]): NExpr = n.base match {
+  private def fold(n: Node[Expr, SubStepInfo, Extra]): NExpr = n.base match {
 
     case None =>
       lazy val traversed = make(n)
@@ -45,36 +45,36 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
   }
   
   import StepKind._
-  private def make(n: Node[Expr, SubStepInfo]): NExpr = {
-    val children @ (n1 :: ns) = n.outs map {_.node}
+  private def make(n: Node[Expr, SubStepInfo, Extra]): NExpr = {
+    val children @ (n1 :: ns) = n.outs
     
-    n1.extra.stepKind match {
+    n1.label.stepKind match {
       case Stop =>
-        convert(n1.label)
+        convert(n1.node.label)
 
       case Transient =>
-        fold(n1)
+        fold(n1.node)
 
       case CtrDecompose =>
         val ctrName = n.label.asInstanceOf[Ctr].name
-        NCtr(ctrName, children.map(fold))
+        NCtr(ctrName, children.map(out => fold(out.node)))
 
       case LetDecompose =>
-        val body = fold(n1)
-        val sub = ns.map { n2 => (NVar(n2.extra.asInstanceOf[LetPartStep].v.name), fold(n2)) }.toMap
+        val body = fold(n1.node)
+        val sub = ns.map { n2 => (NVar(n2.label.asInstanceOf[LetPartStep].v.name), fold(n2.node)) }.toMap
         nSubst(body, sub)
 
       case Generalization =>
-        fold(n1)
+        fold(n1.node)
 
       case Speculation =>
-        fold(n1)
+        fold(n1.node)
 
       case Variants =>
-        val sel = fold(n1)
+        val sel = fold(n1.node)
         val branches = ns map { n2 =>
-          val VariantBranchStep(Contraction(_, pat)) = n2.extra
-          (convert(pat), fold(n2))
+          val VariantBranchStep(Contraction(_, pat)) = n2.label
+          (convert(pat), fold(n2.node))
         }
         val sortedBranches = branches.sortBy(_._1.name)
         NCase(sel, sortedBranches)
@@ -82,7 +82,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
 
   }
 
-  private def createSignature(fNode: Node[Expr, SubStepInfo], recNodes: List[Node[Expr, SubStepInfo]]): (String, List[NVar]) = {
+  private def createSignature(fNode: Node[Expr, SubStepInfo, Extra], recNodes: List[Node[Expr, SubStepInfo, Extra]]): (String, List[NVar]) = {
     var fVars: List[Var] = vars(fNode.label)
     (createFName(), fVars map { v => NVar(v.name) })
   }

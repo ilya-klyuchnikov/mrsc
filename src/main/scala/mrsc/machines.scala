@@ -5,7 +5,7 @@ object Whistle extends Enumeration {
   val OK, SoftPrune, HardPrune, Complete = Value
 }
 
-case class Blaming[C, I](blamed: Option[CoNode[C, I]], signal: Whistle.Whistle)
+case class Blaming[C, D, E](blamed: Option[CoNode[C, D, E]], signal: Whistle.Whistle)
 /*
  * AbstractMultiMachine represents some common behavior logic.
  * It is more to help create "reference implementations", it is not for
@@ -22,9 +22,9 @@ case class Blaming[C, I](blamed: Option[CoNode[C, I]], signal: Whistle.Whistle)
  *    d) Complete - mark the current node as a complete one
  */
 
-// TODO: there may be many drive case - propagate/not propagate extra
-trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
-  override def makeSteps(pState: PState[C, I]): List[Step[C, I]] = fold(pState) match {
+// TODO: there may be many drive case - propagate/not propagate extra also
+trait BaseMultiMachine[C, D, E] extends MultiMachine[C, D, E] {
+  override def makeSteps(pState: PState[C, D, E]): List[Step[C, D, E]] = fold(pState) match {
 
     case foldPaths if !foldPaths.isEmpty =>
       foldPaths map { MFold(_) }
@@ -38,7 +38,7 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
         case Whistle.OK => List(MForest(drive(pState)))
         case _ => List(MPrune)
       }
-      
+
       //println("drive:::")
       //println(driveSteps)
 
@@ -49,15 +49,15 @@ trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
       }
   }
 
-  def fold(pState: PState[C, I]): List[Path]
+  def fold(pState: PState[C, D, E]): List[Path]
 
-  def blame(pState: PState[C, I]): Blaming[C, I]
+  def blame(pState: PState[C, D, E]): Blaming[C, D, E]
 
-  def drive(pState: PState[C, I]): List[SubStep[C, I]]
+  def drive(pState: PState[C, D, E]): List[SubStep[C, D, E]]
 
-  def rebuildings(pState: PState[C, I], blaming: Blaming[C, I]): List[SubStep[C, I]]
-  def rebuildStep(gs: SubStep[C, I]): Step[C, I]
+  def rebuildings(pState: PState[C, D, E], blaming: Blaming[C, D, E]): List[SubStep[C, D, E]]
+  def rebuildStep(gs: SubStep[C, D, E]): Step[C, D, E]
 
-  def tricks(pState: PState[C, I], blaming: Blaming[C, I]): List[SubStep[C, I]]
-  def trickyStep(gs: SubStep[C, I]): Step[C, I]
+  def tricks(pState: PState[C, D, E], blaming: Blaming[C, D, E]): List[SubStep[C, D, E]]
+  def trickyStep(gs: SubStep[C, D, E]): Step[C, D, E]
 }

@@ -32,41 +32,50 @@ import scala.annotation.tailrec
  
  */
 
-/*! The labeled edge.
+/*! The labeled directed edge. `N` is a destination node; `D` is driving info.
  */
-case class Edge[C, I](node: C, label: I)
+case class Edge[N, D](node: N, label: D)
 
 /*! `Graph[C, I]`. `C` (label) is a type of node label and `I` (extra) is a type of edge label.
  */
-case class Graph[C, I](root: Node[C, I], leaves: Nodes[C, I]) {
-  def get(path: Path): Node[C, I] = root.get(path)
+case class Graph[C, D, E](root: Node[C, D, E], leaves: Nodes[C, D, E]) {
+  def get(path: Path): Node[C, D, E] = root.get(path)
   override def toString = root.toString
 }
 
 /*! `Node[C,I]` is a very simple and straightforward implementation. 
  */
-case class Node[C, I](label: C, extra: I, outs: List[Out[C, I]], base: Loopback, path: Path) {
+case class Node[C, D, E](
+  label: C, extra: E,
+  outs: List[Edge[Node[C, D, E], D]],
+  base: Loopback,
+  path: Path) {
+
   lazy val coPath = path.reverse
 
   @tailrec
-  final def get(relPath: Path): Node[C, I] = relPath match {
+  final def get(relPath: Path): Node[C, D, E] = relPath match {
     case Nil => this
     case i :: rp => outs(i).node.get(rp)
   }
 
-  override def toString = GraphPrettyPrinter.toString(this)
+  override def toString = "" //GraphPrettyPrinter.toString(this)
 }
 
 /*! `CoGraph[C, I]` is dual to `Graph[C, I]`. It has additionally the list of all nodes (vertices).
  */
-case class CoGraph[C, I](root: CoNode[C, I], leaves: CoNodes[C, I], nodes: CoNodes[C, I])
+case class CoGraph[C, D, E](
+  root: CoNode[C, D, E],
+  leaves: CoNodes[C, D, E],
+  nodes: CoNodes[C, D, E])
 
 /*! `CoNode[C,I]` is straightforward. 
  */
-case class CoNode[C, I](label: C, info: I, in: In[C, I], base: Loopback, coPath: CoPath) {
+// TODO: rename info into extra
+case class CoNode[C, D, E](label: C, info: E, in: In[C, D, E], base: Loopback, coPath: CoPath) {
   lazy val path = coPath.reverse
 
-  val ancestors: List[CoNode[C, I]] =
+  val ancestors: List[CoNode[C, D, E]] =
     if (in == null) List() else in.node :: in.node.ancestors
 
   override def toString = label.toString
@@ -74,19 +83,19 @@ case class CoNode[C, I](label: C, info: I, in: In[C, I], base: Loopback, coPath:
 
 /*! `PartialCoGraph[C, I]` is a central concept of MRSC. It represents a SCP "work in progress".
  */
-case class PartialCoGraph[C, I](
-  completeLeaves: CoNodes[C, I],
-  incompleteLeaves: CoNodes[C, I],
-  completeNodes: CoNodes[C, I]) {
+case class PartialCoGraph[C, D, E](
+  completeLeaves: CoNodes[C, D, E],
+  incompleteLeaves: CoNodes[C, D, E],
+  completeNodes: CoNodes[C, D, E]) {
 
-  val activeLeaf: Option[CoNode[C, I]] = incompleteLeaves.headOption
+  val activeLeaf: Option[CoNode[C, D, E]] = incompleteLeaves.headOption
   /*! Partial state is exposed to SCP machines.
    */
   val pState = PState(activeLeaf.getOrElse(null), completeNodes)
 
   /*! Step is "applied" to the current active leaf.
    */
-  def addStep(step: Step[C, I]): PartialCoGraph[C, I] = incompleteLeaves match {
+  def addStep(step: Step[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
     case active :: ls =>
       step match {
         case MComplete =>
@@ -104,10 +113,10 @@ case class PartialCoGraph[C, I](
           PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
 
         case MForest(subSteps) =>
-          val deltaLeaves: CoNodes[C, I] = subSteps.zipWithIndex map {
+          val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
             case (subStep, i) =>
-              val edge: Edge[CoNode[C, I], I] = Edge[CoNode[C, I], I](active, null.asInstanceOf[I])
-              CoNode(subStep.label, subStep.info, edge, None, i :: active.coPath)
+              val edge: In[C, D, E] = Edge(active, subStep.info)
+              CoNode(subStep.label, null.asInstanceOf[E], edge, None, i :: active.coPath)
           }
           PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)
 
@@ -125,7 +134,7 @@ case class PartialCoGraph[C, I](
 
 /*! Based on the current `PState`, SCP machine should decide what should be done next.
  */
-case class PState[C, I](val node: CoNode[C, I], val completeNodes: List[CoNode[C, I]])
+case class PState[C, D, E](val node: CoNode[C, D, E], val completeNodes: CoNodes[C, D, E])
 
 /*! The simple lexicographic order on paths.
  */

@@ -4,12 +4,12 @@ import mrsc._
 
 trait Whistle {
   def name: String
-  def blame[I](ps: PState[Expr, I]): Option[CoNode[Expr, I]]
+  def blame[D, E](ps: PState[Expr, D, E]): Option[CoNode[Expr, D, E]]
 }
 
 case class ExpressionSize(size: Int) extends Whistle {
   val name = "size < " + size
-  def blame[I](ps: PState[Expr, I]) = ps.node.label match {
+  def blame[D, E](ps: PState[Expr, D, E]) = ps.node.label match {
     case Let(_, _) => None
     case Ctr(_, _) => None
     case x if x.size < size => Some(ps.node)
@@ -19,7 +19,7 @@ case class ExpressionSize(size: Int) extends Whistle {
 
 object HEWhistle extends Whistle {
   val name = "homeomorphic embedding"
-  def blame[I](ps: PState[Expr, I]) = ps.node.label match {
+  def blame[D, E](ps: PState[Expr, D, E]) = ps.node.label match {
     case Let(_, _) => None
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>
@@ -33,7 +33,7 @@ object HEWhistle extends Whistle {
 
 object HEWithRedexWhistle extends Whistle {
   val name = "homeomorphic embedding with redex"
-  def blame[I](ps: PState[Expr, I]) = ps.node.label match {
+  def blame[D, E](ps: PState[Expr, D, E]) = ps.node.label match {
     case Let(_, _) => None
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>
@@ -47,7 +47,7 @@ object HEWithRedexWhistle extends Whistle {
 
 object HEByCouplingWhistle extends Whistle {
   val name = "homeomorphic embedding via coupling"
-  def blame[I](ps: PState[Expr, I]) = ps.node.label match {
+  def blame[D, E](ps: PState[Expr, D, E]) = ps.node.label match {
     case Let(_, _) => None
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>
@@ -61,7 +61,7 @@ object HEByCouplingWhistle extends Whistle {
 
 object HEByCouplingWithRedexWhistle extends Whistle {
   val name = "homeomorphic embedding via coupling with redex"
-  def blame[I](ps: PState[Expr, I]) = ps.node.label match {
+  def blame[D, E](ps: PState[Expr, D, E]) = ps.node.label match {
     case Let(_, _) => None
     case Ctr(_, _) => None
     case x => ps.node.ancestors.find { a =>

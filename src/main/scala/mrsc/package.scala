@@ -4,9 +4,10 @@ package object mrsc {
 
   type Loopback = Option[Path]
 
-  type Nodes[C, I] = List[Node[C, I]]
-  type CoNodes[C, I] = List[CoNode[C, I]]
-  
-  type Out[C, I] = Edge[Node[C, I], I]
-  type In[C, I] = Edge[CoNode[C, I], I]
+  type Nodes[C, D, E] = List[Node[C, D, E]]
+  type CoNodes[C, D, E] = List[CoNode[C, D, E]]
+
+  type Out[C, D, E] = Edge[Node[C, D, E], D]
+  type Outs[C, D, E] = List[Out[C, D, E]]
+  type In[C, D, E] = Edge[CoNode[C, D, E], D]
 }

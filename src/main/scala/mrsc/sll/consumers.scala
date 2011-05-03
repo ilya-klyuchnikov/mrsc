@@ -3,12 +3,12 @@ package mrsc.sll
 import mrsc._
 
 // it just counts trees
-class CountGraphConsumer extends CoGraphConsumer[Expr, Contraction] {
+class CountGraphConsumer extends CoGraphConsumer[Expr, Contraction, Extra] {
   val description = "counting completed and pruned graphs"
   var completed = 0
   var pruned = 0
 
-  def consume(result: Option[CoGraph[Expr, Contraction]]): Unit = {
+  def consume(result: Option[CoGraph[Expr, Contraction, Extra]]): Unit = {
     result match {
       case None => pruned = pruned + 1
       case Some(cg) => completed = completed + 1
@@ -24,18 +24,18 @@ class CountGraphConsumer extends CoGraphConsumer[Expr, Contraction] {
   }
 }
 
-class CountProgramConsumer extends CoGraphConsumer[Expr, Contraction] {
+class CountProgramConsumer extends CoGraphConsumer[Expr, Contraction, Extra] {
   val description = "counting completed and pruned graphs and showing residual programs"
 
   var completedCoGraphsCount = 0
   var prunedCoGraphsCount = 0
 
-  var coGraphs: List[CoGraph[Expr, Contraction]] = Nil
+  var coGraphs: List[CoGraph[Expr, Contraction, Extra]] = Nil
   var programs: List[NExpr] = Nil
 
   var residualPrograms: List[NExpr] = Nil
 
-  def consume(result: Option[CoGraph[Expr, Contraction]]): Unit = {
+  def consume(result: Option[CoGraph[Expr, Contraction, Extra]]): Unit = {
     result match {
       case None =>
         prunedCoGraphsCount = prunedCoGraphsCount + 1
@@ -67,18 +67,18 @@ class CountProgramConsumer extends CoGraphConsumer[Expr, Contraction] {
   }
 }
 
-class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo] {
+class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo, Extra] {
   val description = "counting completed and pruned graphs and showing residual programs"
 
   var completedCoGraphsCount = 0
   var prunedCoGraphsCount = 0
 
-  var coGraphs: List[CoGraph[Expr, SubStepInfo]] = Nil
+  var coGraphs: List[CoGraph[Expr, SubStepInfo, Extra]] = Nil
   var programs: List[NExpr] = Nil
 
   var residualPrograms: List[NExpr] = Nil
 
-  def consume(result: Option[CoGraph[Expr, SubStepInfo]]): Unit = {
+  def consume(result: Option[CoGraph[Expr, SubStepInfo, Extra]]): Unit = {
     result match {
       case None =>
         prunedCoGraphsCount = prunedCoGraphsCount + 1

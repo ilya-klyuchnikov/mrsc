@@ -82,7 +82,7 @@ object experiments2 extends App {
     try {
       val consumer = new CountProgramConsumer2()
       val builder = new MultiCoGraphBuilder(machine, consumer)
-      builder.buildCoGraph(task.target, TransientStep)
+      builder.buildCoGraph(task.target, DummyExtra)
       consumer.showResults()
       println()
     } catch {

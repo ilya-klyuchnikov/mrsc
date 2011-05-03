@@ -4,10 +4,10 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
-class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contraction] with MultiMachine[Expr, Contraction] {
+class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contraction, Extra] with MultiMachine[Expr, Contraction, Extra] {
   val name = wh.name
 
-  def makeStep(ps: PState[Expr, Contraction]): Step[Expr, Contraction] =
+  def makeStep(ps: PState[Expr, Contraction, Extra]): Step[Expr, Contraction, Extra] =
     // TODO!! here may be different ways of folding!!!
     ps.node.ancestors.find { n => !n.label.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.label, n.label) } match {
       case Some(n) =>
@@ -24,7 +24,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
       }
     }
 
-  def makeSteps(ps: PState[Expr, Contraction]): List[Step[Expr, Contraction]] =
+  def makeSteps(ps: PState[Expr, Contraction, Extra]): List[Step[Expr, Contraction, Extra]] =
     ps.node.ancestors.filter { n => !n.label.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.label, n.label) } match {
       case x if !x.isEmpty =>
         x map {n => MFold(n.path)}
@@ -50,24 +50,24 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
     }
 
   // only simple whistle for now -- will continue
-  def whistle(ps: PState[Expr, Contraction]): Boolean = wh.blame(ps).isEmpty
+  def whistle(ps: PState[Expr, Contraction, Extra]): Boolean = wh.blame(ps).isEmpty
 
-  def drivingStep(configuration: Expr): List[SubStep[Expr, Contraction]] = decompose(configuration) match {
+  def drivingStep(configuration: Expr): List[SubStep[Expr, Contraction, Extra]] = decompose(configuration) match {
     case DecLet(Let(term, bs)) =>
-      new SubStep[Expr, Contraction](term, null) :: bs.map { case (_, v) => new SubStep[Expr, Contraction](v, null) }
-    case ObservableCtr(Ctr(_, args)) => args map { a => SubStep[Expr, Contraction](a, null) }
+      new SubStep[Expr, Contraction, Extra](term, null, DummyExtra) :: bs.map { case (_, v) => new SubStep[Expr, Contraction, Extra](v, null, DummyExtra) }
+    case ObservableCtr(Ctr(_, args)) => args map { a => SubStep[Expr, Contraction, Extra](a, null, DummyExtra) }
     case context @ Context(red) =>
       red match {
         case RedexFCall(FCall(name, args)) => {
           val fReduced = subst(p.f(name).term, Map(p.f(name).args.zip(args): _*))
           val nExpr = context.replaceRedex(fReduced)
-          List(new SubStep(nExpr, null))
+          List(new SubStep(nExpr, null, DummyExtra))
         }
         case RedexGCallCtr(GCall(name, args), Ctr(cname, cargs)) => {
           val g = p.g(name, cname)
           val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (cargs ::: args.tail): _*))
           val nExpr = context.replaceRedex(gReduced)
-          List(new SubStep(nExpr, null))
+          List(new SubStep(nExpr, null, DummyExtra))
         }
         case RedexGCallVar(GCall(name, args), v) => {
           p.gs(name) map { g =>
@@ -75,7 +75,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
             val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (fp.args ::: args.tail): _*))
             val info = Map(v -> Ctr(fp.name, fp.args))
             val driven = subst(context.replaceRedex(gReduced), info)
-            new SubStep(driven, Contraction(v, fp))
+            new SubStep(driven, Contraction(v, fp), DummyExtra)
           }
         }
       }
@@ -85,7 +85,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
 }
 
 class SLLMachine1(p: Program, wh: Whistle) extends SLLMachine(p, wh) {
-  override def makeSteps(ps: PState[Expr, Contraction]): List[Step[Expr, Contraction]] =
+  override def makeSteps(ps: PState[Expr, Contraction, Extra]): List[Step[Expr, Contraction, Extra]] =
     ps.completeNodes.find { n => SLLExpressions.renaming(ps.node.label, n.label) } match {
       case Some(n) =>
         List(MFold(n.path))

@@ -1,0 +1,5 @@
+03-05-2011 15:00
+----------------
+Edges are labeled with driving information, nodes are labeled with extra information.
+Huge code refactoring was done. The implementation should be polished and improved.
+Documentation should be updated.
