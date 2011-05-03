@@ -22,7 +22,7 @@ case class Blaming[C, I](blamed: Option[CoNode[C, I]], signal: Whistle.Whistle)
  *    d) Complete - mark the current node as a complete one
  */
 
-// TODO: there may be many drive case - propagate/not propagate info
+// TODO: there may be many drive case - propagate/not propagate extra
 trait BaseMultiMachine[C, I] extends MultiMachine[C, I] {
   override def makeSteps(pState: PState[C, I]): List[Step[C, I]] = fold(pState) match {
 

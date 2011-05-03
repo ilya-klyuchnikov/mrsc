@@ -16,7 +16,7 @@ object Transformations {
 
       case ns1 :: Nil =>
         val newNodes = ns1 map { n =>
-          Node(label = n.label, info = n.info, outs = Nil, base = n.base, path = n.path)
+          Node(label = n.label, extra = n.info, outs = Nil, base = n.base, path = n.path)
         }
         val newLeaves = newNodes.filter { n =>
           leaves.contains(n.coPath)
@@ -28,7 +28,7 @@ object Transformations {
         val allchildren = allCh.groupBy { _.coPath.tail }
         val newNodes = ns1 map { n =>
           val children = allchildren.getOrElse(n.coPath, Nil)
-          val edges = children map {n => Edge[Node[C, I], I](n, n.info)}
+          val edges = children map {n => Edge[Node[C, I], I](n, n.extra)}
           new Node(n.label, n.info, edges, n.base, n.path)
         }
         val newLeaves = newNodes.filter { n => leaves.contains(n.coPath) }

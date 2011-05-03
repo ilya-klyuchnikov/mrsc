@@ -53,14 +53,14 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction]) {
       nSubst(fold(n0), sub)
     }
     case _ =>
-      if (n.outs.head.node.info == null) {
+      if (n.outs.head.node.extra == null) {
         // transient step
         fold(n.outs.head.node)
       } else {
         // variants
-        val sortedChildren = n.outs.map{_.node} sortWith { (n1, n2) => (n1.info.pat.name compareTo n2.info.pat.name) < 0 }
-        val sel = NVar(n.outs.head.node.info.v.name)
-        val bs = sortedChildren map { c => (convert(c.info.pat), fold(c)) }
+        val sortedChildren = n.outs.map{_.node} sortWith { (n1, n2) => (n1.extra.pat.name compareTo n2.extra.pat.name) < 0 }
+        val sel = NVar(n.outs.head.node.extra.v.name)
+        val bs = sortedChildren map { c => (convert(c.extra.pat), fold(c)) }
         NCase(sel, bs)
       }
   }
@@ -140,7 +140,7 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
       subst(body, sub)
     }
     case _ =>
-      if (n.outs.head.node.info == null) {
+      if (n.outs.head.node.extra == null) {
         // transient step
         lazy val traversed = fold(n.outs.head.node)
         for ((fname, fargs) <- sig)
@@ -150,7 +150,7 @@ class SLLResiduator(val tree: Graph[Expr, Contraction]) {
         val sig1@(gname, gargs) = sig.getOrElse(createSignature(n))
         sigs(n.path) = sig1
         for (cn <- n.outs.map{_.node})
-          defs += GFun(gname, cn.info.pat, gargs.tail, fold(cn))
+          defs += GFun(gname, cn.extra.pat, gargs.tail, fold(cn))
         GCall(gname, gargs)
       }
   }

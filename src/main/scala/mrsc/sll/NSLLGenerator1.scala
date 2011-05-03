@@ -48,7 +48,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
   private def make(n: Node[Expr, SubStepInfo]): NExpr = {
     val children @ (n1 :: ns) = n.outs map {_.node}
     
-    n1.info.stepKind match {
+    n1.extra.stepKind match {
       case Stop =>
         convert(n1.label)
 
@@ -61,7 +61,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
 
       case LetDecompose =>
         val body = fold(n1)
-        val sub = ns.map { n2 => (NVar(n2.info.asInstanceOf[LetPartStep].v.name), fold(n2)) }.toMap
+        val sub = ns.map { n2 => (NVar(n2.extra.asInstanceOf[LetPartStep].v.name), fold(n2)) }.toMap
         nSubst(body, sub)
 
       case Generalization =>
@@ -73,7 +73,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo]) {
       case Variants =>
         val sel = fold(n1)
         val branches = ns map { n2 =>
-          val VariantBranchStep(Contraction(_, pat)) = n2.info
+          val VariantBranchStep(Contraction(_, pat)) = n2.extra
           (convert(pat), fold(n2))
         }
         val sortedBranches = branches.sortBy(_._1.name)

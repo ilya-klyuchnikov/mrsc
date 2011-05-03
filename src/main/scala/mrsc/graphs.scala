@@ -3,13 +3,13 @@ package mrsc
 import scala.annotation.tailrec
 /*! # SCP Graph Abstraction
  
- At the heart of MRSC is a mini-framework for manipulating SCP graphs.
+ At the heart of MRSC is a mini-framework for manipulating SC graphs.
  In MRSC SC Graph is a special kind of graph that can be seen as a tree (skeleton), 
  some leaves of which can have loopbacks.
  Note that loopbacks can start only from leaves. 
  /Q: Is there a term for such graphs in graph theory?/
  
- Here is the simplest SCP graph. There are two loopbacks: j⇢c and h⇢d. 
+ Here is the simplest SC graph. There are two loopbacks: j⇢c and h⇢d. 
  There is also a concept of a path. The path to the node g is [0,0,1].
 
          . c
@@ -22,7 +22,7 @@ import scala.annotation.tailrec
      . ↓
        j
        
- SCP graphs in MRSC are used in three forms:
+ SC graphs in MRSC are used in three forms:
  
  * `Graph` - good for top-down traversals (a node knows about its outs).
  * `CoGraph` - good for easy bottom-up traversals (a node knows about in).
@@ -34,9 +34,9 @@ import scala.annotation.tailrec
 
 /*! The labeled edge.
  */
-case class Edge[T, I](node: T, label: I)
+case class Edge[C, I](node: C, label: I)
 
-/*! `Graph[C, I]`. `C` (label) is a type of node label and `I` (info) is a type of edge label.
+/*! `Graph[C, I]`. `C` (label) is a type of node label and `I` (extra) is a type of edge label.
  */
 case class Graph[C, I](root: Node[C, I], leaves: Nodes[C, I]) {
   def get(path: Path): Node[C, I] = root.get(path)
@@ -45,7 +45,7 @@ case class Graph[C, I](root: Node[C, I], leaves: Nodes[C, I]) {
 
 /*! `Node[C,I]` is a very simple and straightforward implementation. 
  */
-case class Node[C, I](label: C, info: I, outs: List[Out[C, I]], base: Loopback, path: Path) {
+case class Node[C, I](label: C, extra: I, outs: List[Out[C, I]], base: Loopback, path: Path) {
   lazy val coPath = path.reverse
 
   @tailrec
