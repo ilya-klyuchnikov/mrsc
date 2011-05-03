@@ -3,3 +3,7 @@ bin/*
 target/*
 .idea/*
 mrsc.iml
+.project
+.classpath
+.settings/*
+.externalToolBuilders/*
