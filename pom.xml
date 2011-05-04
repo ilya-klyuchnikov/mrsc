@@ -6,8 +6,12 @@
 	<version>0.1.0-SNAPSHOT</version>
 	<name>Multi-Result SuperCompiler</name>
 
+	<dependencyManagement>
+		<dependencies>
+		</dependencies>
+	</dependencyManagement>
 	<properties>
-		<scala.version>2.9.0.RC2</scala.version>
+		<scala.version>2.9.0.RC1</scala.version>
 		<maven-scala-plugin.version>2.15.2</maven-scala-plugin.version>
 		<cx.version>2.0.1</cx.version>
 	</properties>
@@ -30,24 +34,19 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.googlecode.scalaz</groupId>
-			<artifactId>scalaz-core_2.8.0</artifactId>
-			<version>5.0</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
 			<version>${scala.version}</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+		<!-- 
 		<dependency>
 			<groupId>ru.circumflex</groupId>
 			<artifactId>circumflex-docco</artifactId>
 			<version>${cx.version}</version>
 		</dependency>
+		-->
 	</dependencies>
 
 	<build>

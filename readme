@@ -1,1 +1,5 @@
 MRSC is Multi-Result SuperCompiler.
+-----------------------------------
+
+To start working with this project in eclipse, use m2eclipse and m2eclipse-scala:
+http://www.assembla.com/wiki/show/scala-ide/With_M2Eclipse
