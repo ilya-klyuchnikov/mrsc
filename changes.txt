@@ -1,6 +1,7 @@
 05-05-2011
 ----------
 Clear names in graphs.scala (conf, driveInfo, extraInfo). Documenting graphs.scala
+Literate documentations for modeling of "abstract application".
 
 03-05-2011
 ----------

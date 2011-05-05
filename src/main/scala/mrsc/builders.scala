@@ -2,7 +2,7 @@ package mrsc
 
 import scala.annotation.tailrec
 
-class SingleCoGraphBuilder[C, D, E](machine: SingleMachine[C, D, E]) {
+class SingleCoGraphBuilder[C, D, E](machine: SingleResultMachine[C, D, E]) {
   def buildCoGraph(conf: C, info: E): CoGraph[C, D, E] = {
     val rootNode_ = CoNode[C, D, E](conf, info, null, None, Nil)
     val initialCoGraph = new PartialCoGraph(List(), List(rootNode_), Nil)
@@ -20,7 +20,7 @@ class SingleCoGraphBuilder[C, D, E](machine: SingleMachine[C, D, E]) {
 }
 
 // Sinlge-thread builder
-class MultiCoGraphBuilder[C, D, E](machine: MultiMachine[C, D, E], consumer: CoGraphConsumer[C, D, E]) {
+class MultiCoGraphBuilder[C, D, E](machine: MultiResultMachine[C, D, E], consumer: CoGraphConsumer[C, D, E]) {
 
   var partialGraphs: List[PartialCoGraph[C, D, E]] = null
   var rootNode: CoNode[C, D, E] = null

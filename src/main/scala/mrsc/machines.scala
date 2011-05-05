@@ -23,11 +23,11 @@ case class Blaming[C, D, E](blamed: Option[CoNode[C, D, E]], signal: Whistle.Whi
  */
 
 // TODO: there may be many drive case - propagate/not propagate extra also
-trait BaseMultiMachine[C, D, E] extends MultiMachine[C, D, E] {
-  override def makeSteps(pState: PState[C, D, E]): List[Step[C, D, E]] = fold(pState) match {
+trait BaseMultiMachine[C, D, E] extends MultiResultMachine[C, D, E] {
+  override def makeSteps(pState: PState[C, D, E]): List[MStep[C, D, E]] = fold(pState) match {
 
     case foldPaths if !foldPaths.isEmpty =>
-      foldPaths map { MFold(_) }
+      foldPaths map MFold
 
     case _ =>
       val whistle = blame(pState)
@@ -38,9 +38,6 @@ trait BaseMultiMachine[C, D, E] extends MultiMachine[C, D, E] {
         case Whistle.OK => List(MForest(drive(pState)))
         case _ => List(MPrune)
       }
-
-      //println("drive:::")
-      //println(driveSteps)
 
       whistle.signal match {
         case Whistle.Complete => List(MComplete)
@@ -56,8 +53,8 @@ trait BaseMultiMachine[C, D, E] extends MultiMachine[C, D, E] {
   def drive(pState: PState[C, D, E]): List[SubStep[C, D, E]]
 
   def rebuildings(pState: PState[C, D, E], blaming: Blaming[C, D, E]): List[SubStep[C, D, E]]
-  def rebuildStep(gs: SubStep[C, D, E]): Step[C, D, E]
+  def rebuildStep(gs: SubStep[C, D, E]): MStep[C, D, E]
 
   def tricks(pState: PState[C, D, E], blaming: Blaming[C, D, E]): List[SubStep[C, D, E]]
-  def trickyStep(gs: SubStep[C, D, E]): Step[C, D, E]
+  def trickyStep(gs: SubStep[C, D, E]): MStep[C, D, E]
 }

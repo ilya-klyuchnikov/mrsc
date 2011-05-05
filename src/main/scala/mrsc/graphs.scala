@@ -114,7 +114,7 @@ case class PartialCoGraph[C, D, E](
   /*! The main logic of MRSC is here. 
      Step created by SC machine is "applied" to the current active leaf.
    */
-  def addStep(step: Step[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
+  def addStep(step: MStep[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
     case active :: ls =>
       step match {
         /*! Just "completing" the current node - moving it to the complete part of the SC graph. 

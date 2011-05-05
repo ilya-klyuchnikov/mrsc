@@ -4,10 +4,10 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
-class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contraction, Extra] with MultiMachine[Expr, Contraction, Extra] {
+class SLLMachine(p: Program, wh: Whistle) extends SingleResultMachine[Expr, Contraction, Extra] with MultiResultMachine[Expr, Contraction, Extra] {
   val name = wh.name
 
-  def makeStep(ps: PState[Expr, Contraction, Extra]): Step[Expr, Contraction, Extra] =
+  def makeStep(ps: PState[Expr, Contraction, Extra]): MStep[Expr, Contraction, Extra] =
     // TODO!! here may be different ways of folding!!!
     ps.node.ancestors.find { n => !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.conf, n.conf) } match {
       case Some(n) =>
@@ -24,7 +24,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
       }
     }
 
-  def makeSteps(ps: PState[Expr, Contraction, Extra]): List[Step[Expr, Contraction, Extra]] =
+  def makeSteps(ps: PState[Expr, Contraction, Extra]): List[MStep[Expr, Contraction, Extra]] =
     ps.node.ancestors.filter { n => !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.conf, n.conf) } match {
       case x if !x.isEmpty =>
         x map {n => MFold(n.path)}
@@ -85,7 +85,7 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
 }
 
 class SLLMachine1(p: Program, wh: Whistle) extends SLLMachine(p, wh) {
-  override def makeSteps(ps: PState[Expr, Contraction, Extra]): List[Step[Expr, Contraction, Extra]] =
+  override def makeSteps(ps: PState[Expr, Contraction, Extra]): List[MStep[Expr, Contraction, Extra]] =
     ps.completeNodes.find { n => SLLExpressions.renaming(ps.node.conf, n.conf) } match {
       case Some(n) =>
         List(MFold(n.path))
