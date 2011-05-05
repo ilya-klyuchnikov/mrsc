@@ -1,5 +1,9 @@
-03-05-2011 15:00
-----------------
+05-05-2011
+----------
+Clear names in graphs.scala (conf, driveInfo, extraInfo). Documenting graphs.scala
+
+03-05-2011
+----------
 Edges are labeled with driving information, nodes are labeled with extra information.
 Huge code refactoring was done. The implementation should be polished and improved.
 Documentation should be updated.

@@ -40,18 +40,25 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
-		<!-- 
 		<dependency>
-			<groupId>ru.circumflex</groupId>
-			<artifactId>circumflex-docco</artifactId>
-			<version>${cx.version}</version>
+			<groupId>org.scala-tools.testing</groupId>
+			<artifactId>scalacheck_${scala.version}</artifactId>
+			<version>1.8</version>
+			<type>jar</type>
+			<scope>test</scope>
 		</dependency>
-		-->
+		<dependency>
+			<groupId>org.specs2</groupId>
+			<artifactId>specs2_${scala.version}</artifactId>
+			<version>1.2</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
-		<!-- <testSourceDirectory>src/test/scala</testSourceDirectory> -->
+		<testSourceDirectory>src/test/scala</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.scala-tools</groupId>
@@ -61,7 +68,7 @@
 					<execution>
 						<goals>
 							<goal>compile</goal>
-							<!-- <goal>testCompile</goal> -->
+							<goal>testCompile</goal>
 						</goals>
 					</execution>
 				</executions>

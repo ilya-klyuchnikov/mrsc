@@ -1,7 +1,7 @@
 package mrsc
 
 import scala.annotation.tailrec
-/*! # SCP Graph Abstraction
+/*! # SC Graph Abstraction
  
  At the heart of MRSC is a mini-framework for manipulating SC graphs.
  In MRSC SC Graph is a special kind of graph that can be seen as a tree (skeleton), 
@@ -30,23 +30,29 @@ import scala.annotation.tailrec
     (cograph consists of complete and incomplete parts, 
     and operation to add outs to incomplete nodes is cheap).
  
+ The main idea here is to use functional (immutable) data structures in order to support
+ multi-results composed of shared data.
  */
 
 /*! The labeled directed edge. `N` is a destination node; `D` is driving info.
  */
-case class Edge[N, D](node: N, label: D)
+case class Edge[N, D](node: N, driveInfo: D)
 
-/*! `Graph[C, I]`. `C` (label) is a type of node label and `I` (extra) is a type of edge label.
+/*! `Graph[C, D, E]`. 
+  `C` (configuration) is a type of node label; `D` (driving) is a type of edge label;
+  `E` (extra information) is a type of extra label of a node. Extra information may be seen as an 
+  additional "instrumentation" of SC graph.
  */
 case class Graph[C, D, E](root: Node[C, D, E], leaves: Nodes[C, D, E]) {
   def get(path: Path): Node[C, D, E] = root.get(path)
   override def toString = root.toString
 }
 
-/*! `Node[C,I]` is a very simple and straightforward implementation. 
+/*! `Node[C, D, E]` is a very simple and straightforward implementation of a node. 
  */
 case class Node[C, D, E](
-  label: C, extra: E,
+  conf: C,
+  extraInfo: E,
   outs: List[Edge[Node[C, D, E], D]],
   base: Loopback,
   path: Path) {
@@ -59,71 +65,96 @@ case class Node[C, D, E](
     case i :: rp => outs(i).node.get(rp)
   }
 
-  override def toString = "" //GraphPrettyPrinter.toString(this)
+  override def toString = GraphPrettyPrinter.toString(this)
 }
 
-/*! `CoGraph[C, I]` is dual to `Graph[C, I]`. It has additionally the list of all nodes (vertices).
+/*! `CoGraph[C, D, E]` is dual to `Graph[C, D, E]`. 
+ It has additionally the list of all nodes (vertices).
  */
 case class CoGraph[C, D, E](
   root: CoNode[C, D, E],
   leaves: CoNodes[C, D, E],
   nodes: CoNodes[C, D, E])
 
-/*! `CoNode[C,I]` is straightforward. 
+/*! `CoNode[C, D, E]` is dual to `Node[C, D, E]`. 
  */
-// TODO: rename info into extra
-case class CoNode[C, D, E](label: C, info: E, in: In[C, D, E], base: Loopback, coPath: CoPath) {
+case class CoNode[C, D, E](
+  conf: C,
+  extraInfo: E,
+  in: In[C, D, E],
+  base: Loopback,
+  coPath: CoPath) {
+
   lazy val path = coPath.reverse
 
   val ancestors: List[CoNode[C, D, E]] =
     if (in == null) List() else in.node :: in.node.ancestors
 
-  override def toString = label.toString
+  override def toString = conf.toString
 }
 
-/*! `PartialCoGraph[C, I]` is a central concept of MRSC. It represents a SCP "work in progress".
+/*! `PartialCoGraph[C, I]` is a central concept of MRSC. It represents a "work in progress".
+ We know already processed part of an SC graph (`completeLeaves`, `completeNodes`) and a frontier 
+ of incomplete part (`incompleteLeaves`).
  */
 case class PartialCoGraph[C, D, E](
   completeLeaves: CoNodes[C, D, E],
   incompleteLeaves: CoNodes[C, D, E],
   completeNodes: CoNodes[C, D, E]) {
 
+  /*! `activeLeaf` is the vanguard of the incomplete part. It will be processed next.
+   */
   val activeLeaf: Option[CoNode[C, D, E]] = incompleteLeaves.headOption
-  /*! Partial state is exposed to SCP machines.
+
+  /*! Partial state is exposed to SC machines. SC machine decides what step should be done next 
+      based on `pState`.
    */
   val pState = PState(activeLeaf.getOrElse(null), completeNodes)
 
-  /*! Step is "applied" to the current active leaf.
+  /*! The main logic of MRSC is here. 
+     Step created by SC machine is "applied" to the current active leaf.
    */
   def addStep(step: Step[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
     case active :: ls =>
       step match {
+        /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
+         */
         case MComplete =>
           PartialCoGraph(active :: completeLeaves, ls, active :: completeNodes)
-
-        case MReplace(l, _) =>
-          val node = CoNode(l, active.info, active.in, None, active.coPath)
+        /*! Replacing the configuration of the current node. 
+           The main use case is the rebuilding (generalization) of the active node.
+         */
+        case MReplace(conf, extra) =>
+          val node = active.copy(conf = conf, extraInfo = extra)
           PartialCoGraph(completeLeaves, node :: ls, completeNodes)
-
-        case MRollback(dangNode, c, _) =>
-          val node = CoNode(c, dangNode.info, dangNode.in, None, dangNode.coPath)
-          val completeNodes1 = completeNodes.remove(n => n.path.startsWith(dangNode.path))
-          val completeLeaves1 = completeLeaves.remove(n => n.path.startsWith(dangNode.path))
-          val incompleteLeaves1 = ls.remove(n => n.path.startsWith(dangNode.path))
-          PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
-
+        /*! Just folding: creating a loopback and moving the node into the complete part 
+            of the SC graph.  
+         */
+        case MFold(basePath) =>
+          val node = active.copy(base = Some(basePath))
+          PartialCoGraph(node :: completeLeaves, ls, node :: completeNodes)
+        /*! This step corresponds (mainly) to driving: adds children to the current node. Then
+            current node is moved to the complete part and new children are moved into 
+            the incomplete part. Also the (co-)path is calculated for any child node.
+         */
         case MForest(subSteps) =>
           val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
-            case (subStep, i) =>
-              val edge: In[C, D, E] = Edge(active, subStep.info)
-              CoNode(subStep.label, null.asInstanceOf[E], edge, None, i :: active.coPath)
+            case (SubStep(conf, dInfo, eInfo), i) =>
+              val in = Edge(active, dInfo)
+              CoNode(conf, eInfo, in, None, i :: active.coPath)
           }
           PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)
-
-        case MFold(basePath) =>
-          val node = CoNode(active.label, active.info, active.in, Some(basePath), active.coPath)
-          PartialCoGraph(node :: completeLeaves, ls, node :: completeNodes)
-
+        /*! When doing rollback, we also prune all successors of the dangerous node. 
+         */
+        case MRollback(dangNode, c, eInfo) =>
+          def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
+          val node = dangNode.copy(conf = c, extraInfo = eInfo)
+          val completeNodes1 = completeNodes.remove(prune_?)
+          val completeLeaves1 = completeLeaves.remove(prune_?)
+          val incompleteLeaves1 = ls.remove(prune_?)
+          PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
+        /*! A graph cannot prune itself - it should be performed by a builder.
+         */
         case MPrune =>
           throw new Error()
       }
@@ -135,22 +166,3 @@ case class PartialCoGraph[C, D, E](
 /*! Based on the current `PState`, SCP machine should decide what should be done next.
  */
 case class PState[C, D, E](val node: CoNode[C, D, E], val completeNodes: CoNodes[C, D, E])
-
-/*! The simple lexicographic order on paths.
- */
-object PathOrdering extends Ordering[Path] {
-  @tailrec
-  final def compare(p1: Path, p2: Path) =
-    if (p1.length < p2.length) {
-      -1
-    } else if (p1.length > p2.length) {
-      +1
-    } else {
-      val result = p1.head compare p2.head
-      if (result == 0) {
-        compare(p1.tail, p2.tail)
-      } else {
-        result
-      }
-    }
-}

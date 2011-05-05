@@ -76,23 +76,23 @@ class PSLLMultiMachine(
   val speculator = new Speculator(program)
 
   def renamingFilter(leaf: CoNode[Expr, SubStepInfo, Extra])(n: CoNode[Expr, SubStepInfo, Extra]) =
-    !n.label.isInstanceOf[Var] && SLLExpressions.renaming(leaf.label, n.label)
+    !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(leaf.conf, n.conf)
 
   def fold(ps: PState[Expr, SubStepInfo, Extra]): List[Path] =
-    if (ps.node.in != null && Stop == ps.node.in.label.stepKind) Nil else
+    if (ps.node.in != null && Stop == ps.node.in.driveInfo.stepKind) Nil else
       foldStrategy match {
         case All => ps.completeNodes.filter { renamingFilter(ps.node) } map { _.path }
         case _ =>
-          ps.node.ancestors.dropWhile { n => n.info.isInstanceOf[SpeculationStep] } match {
+          ps.node.ancestors.dropWhile { n => n.extraInfo.isInstanceOf[SpeculationStep] } match {
             case Nil => Nil
-            case n1 :: ns if ps.node.info.isInstanceOf[SpeculationStep] && n1.path == ps.node.in.node.path => ns filter { renamingFilter(ps.node) } map { _.path }
+            case n1 :: ns if ps.node.extraInfo.isInstanceOf[SpeculationStep] && n1.path == ps.node.in.node.path => ns filter { renamingFilter(ps.node) } map { _.path }
             case ns => ns filter { renamingFilter(ps.node) } map { _.path }
           }
         //case Ancestors => ps.node.ancestors.remove { n => n.extra.isInstanceOf[SpeculationStep] } filter { renamingFilter(ps.node) } map { _.path }
       }
 
   // TODO: possibly extract into separate module
-  def drive(ps: PState[Expr, SubStepInfo, Extra]): List[SubStep[Expr, SubStepInfo, Extra]] = decompose(ps.node.label) match {
+  def drive(ps: PState[Expr, SubStepInfo, Extra]): List[SubStep[Expr, SubStepInfo, Extra]] = decompose(ps.node.conf) match {
     case DecLet(Let(term, bs)) =>
       SubStep(term, LetBodyStep, DummyExtra) :: bs.map { case (k, v) => SubStep(v, LetPartStep(k), DummyExtra) }
 
@@ -130,7 +130,7 @@ class PSLLMultiMachine(
   }
 
   def blame(pState: PState[Expr, SubStepInfo, Extra]) = {
-    val inStep = if (pState.node.in != null) pState.node.in.label else null
+    val inStep = if (pState.node.in != null) pState.node.in.driveInfo else null
     inStep match {
       case StopStep => Blaming(None, Whistle.Complete)
       case _ => whistle.blame(pState) match {
@@ -150,8 +150,8 @@ class PSLLMultiMachine(
             rebuilduingTactics match {
               case Msg =>
                 val blamedNode = signal.blamed.get
-                val blamedExpr = blamedNode.label
-                val currentExpr = pState.node.label
+                val blamedExpr = blamedNode.conf
+                val currentExpr = pState.node.conf
                 //println(currentExpr)
                 //println(blamedExpr)
                 val rebuilt = msgToLet(currentExpr, MSG.msg(currentExpr, blamedExpr))
@@ -161,8 +161,8 @@ class PSLLMultiMachine(
               case AllGens => {
                 val blamedNode = pState.node
                 toReplace = blamedNode
-                val e = blamedNode.label
-                SLLGeneralizations.gens(blamedNode.label) map { e1 => new SubStep(e1, GeneralizationStep(e), DummyExtra) }
+                val e = blamedNode.conf
+                SLLGeneralizations.gens(blamedNode.conf) map { e1 => new SubStep(e1, GeneralizationStep(e), DummyExtra) }
               }
             }
           }
@@ -170,8 +170,8 @@ class PSLLMultiMachine(
             rebuilduingTactics match {
               case Msg => {
                 val blamedNode = signal.blamed.get
-                val blamedExpr = blamedNode.label
-                val currentExpr = pState.node.label
+                val blamedExpr = blamedNode.conf
+                val currentExpr = pState.node.conf
                 println(currentExpr)
                 println(blamedExpr)
                 val rebuilt = msgToLet(blamedExpr, MSG.msg(blamedExpr, currentExpr))
@@ -183,8 +183,8 @@ class PSLLMultiMachine(
               case AllGens => {
                 val blamedNode = signal.blamed.get
                 toReplace = blamedNode
-                val e = blamedNode.label
-                SLLGeneralizations.gens(blamedNode.label) map { e1 => new SubStep(e1, GeneralizationStep(e), DummyExtra) }
+                val e = blamedNode.conf
+                SLLGeneralizations.gens(blamedNode.conf) map { e1 => new SubStep(e1, GeneralizationStep(e), DummyExtra) }
               }
             }
           case _ => Nil
@@ -232,7 +232,7 @@ class PSLLMultiMachine(
 
   def tricks(pState: PState[Expr, SubStepInfo, Extra], signal: Blaming[Expr, SubStepInfo, Extra]): List[SubStep[Expr, SubStepInfo, Extra]] = {
     if (speculate) {
-      val from = pState.node.label
+      val from = pState.node.conf
       val res = speculator.speculate(from) map { e => SubStep(e, SpeculationStep(from, e), DummyExtra) }
       res
     } else {

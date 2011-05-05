@@ -1,5 +1,7 @@
 package mrsc
 
+import scala.annotation.tailrec
+
 // used to store the old `in` edge
 case class Tmp[C, D, E](node: Node[C, D, E], in: In[C, D, E])
 
@@ -22,7 +24,7 @@ object Transformations {
       // leaves only??
       case ns1 :: Nil =>
         val tmpNodes: List[Tmp[C, D, E]] = ns1 map { n =>
-          val node = Node[C, D, E](label = n.label, extra = n.info, outs = Nil, base = n.base, path = n.path)
+          val node = Node[C, D, E](conf = n.conf, extraInfo = n.extraInfo, outs = Nil, base = n.base, path = n.path)
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp =>
@@ -35,8 +37,8 @@ object Transformations {
         val allchildren = allCh.groupBy { _.node.coPath.tail }
         val tmpNodes = ns1 map { n =>
           val children: List[Tmp[C, D, E]] = allchildren.getOrElse(n.coPath, Nil)
-          val edges = children map { tmp => Edge(tmp.node, tmp.in.label) }
-          val node = new Node(n.label, n.info, edges, n.base, n.path)
+          val edges = children map { tmp => Edge(tmp.node, tmp.in.driveInfo) }
+          val node = new Node(n.conf, n.extraInfo, edges, n.base, n.path)
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp => leaves.contains(tmp.node.coPath) }
@@ -47,14 +49,33 @@ object Transformations {
 
 object GraphPrettyPrinter {
   def toString(node: Node[_, _, _], indent: String = ""): String = {
-    val sb = new StringBuilder(indent + "|__" + node.label)
+    val sb = new StringBuilder(indent + "|__" + node.conf)
     if (node.base.isDefined) {
       sb.append("*******")
     }
     for (edge <- node.outs) {
-      sb.append("\n  " + indent + "|" + (if (edge.label != null) edge.label else ""))
+      sb.append("\n  " + indent + "|" + (if (edge.driveInfo != null) edge.driveInfo else ""))
       sb.append("\n" + toString(edge.node, indent + "  "))
     }
     sb.toString
   }
+}
+
+/*! The simple lexicographic order on paths.
+ */
+object PathOrdering extends Ordering[Path] {
+  @tailrec
+  final def compare(p1: Path, p2: Path) =
+    if (p1.length < p2.length) {
+      -1
+    } else if (p1.length > p2.length) {
+      +1
+    } else {
+      val result = p1.head compare p2.head
+      if (result == 0) {
+        compare(p1.tail, p2.tail)
+      } else {
+        result
+      }
+    }
 }

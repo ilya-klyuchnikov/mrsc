@@ -9,40 +9,40 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
 
   def makeStep(ps: PState[Expr, Contraction, Extra]): Step[Expr, Contraction, Extra] =
     // TODO!! here may be different ways of folding!!!
-    ps.node.ancestors.find { n => !n.label.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.label, n.label) } match {
+    ps.node.ancestors.find { n => !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.conf, n.conf) } match {
       case Some(n) =>
         MFold(n.path)
-      case None => Decomposition.decompose(ps.node.label) match {
+      case None => Decomposition.decompose(ps.node.conf) match {
         case ObservableVar(v) =>
           MComplete
         case ObservableCtr(Ctr(_, Nil)) =>
           MComplete
         case _ =>
-          val e = ps.node.label
+          val e = ps.node.conf
           val driveStep = if (whistle(ps)) MForest(drivingStep(e)) else MPrune
           driveStep
       }
     }
 
   def makeSteps(ps: PState[Expr, Contraction, Extra]): List[Step[Expr, Contraction, Extra]] =
-    ps.node.ancestors.filter { n => !n.label.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.label, n.label) } match {
+    ps.node.ancestors.filter { n => !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.conf, n.conf) } match {
       case x if !x.isEmpty =>
         x map {n => MFold(n.path)}
-      case _ => Decomposition.decompose(ps.node.label) match {
+      case _ => Decomposition.decompose(ps.node.conf) match {
         case ObservableVar(v) =>
           List(MComplete)
         case ObservableCtr(Ctr(_, Nil)) =>
           List(MComplete)
         case _ =>
-          val e = ps.node.label
+          val e = ps.node.conf
           val driveStep =
             if (whistle(ps)) MForest(drivingStep(e)) else MPrune
           val notGen =
-            (ps.node.in != null) && (ps.node.in.node.label match { case Let(_, _) => true; case _ => false })
+            (ps.node.in != null) && (ps.node.in.node.conf match { case Let(_, _) => true; case _ => false })
           // we do not try to generalize if previous step was a generalization
           val genSteps =
             if (notGen) Nil else SLLGeneralizations.gens(e) map { e1 =>
-              MReplace(e1, ps.node.info)
+              MReplace(e1, ps.node.extraInfo)
               //e1 => MForest(List(new SubStep(e1, null)))
             }
           driveStep :: genSteps
@@ -86,25 +86,25 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleMachine[Expr, Contractio
 
 class SLLMachine1(p: Program, wh: Whistle) extends SLLMachine(p, wh) {
   override def makeSteps(ps: PState[Expr, Contraction, Extra]): List[Step[Expr, Contraction, Extra]] =
-    ps.completeNodes.find { n => SLLExpressions.renaming(ps.node.label, n.label) } match {
+    ps.completeNodes.find { n => SLLExpressions.renaming(ps.node.conf, n.conf) } match {
       case Some(n) =>
         List(MFold(n.path))
-      case None => Decomposition.decompose(ps.node.label) match {
+      case None => Decomposition.decompose(ps.node.conf) match {
         case ObservableVar(v) =>
           List(MComplete)
         case ObservableCtr(Ctr(_, Nil)) =>
           List(MComplete)
         case _ =>
-          val e = ps.node.label
+          val e = ps.node.conf
           val accept = whistle(ps)
           val driveStep = 
             if (accept) MForest(drivingStep(e)) else MPrune
           val notGen =
-            (ps.node.in != null) && (ps.node.in.node.label match { case Let(_, _) => true; case _ => false })
+            (ps.node.in != null) && (ps.node.in.node.conf match { case Let(_, _) => true; case _ => false })
           // we do not try to generalize if previous step was a generalization
           val genSteps =
             if (notGen || (!accept)) Nil else SLLGeneralizations.gens(e) map { e1 =>
-              MReplace(e1, ps.node.info)
+              MReplace(e1, ps.node.extraInfo)
               //e1 => MForest(List(new SubStep(e1, null)))
             }
           driveStep :: genSteps

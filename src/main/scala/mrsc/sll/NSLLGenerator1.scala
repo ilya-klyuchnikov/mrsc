@@ -39,7 +39,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
       val (name, args) = sigs(fpath)
       val fnode = tree.get(fpath)
 
-      val sub = findSubst(fnode.label, n.label)
+      val sub = findSubst(fnode.conf, n.conf)
       val sub1 = sub map { case (k, v) => (NVar(k.name), convert(v)) }
       NCall(name, args map { nSubst(_, sub1) })
   }
@@ -48,20 +48,20 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
   private def make(n: Node[Expr, SubStepInfo, Extra]): NExpr = {
     val children @ (n1 :: ns) = n.outs
     
-    n1.label.stepKind match {
+    n1.driveInfo.stepKind match {
       case Stop =>
-        convert(n1.node.label)
+        convert(n1.node.conf)
 
       case Transient =>
         fold(n1.node)
 
       case CtrDecompose =>
-        val ctrName = n.label.asInstanceOf[Ctr].name
+        val ctrName = n.conf.asInstanceOf[Ctr].name
         NCtr(ctrName, children.map(out => fold(out.node)))
 
       case LetDecompose =>
         val body = fold(n1.node)
-        val sub = ns.map { n2 => (NVar(n2.label.asInstanceOf[LetPartStep].v.name), fold(n2.node)) }.toMap
+        val sub = ns.map { n2 => (NVar(n2.driveInfo.asInstanceOf[LetPartStep].v.name), fold(n2.node)) }.toMap
         nSubst(body, sub)
 
       case Generalization =>
@@ -73,7 +73,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
       case Variants =>
         val sel = fold(n1.node)
         val branches = ns map { n2 =>
-          val VariantBranchStep(Contraction(_, pat)) = n2.label
+          val VariantBranchStep(Contraction(_, pat)) = n2.driveInfo
           (convert(pat), fold(n2.node))
         }
         val sortedBranches = branches.sortBy(_._1.name)
@@ -83,7 +83,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
   }
 
   private def createSignature(fNode: Node[Expr, SubStepInfo, Extra], recNodes: List[Node[Expr, SubStepInfo, Extra]]): (String, List[NVar]) = {
-    var fVars: List[Var] = vars(fNode.label)
+    var fVars: List[Var] = vars(fNode.conf)
     (createFName(), fVars map { v => NVar(v.name) })
   }
 
