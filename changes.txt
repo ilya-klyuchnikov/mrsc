@@ -1,3 +1,7 @@
+06-05-2011
+----------
+Builders: small improvements + literate documentation.
+
 05-05-2011
 ----------
 Clear names in graphs.scala (conf, driveInfo, extraInfo). Documenting graphs.scala
