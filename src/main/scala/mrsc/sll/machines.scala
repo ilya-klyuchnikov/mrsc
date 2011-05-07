@@ -14,12 +14,12 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleResultMachine[Expr, Cont
         MFold(n.path)
       case None => Decomposition.decompose(ps.node.conf) match {
         case ObservableVar(v) =>
-          MComplete
+          MMakeLeaf
         case ObservableCtr(Ctr(_, Nil)) =>
-          MComplete
+          MMakeLeaf
         case _ =>
           val e = ps.node.conf
-          val driveStep = if (whistle(ps)) MForest(drivingStep(e)) else MPrune
+          val driveStep = if (whistle(ps)) MAddForest(drivingStep(e)) else MPrune
           driveStep
       }
     }
@@ -30,20 +30,20 @@ class SLLMachine(p: Program, wh: Whistle) extends SingleResultMachine[Expr, Cont
         x map {n => MFold(n.path)}
       case _ => Decomposition.decompose(ps.node.conf) match {
         case ObservableVar(v) =>
-          List(MComplete)
+          List(MMakeLeaf)
         case ObservableCtr(Ctr(_, Nil)) =>
-          List(MComplete)
+          List(MMakeLeaf)
         case _ =>
           val e = ps.node.conf
           val driveStep =
-            if (whistle(ps)) MForest(drivingStep(e)) else MPrune
+            if (whistle(ps)) MAddForest(drivingStep(e)) else MPrune
           val notGen =
             (ps.node.in != null) && (ps.node.in.node.conf match { case Let(_, _) => true; case _ => false })
           // we do not try to generalize if previous step was a generalization
           val genSteps =
             if (notGen) Nil else SLLGeneralizations.gens(e) map { e1 =>
               MReplace(e1, ps.node.extraInfo)
-              //e1 => MForest(List(new SubStep(e1, null)))
+              //e1 => MAddForest(List(new SubStep(e1, null)))
             }
           driveStep :: genSteps
       }
@@ -91,21 +91,21 @@ class SLLMachine1(p: Program, wh: Whistle) extends SLLMachine(p, wh) {
         List(MFold(n.path))
       case None => Decomposition.decompose(ps.node.conf) match {
         case ObservableVar(v) =>
-          List(MComplete)
+          List(MMakeLeaf)
         case ObservableCtr(Ctr(_, Nil)) =>
-          List(MComplete)
+          List(MMakeLeaf)
         case _ =>
           val e = ps.node.conf
           val accept = whistle(ps)
           val driveStep = 
-            if (accept) MForest(drivingStep(e)) else MPrune
+            if (accept) MAddForest(drivingStep(e)) else MPrune
           val notGen =
             (ps.node.in != null) && (ps.node.in.node.conf match { case Let(_, _) => true; case _ => false })
           // we do not try to generalize if previous step was a generalization
           val genSteps =
             if (notGen || (!accept)) Nil else SLLGeneralizations.gens(e) map { e1 =>
               MReplace(e1, ps.node.extraInfo)
-              //e1 => MForest(List(new SubStep(e1, null)))
+              //e1 => MAddForest(List(new SubStep(e1, null)))
             }
           driveStep :: genSteps
       }

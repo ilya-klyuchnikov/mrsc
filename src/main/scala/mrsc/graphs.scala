@@ -119,7 +119,7 @@ case class PartialCoGraph[C, D, E](
       step match {
         /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
          */
-        case MComplete =>
+        case MMakeLeaf =>
           PartialCoGraph(active :: completeLeaves, ls, active :: completeNodes)
         /*! Replacing the configuration of the current node. 
            The main use case is the rebuilding (generalization) of the active node.
@@ -137,7 +137,7 @@ case class PartialCoGraph[C, D, E](
             current node is moved to the complete part and new children are moved into 
             the incomplete part. Also the (co-)path is calculated for any child node.
          */
-        case MForest(subSteps) =>
+        case MAddForest(subSteps) =>
           val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
             case (SubStep(conf, dInfo, eInfo), i) =>
               val in = Edge(active, dInfo)

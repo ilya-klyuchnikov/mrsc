@@ -71,7 +71,7 @@ class PSLLMultiMachine(
   val speculate: Boolean = true,
   val rebuilduingStrategy: RebuilduingStrategy = CurrentByWhistle,
   val rebuilduingTactics: RebuilderTactics = Msg)
-  extends BaseMultiMachine[Expr, SubStepInfo, Extra] {
+  extends BaseMultiMachine[Expr, SubStepInfo, Extra] with BaseMultiMachinLogic[Expr, SubStepInfo, Extra] {
 
   val speculator = new Speculator(program)
 
@@ -135,7 +135,7 @@ class PSLLMultiMachine(
       case StopStep => Blaming(None, Whistle.Complete)
       case _ => whistle.blame(pState) match {
         case None => Blaming(None, Whistle.OK)
-        case s @ Some(_) => Blaming(s, Whistle.SoftPrune)
+        case s @ Some(_) => Blaming(s, Whistle.Warning)
       }
     }
   }
@@ -144,7 +144,7 @@ class PSLLMultiMachine(
 
   def rebuildings(pState: PState[Expr, SubStepInfo, Extra], signal: Blaming[Expr, SubStepInfo, Extra]) =
     signal.signal match {
-      case Whistle.SoftPrune =>
+      case Whistle.Warning =>
         rebuilduingStrategy match {
           case CurrentByWhistle => {
             rebuilduingTactics match {
@@ -192,7 +192,7 @@ class PSLLMultiMachine(
       case _ => Nil
     }
 
-  def rebuildStep(gs: SubStep[Expr, SubStepInfo, Extra]) = //MForest(List(gs))
+  def rebuildStep(gs: SubStep[Expr, SubStepInfo, Extra]) = //MAddForest(List(gs))
     rebuilduingStrategy match {
       case CurrentByWhistle =>
         // TODO: should we do something here?
@@ -241,7 +241,7 @@ class PSLLMultiMachine(
   }
 
   def trickyStep(gs: SubStep[Expr, SubStepInfo, Extra]): MStep[Expr, SubStepInfo, Extra] =
-    MForest(List(gs))
+    MAddForest(List(gs))
 
   private def freshPat(p: Pat) = Pat(p.name, p.args map freshVar)
 }

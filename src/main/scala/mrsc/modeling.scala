@@ -24,9 +24,10 @@ trait MultiResultMachine[C, D, E] {
  */
 sealed trait MStep[+C, +D, +E]
 
-/*! The step `MComplete` means that the current branch of the graph in focus is complete. 
+/*! The step `MMakeLeaf` means that the current branch of the graph in focus is
+   a terminal node (leaf).
  */
-case object MComplete extends MStep[Nothing, Nothing, Nothing]
+case object MMakeLeaf extends MStep[Nothing, Nothing, Nothing]
 
 /*! The step `MPrune` means that the current graph should be discarded. In the case of 
  the "single-result" supercompilation it means failure (= no good result). In the case of
@@ -34,10 +35,10 @@ case object MComplete extends MStep[Nothing, Nothing, Nothing]
  */
 case object MPrune extends MStep[Nothing, Nothing, Nothing]
 
-/*! `MForest` corresponds to development of current branch of the graph (driving in 90%).
+/*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
  Development is divided into several `subSteps`.
  */
-case class MForest[C, D, E](val subSteps: List[SubStep[C, D, E]]) extends MStep[C, D, E]
+case class MAddForest[C, D, E](val subSteps: List[SubStep[C, D, E]]) extends MStep[C, D, E]
 
 /*! `MReplace` is fixing the current state of the branch.
  */
