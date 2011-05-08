@@ -12,7 +12,7 @@ package mrsc
 */
 trait GenericMultiMachine[C, D, E, W] extends MultiResultMachine[C, D, E] {
 
-  def whistle(pState: PState[C, D, E]): W
+  def blame(pState: PState[C, D, E]): W
   def fold(pState: PState[C, D, E]): List[Path]
   def drive(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
   def rebuildings(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
@@ -33,7 +33,7 @@ trait GenericMultiMachine[C, D, E, W] extends MultiResultMachine[C, D, E] {
         foldPaths map MFold
 
       case _ =>
-        val signal = whistle(pState)
+        val signal = blame(pState)
         val driveSteps = drive(signal, pState)
         val genSteps = rebuildings(signal, pState)
         val trickySteps = tricks(signal, pState)

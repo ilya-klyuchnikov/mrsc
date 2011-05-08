@@ -7,7 +7,20 @@ import SLLExpressions._
 trait SLLDriving {
   val program: Program
 
-  def drive(ps: PState[Expr, SubStepInfo, Extra]): List[SubStep[Expr, SubStepInfo, Extra]] =
+  def drive(pState: PState[Expr, SubStepInfo, Extra]) = {
+    val driveStep: MStep[Expr, SubStepInfo, Extra] = if (tryComplete.isDefinedAt(pState)) {
+      tryComplete(pState)
+    } else {
+      pureDrive(pState)
+    }
+    List(driveStep)
+  }
+
+  private def pureDrive(ps: PState[Expr, SubStepInfo, Extra]): MStep[Expr, SubStepInfo, Extra] = {
+    MAddForest(drive_(ps))
+  }
+
+  def drive_(ps: PState[Expr, SubStepInfo, Extra]): List[SubStep[Expr, SubStepInfo, Extra]] =
     decompose(ps.node.conf) match {
 
       case DecLet(Let(term, bs)) =>
@@ -48,17 +61,17 @@ trait SLLDriving {
 
     }
 
-  val tryComplete: PartialFunction[PState[Expr, SubStepInfo, Extra], List[MStep[Expr, SubStepInfo, Extra]]] = {
-    case PState(CoNode(_, _, Edge(_, StopStep), _, _), _) => List(MMakeLeaf)
+  val tryComplete: PartialFunction[PState[Expr, SubStepInfo, Extra], MStep[Expr, SubStepInfo, Extra]] = {
+    case PState(CoNode(_, _, Edge(_, StopStep), _, _), _) => MMakeLeaf
   }
 
   private def freshPat(p: Pat) = Pat(p.name, p.args map freshVar)
 }
 
 // fold only into ancestors
-trait SLLFolding {
+trait SLLFolding[D, E] {
 
-  def fold(ps: PState[Expr, _, _]): List[Path] =
+  def fold(ps: PState[Expr, D, E]): List[Path] =
     ps.node.ancestors.filter { renamingFilter(ps.node) } map { _.path }
 
   private def renamingFilter(leaf: CoNode[Expr, _, _])(n: CoNode[Expr, _, _]) =
@@ -67,16 +80,26 @@ trait SLLFolding {
 
 trait SLLWhistle {
   val whistle: Whistle
-  def blame(pState: PState[Expr, SubStepInfo, Extra]) =
-    whistle.blame(pState) match {
-      case None => Blaming(None, Whistle.OK)
-      case s @ Some(_) => Blaming(s, Whistle.Warning)
+  // small precularity on completion
+  def blame(pState: PState[Expr, SubStepInfo, Extra]): Blaming[Expr, SubStepInfo, Extra] = {
+    val inStep = if (pState.node.in != null) pState.node.in.driveInfo else null
+    inStep match {
+      case StopStep => Blaming(None, Whistle.OK)
+      case _ => whistle.blame(pState) match {
+        case None => Blaming(None, Whistle.OK)
+        case s @ Some(_) => Blaming(s, Whistle.Warning)
+      }
     }
+  }
 }
 
 trait SLLRebuildings {
-  def msg(conf: Expr, wrt: Expr): Expr =
+  def msg(conf: Expr, wrt: Expr): Expr = {
+    println("msg requested")
+    println(conf)
+    println(wrt)
     msgToLet(conf, MSG.msg(conf, wrt))
+  }
 
   def gens(conf: Expr): List[Expr] =
     SLLGeneralizations.gens(conf)
@@ -104,3 +127,4 @@ trait SLLRebuildings {
       }
     }
 }
+
