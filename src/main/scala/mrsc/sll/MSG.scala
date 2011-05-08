@@ -4,9 +4,6 @@ import SLLExpressions._
 case class Gen(t: Expr, m1: Map[Var, Expr], m2: Map[Var, Expr])
 object MSG {
   def msg(t1: Expr, t2: Expr): Gen = {
-    // see todo file
-    if (!renaming(t1, t2) && inst(t2, t1))
-      throw new Error("I guessed it was impossible!!")
     val v = freshVar()
     var g = Gen(v, Map(v -> t1), Map(v -> t2))
     var exp = g.t

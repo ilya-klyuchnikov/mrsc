@@ -55,7 +55,6 @@ object SLLTasks {
     """
 
   val tasks = List(
-    //SLLTask("g1(x, y, z)", listProgram),
     SLLTask("gApp(x, y)", listProgram),
     SLLTask("gApp(gApp(x, y), z)", listProgram),
     SLLTask("gApp(gApp(x, y), y)", listProgram),

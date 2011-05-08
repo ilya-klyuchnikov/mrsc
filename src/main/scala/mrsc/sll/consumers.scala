@@ -86,7 +86,7 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo, Extra] {
         completedCoGraphsCount = completedCoGraphsCount + 1
         coGraphs = cg :: coGraphs
     }
-    if (completedCoGraphsCount > 100000) {
+    if (completedCoGraphsCount > 1000) {
       throw new ModelingError("too many results")
     }
   }
@@ -94,15 +94,15 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo, Extra] {
   def showResults(): Unit = {
     println(completedCoGraphsCount + " completed graphs")
     println(prunedCoGraphsCount + " pruned graphs")
-    
+
     /*
     for (cg <- coGraphs; graph = Transformations.transpose(cg)) {
       println(graph)
     }*/
-    
+
     val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NSLLResiduator2(graph).result, graph)
-    val mapProg = Map(allProgs:_*)
-    programs = allProgs map {_._1} sortBy{_.size} distinct
+    val mapProg = Map(allProgs: _*)
+    programs = allProgs map { _._1 } sortBy { _.size } distinct
 
     println(programs.length + " programs")
 
@@ -114,5 +114,27 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo, Extra] {
       //println()
     }
 
+  }
+}
+
+class SingleProgramConsumer extends CoGraphConsumer[Expr, SubStepInfo, Extra] {
+  val description = "I expect one result"
+
+  var residualProgram: NExpr = null
+  var graph: Graph[Expr, SubStepInfo, Extra] = null
+
+  def consume(result: Option[CoGraph[Expr, SubStepInfo, Extra]]): Unit = {
+    result match {
+      case Some(cg) if residualProgram == null =>
+        graph = Transformations.transpose(cg)
+        residualProgram = new NSLLResiduator2(graph).result
+      case _ =>
+        throw new Error()
+    }
+  }
+
+  def showResults(): Unit = {
+    println(residualProgram)
+    //println(graph)
   }
 }

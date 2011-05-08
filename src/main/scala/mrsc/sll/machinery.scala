@@ -3,6 +3,7 @@ package mrsc.sll
 import mrsc._
 import Whistle._
 import SLLGeneralizations._
+import SLLExpressions._
 
 // Here we define 2 variants of driving + 6 variants of rebuilding
 
@@ -32,9 +33,23 @@ trait SLLCurentMsg extends SLLRebuildings {
       case OK =>
         List()
       case _ =>
-        val rebuiltConf = msg(pState.node.conf, whistle.blamed.get.conf)
-        val rebuildStep = MReplace(rebuiltConf, DummyExtra)
-        List(rebuildStep)
+        val blamed = whistle.blamed.get
+        val currentConf = pState.node.conf
+        val blamedConf = blamed.conf
+        val g = MSG.msg(currentConf, blamedConf)
+        if (renaming(g.t, currentConf)) {
+          val topSplitted = split(blamedConf)
+          val rollback = MRollback(blamed, topSplitted, DummyExtra)
+          List(rollback)
+        } else if (g.t.isInstanceOf[Var]) {
+          val let = split(currentConf)
+          val replace = MReplace(let, DummyExtra)
+          List(replace)
+        } else {
+          val let = Let(g.t, g.m1.toList)
+          val replace = MReplace(let, DummyExtra)
+          List(replace)
+        }
     }
 }
 
@@ -44,12 +59,23 @@ trait SLLBlamedMsg extends SLLRebuildings {
       case OK =>
         List()
       case _ =>
-        val blamedNode = whistle.blamed.get
-        val blamedExpr = blamedNode.conf
-        val currentExpr = pState.node.conf
-        val rebuiltConf = msg(blamedExpr, currentExpr)
-        val rebuildStep = MRollback(blamedNode, rebuiltConf, DummyExtra)
-        List(rebuildStep)
+        val blamed = whistle.blamed.get
+        val currentConf = pState.node.conf
+        val blamedConf = blamed.conf
+        //println("msg")
+        //println(blamedConf + "<" + currentConf)
+        val g = MSG.msg(blamedConf, currentConf)
+        if (g.t.isInstanceOf[Var] || renaming(g.t, blamedConf)) {
+          val let = split(currentConf)
+          val replace = MReplace(let, DummyExtra)
+          //println("replace: " + let)
+          List(replace)
+        } else {
+          val let = Let(g.t, g.m1.toList)
+          val rollback = MRollback(blamed, let, DummyExtra)
+          //println("rollback: " + let)
+          List(rollback)
+        }
     }
 }
 

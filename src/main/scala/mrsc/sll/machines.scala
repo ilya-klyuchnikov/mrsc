@@ -1,113 +1,68 @@
-package mrsc.sll
+package mrsc
 
-import mrsc._
-import Decomposition._
-import SLLExpressions._
-
-class SLLMachine(p: Program, wh: Whistle) extends SingleResultMachine[Expr, Contraction, Extra] with MultiResultMachine[Expr, Contraction, Extra] {
-  val name = wh.name
-
-  def makeStep(ps: PState[Expr, Contraction, Extra]): MStep[Expr, Contraction, Extra] =
-    // TODO!! here may be different ways of folding!!!
-    ps.node.ancestors.find { n => !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.conf, n.conf) } match {
-      case Some(n) =>
-        MFold(n.path)
-      case None => Decomposition.decompose(ps.node.conf) match {
-        case ObservableVar(v) =>
-          MMakeLeaf
-        case ObservableCtr(Ctr(_, Nil)) =>
-          MMakeLeaf
-        case _ =>
-          val e = ps.node.conf
-          val driveStep = if (whistle(ps)) MAddForest(drivingStep(e)) else MPrune
-          driveStep
-      }
-    }
-
-  def makeSteps(ps: PState[Expr, Contraction, Extra]): List[MStep[Expr, Contraction, Extra]] =
-    ps.node.ancestors.filter { n => !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(ps.node.conf, n.conf) } match {
-      case x if !x.isEmpty =>
-        x map {n => MFold(n.path)}
-      case _ => Decomposition.decompose(ps.node.conf) match {
-        case ObservableVar(v) =>
-          List(MMakeLeaf)
-        case ObservableCtr(Ctr(_, Nil)) =>
-          List(MMakeLeaf)
-        case _ =>
-          val e = ps.node.conf
-          val driveStep =
-            if (whistle(ps)) MAddForest(drivingStep(e)) else MPrune
-          val notGen =
-            (ps.node.in != null) && (ps.node.in.node.conf match { case Let(_, _) => true; case _ => false })
-          // we do not try to generalize if previous step was a generalization
-          val genSteps =
-            if (notGen) Nil else SLLGeneralizations.gens(e) map { e1 =>
-              MReplace(e1, ps.node.extraInfo)
-              //e1 => MAddForest(List(new SubStep(e1, null)))
-            }
-          driveStep :: genSteps
-      }
-    }
-
-  // only simple whistle for now -- will continue
-  def whistle(ps: PState[Expr, Contraction, Extra]): Boolean = wh.blame(ps).isEmpty
-
-  def drivingStep(configuration: Expr): List[SubStep[Expr, Contraction, Extra]] = decompose(configuration) match {
-    case DecLet(Let(term, bs)) =>
-      new SubStep[Expr, Contraction, Extra](term, null, DummyExtra) :: bs.map { case (_, v) => new SubStep[Expr, Contraction, Extra](v, null, DummyExtra) }
-    case ObservableCtr(Ctr(_, args)) => args map { a => SubStep[Expr, Contraction, Extra](a, null, DummyExtra) }
-    case context @ Context(red) =>
-      red match {
-        case RedexFCall(FCall(name, args)) => {
-          val fReduced = subst(p.f(name).term, Map(p.f(name).args.zip(args): _*))
-          val nExpr = context.replaceRedex(fReduced)
-          List(new SubStep(nExpr, null, DummyExtra))
-        }
-        case RedexGCallCtr(GCall(name, args), Ctr(cname, cargs)) => {
-          val g = p.g(name, cname)
-          val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (cargs ::: args.tail): _*))
-          val nExpr = context.replaceRedex(gReduced)
-          List(new SubStep(nExpr, null, DummyExtra))
-        }
-        case RedexGCallVar(GCall(name, args), v) => {
-          p.gs(name) map { g =>
-            val fp = freshPat(g.p)
-            val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (fp.args ::: args.tail): _*))
-            val info = Map(v -> Ctr(fp.name, fp.args))
-            val driven = subst(context.replaceRedex(gReduced), info)
-            new SubStep(driven, Contraction(v, fp), DummyExtra)
-          }
-        }
-      }
-  }
-
-  private def freshPat(p: Pat) = Pat(p.name, p.args map freshVar)
+/*! It turns out that "pure" multi-result supercompilation
+ is just about whistle.
+ */
+object Whistle extends Enumeration {
+  type Whistle = Value
+  val OK, Warning, Prune, Complete = Value
 }
 
-class SLLMachine1(p: Program, wh: Whistle) extends SLLMachine(p, wh) {
-  override def makeSteps(ps: PState[Expr, Contraction, Extra]): List[MStep[Expr, Contraction, Extra]] =
-    ps.completeNodes.find { n => SLLExpressions.renaming(ps.node.conf, n.conf) } match {
-      case Some(n) =>
-        List(MFold(n.path))
-      case None => Decomposition.decompose(ps.node.conf) match {
-        case ObservableVar(v) =>
-          List(MMakeLeaf)
-        case ObservableCtr(Ctr(_, Nil)) =>
-          List(MMakeLeaf)
-        case _ =>
-          val e = ps.node.conf
-          val accept = whistle(ps)
-          val driveStep = 
-            if (accept) MAddForest(drivingStep(e)) else MPrune
-          val notGen =
-            (ps.node.in != null) && (ps.node.in.node.conf match { case Let(_, _) => true; case _ => false })
-          // we do not try to generalize if previous step was a generalization
-          val genSteps =
-            if (notGen || (!accept)) Nil else SLLGeneralizations.gens(e) map { e1 =>
-              MReplace(e1, ps.node.extraInfo)
-              //e1 => MAddForest(List(new SubStep(e1, null)))
-            }
-          driveStep :: genSteps
+case class Blaming[C, D, E](blamed: Option[CoNode[C, D, E]], signal: Whistle.Whistle)
+
+/*!`BaseMultiMachine` is good for coding the behavior of supercompiler - its strategies and tactics
+    in "classical" terms.
+ */
+trait BaseMultiMachine[C, D, E] extends MultiResultMachine[C, D, E] {
+
+  def fold(pState: PState[C, D, E]): List[Path]
+
+  def blame(pState: PState[C, D, E]): Blaming[C, D, E]
+
+  def drive(pState: PState[C, D, E]): List[SubStep[C, D, E]]
+
+  def rebuildings(pState: PState[C, D, E], blaming: Blaming[C, D, E]): List[SubStep[C, D, E]]
+  def rebuildStep(gs: SubStep[C, D, E]): MStep[C, D, E]
+
+  def tricks(pState: PState[C, D, E], blaming: Blaming[C, D, E]): List[SubStep[C, D, E]]
+  def trickyStep(gs: SubStep[C, D, E]): MStep[C, D, E]
+}
+
+/*!
+  `BaseMultiMachinLogic` represents some common behavior logic.
+  It is more to help create "reference implementations", it is not for
+  good performance. It just a glue between different parts.
+  
+  The base logic:
+  1. Folding
+     a) We can fold in different ways. Let's try all variants of folding.
+     b) If we can fold, we do not try other steps 
+  2. Whistle
+     a) OK - everything is good
+     b) SoftPrune - no driving, but generalization and tricks are possible
+     c) HardPrune - delete this tree. Examples: a lemma was applied twice without result
+     d) Complete - mark the current node as a complete one
+ */
+trait BaseMultiMachinLogic[C, D, E] extends BaseMultiMachine[C, D, E] {
+  override def makeSteps(pState: PState[C, D, E]): List[MStep[C, D, E]] = fold(pState) match {
+
+    case foldPaths if !foldPaths.isEmpty =>
+      foldPaths map MFold
+
+    case _ =>
+      val whistle = blame(pState)
+      lazy val genSteps = rebuildings(pState, whistle).map(rebuildStep)
+      lazy val trickySteps = tricks(pState, whistle).map(trickyStep)
+
+      lazy val driveSteps = whistle.signal match {
+        case Whistle.OK => List(MAddForest(drive(pState)))
+        case _ => List(MPrune)
       }
-    }
+
+      whistle.signal match {
+        case Whistle.Complete => List(MMakeLeaf)
+        case Whistle.Prune => driveSteps
+        case _ => driveSteps ++ (trickySteps ++ genSteps)
+      }
+  }
 }
