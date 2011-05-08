@@ -65,6 +65,9 @@ case class Node[C, D, E](
     case i :: rp => outs(i).node.get(rp)
   }
 
+  val isLeaf = outs.isEmpty
+  val isRepeat = base.isDefined
+  
   override def toString = GraphPrettyPrinter.toString(this)
 }
 

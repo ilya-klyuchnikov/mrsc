@@ -12,8 +12,9 @@ package mrsc
 */
 trait GenericMultiMachine[C, D, E, W] extends MultiResultMachine[C, D, E] {
 
+  def isLeaf(pState: PState[C, D, E]): Boolean
+  def fold(pState: PState[C, D, E]): Option[Path]
   def blame(pState: PState[C, D, E]): W
-  def fold(pState: PState[C, D, E]): List[Path]
   def drive(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
   def rebuildings(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
   def tricks(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
@@ -27,17 +28,16 @@ trait GenericMultiMachine[C, D, E, W] extends MultiResultMachine[C, D, E] {
    Note that the whistle signal is passed to `drive`, `rebuildings` and `tricks`.
   */
   override def makeSteps(pState: PState[C, D, E]): List[MStep[C, D, E]] =
-    fold(pState) match {
-
-      case foldPaths if !foldPaths.isEmpty =>
-        foldPaths map MFold
-
+    if (isLeaf(pState))
+      List(MMakeLeaf)
+    else fold(pState) match {
+      case Some(path) =>
+        List(MFold(path))
       case _ =>
         val signal = blame(pState)
         val driveSteps = drive(signal, pState)
         val genSteps = rebuildings(signal, pState)
         val trickySteps = tricks(signal, pState)
         driveSteps ++ (trickySteps ++ genSteps)
-
     }
 }

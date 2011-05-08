@@ -4,38 +4,69 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
+object StepKind extends Enumeration {
+  type StepKind = Value
+  val Transient, CtrDecompose, LetDecompose, Variants, Generalization, Speculation = Value
+
+  def isDrive(v: Value) =
+    v == Transient || v == Variants || v == CtrDecompose || v == LetDecompose
+
+  def isReduction(v: Value) =
+    v == Transient || v == Variants
+}
+
+import StepKind._
+
+abstract sealed class SubStepInfo(val stepKind: StepKind)
+case object TransientStep extends SubStepInfo(Transient) {
+  override def toString = " "
+}
+case object CtrArgStep extends SubStepInfo(CtrDecompose) {
+  override def toString = ""
+}
+case object VariantSelectorStep extends SubStepInfo(Variants) {
+  override def toString = "[ ]"
+}
+case class VariantBranchStep(contr: Contraction) extends SubStepInfo(Variants) {
+  override def toString = contr.toString
+}
+case object LetBodyStep extends SubStepInfo(LetDecompose)
+case class LetPartStep(v: Var) extends SubStepInfo(LetDecompose)
+case class GeneralizationStep(from: Expr) extends SubStepInfo(Generalization)
+case class SpeculationStep(from: Expr, to: Expr) extends SubStepInfo(Speculation) {
+  override def toString = from.toString + " -> " + to.toString
+}
+
+sealed trait Extra
+// TODO: rename to NoExtra
+object DummyExtra extends Extra
+
 trait SLLDriving {
   val program: Program
 
-  def drive(pState: PState[Expr, SubStepInfo, Extra]) = {
-    val driveStep: MStep[Expr, SubStepInfo, Extra] = if (tryComplete.isDefinedAt(pState)) {
-      tryComplete(pState)
-    } else {
-      pureDrive(pState)
-    }
-    List(driveStep)
+  def isLeaf(pState: PState[Expr, SubStepInfo, Extra]) = pState.node.conf match {
+    case Var(_) => true
+    case Ctr(_, Nil) => true
+    case _ => false
   }
 
-  private def pureDrive(ps: PState[Expr, SubStepInfo, Extra]): MStep[Expr, SubStepInfo, Extra] = {
-    MAddForest(drive_(ps))
+  def drive(ps: PState[Expr, SubStepInfo, Extra]): MStep[Expr, SubStepInfo, Extra] = {
+    MAddForest(drive_(ps.node.conf))
   }
 
-  def drive_(ps: PState[Expr, SubStepInfo, Extra]): List[SubStep[Expr, SubStepInfo, Extra]] =
-    decompose(ps.node.conf) match {
+  private def drive_(conf: Expr): List[SubStep[Expr, SubStepInfo, Extra]] =
+    decompose(conf) match {
 
       case DecLet(Let(term, bs)) =>
         SubStep(term, LetBodyStep, DummyExtra) :: bs.map {
           case (k, v) => SubStep(v, LetPartStep(k), DummyExtra)
         }
 
-      case ObservableCtr(c @ Ctr(_, Nil)) =>
-        List(SubStep(c, StopStep, DummyExtra))
-
       case ObservableCtr(Ctr(_, args)) =>
         args map { a => SubStep(a, CtrArgStep, DummyExtra) }
 
       case ObservableVar(v) =>
-        List(SubStep(v, StopStep, DummyExtra))
+        List()
 
       case context @ Context(RedexFCall(FCall(name, args))) =>
         val fReduced = subst(program.f(name).term, Map(program.f(name).args.zip(args): _*))
@@ -61,10 +92,6 @@ trait SLLDriving {
 
     }
 
-  val tryComplete: PartialFunction[PState[Expr, SubStepInfo, Extra], MStep[Expr, SubStepInfo, Extra]] = {
-    case PState(CoNode(_, _, Edge(_, StopStep), _, _), _) => MMakeLeaf
-  }
-
   private def freshPat(p: Pat) = Pat(p.name, p.args map freshVar)
 }
 
@@ -72,27 +99,21 @@ trait SLLDriving {
 trait SLLFolding[D, E] {
 
   import StepKind._
-  def fold(ps: PState[Expr, SubStepInfo, Extra]): List[Path] =
-    if (ps.node.in != null && Stop == ps.node.in.driveInfo.stepKind) Nil else
-      ps.node.ancestors.filter { renamingFilter(ps.node) } map { _.path }
+  def fold(ps: PState[Expr, SubStepInfo, Extra]): Option[Path] =
+    ps.node.ancestors.find { renamingFilter(ps.node) } map { _.path }
 
   private def renamingFilter(leaf: CoNode[Expr, _, _])(n: CoNode[Expr, _, _]) =
-    !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(leaf.conf, n.conf)
+    SLLExpressions.renaming(leaf.conf, n.conf)
 }
 
 trait SLLWhistle {
   val whistle: Whistle
-  // small precularity on completion
-  def blame(pState: PState[Expr, SubStepInfo, Extra]): Blaming[Expr, SubStepInfo, Extra] = {
-    val inStep = if (pState.node.in != null) pState.node.in.driveInfo else null
-    inStep match {
-      case StopStep => Blaming(None, Whistle.OK)
-      case _ => whistle.blame(pState) match {
-        case None => Blaming(None, Whistle.OK)
-        case s @ Some(_) => Blaming(s, Whistle.Warning)
-      }
+
+  def blame(pState: PState[Expr, SubStepInfo, Extra]): Blaming[Expr, SubStepInfo, Extra] =
+    whistle.blame(pState) match {
+      case None => Blaming(None, Whistle.OK)
+      case s @ Some(_) => Blaming(s, Whistle.Warning)
     }
-  }
 }
 
 trait SLLRebuildings {

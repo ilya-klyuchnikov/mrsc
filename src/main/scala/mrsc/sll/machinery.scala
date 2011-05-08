@@ -3,11 +3,13 @@ package mrsc.sll
 import mrsc._
 import Whistle._
 
+// Here we define 2 variants of driving + 6 variants of rebuilding
+
 trait SLLSimpleDriving extends SLLDriving {
   def drive(whistle: Blaming[Expr, SubStepInfo, Extra], pState: PState[Expr, SubStepInfo, Extra]): List[MStep[Expr, SubStepInfo, Extra]] =
     whistle.signal match {
       case OK =>
-        drive(pState)
+        List(drive(pState))
       case _ =>
         List()
     }
@@ -17,7 +19,7 @@ trait SLLPruningDriving extends SLLDriving {
   def drive(whistle: Blaming[Expr, SubStepInfo, Extra], pState: PState[Expr, SubStepInfo, Extra]): List[MStep[Expr, SubStepInfo, Extra]] =
     whistle.signal match {
       case OK =>
-        drive(pState)
+        List(drive(pState))
       case _ =>
         List(MPrune)
     }
@@ -50,6 +52,53 @@ trait SLLBlamedMsg extends SLLRebuildings {
     }
 }
 
+trait SLLAlwaysCurrentGens extends SLLRebuildings {
+  def rebuildings(whistle: Blaming[Expr, SubStepInfo, Extra], pState: PState[Expr, SubStepInfo, Extra]): List[MStep[Expr, SubStepInfo, Extra]] = {
+    val expr = pState.node.conf
+    SLLGeneralizations.gens(expr) map { MReplace(_, DummyExtra) }
+  }
+}
+
+trait SLLWhistleCurrentGens extends SLLRebuildings {
+  def rebuildings(whistle: Blaming[Expr, SubStepInfo, Extra], pState: PState[Expr, SubStepInfo, Extra]): List[MStep[Expr, SubStepInfo, Extra]] =
+    whistle.signal match {
+      case OK =>
+        List()
+      case _ =>
+        val expr = pState.node.conf
+        SLLGeneralizations.gens(expr) map { MReplace(_, DummyExtra) }
+    }
+}
+
+trait SLLWhistleBlamedGens extends SLLRebuildings {
+  def rebuildings(whistle: Blaming[Expr, SubStepInfo, Extra], pState: PState[Expr, SubStepInfo, Extra]): List[MStep[Expr, SubStepInfo, Extra]] =
+    whistle.signal match {
+      case OK =>
+        List()
+      case _ =>
+        val blamedNode = whistle.blamed.get
+        val blamedExpr = blamedNode.conf
+        val currentExpr = pState.node.conf
+        SLLGeneralizations.gens(blamedExpr) map { MRollback(blamedNode, _, DummyExtra) }
+    }
+}
+
+trait SLLWhistleAllrGens extends SLLRebuildings {
+  def rebuildings(whistle: Blaming[Expr, SubStepInfo, Extra], pState: PState[Expr, SubStepInfo, Extra]): List[MStep[Expr, SubStepInfo, Extra]] =
+    whistle.signal match {
+      case OK =>
+        List()
+      case _ =>
+        val blamedNode = whistle.blamed.get
+        val blamedExpr = blamedNode.conf
+        val currentExpr = pState.node.conf
+        val blamed = SLLGeneralizations.gens(blamedExpr) map { MRollback(blamedNode, _, DummyExtra) }
+        val current = SLLGeneralizations.gens(currentExpr) map { MReplace(_, DummyExtra) }
+        blamed ++ current
+    }
+}
+
+
 trait SLLNoTricks {
   def tricks(whistle: Blaming[Expr, SubStepInfo, Extra], pState: PState[Expr, SubStepInfo, Extra]) =
     Nil
@@ -71,4 +120,12 @@ class SC2(val program: Program, val whistle: Whistle = HEByCouplingWhistle)
   with SLLFolding[SubStepInfo, Extra]
   with SLLWhistle
   with SLLBlamedMsg
-  with SLLNoTricks 
+  with SLLNoTricks
+
+class SC3(val program: Program, val whistle: Whistle = HEByCouplingWhistle)
+  extends GenericMultiMachine[Expr, SubStepInfo, Extra, Blaming[Expr, SubStepInfo, Extra]]
+  with SLLSimpleDriving
+  with SLLFolding[SubStepInfo, Extra]
+  with SLLWhistle
+  with SLLBlamedMsg
+  with SLLNoTricks

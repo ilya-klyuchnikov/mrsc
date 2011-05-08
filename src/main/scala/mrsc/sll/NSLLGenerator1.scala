@@ -43,14 +43,16 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
       val sub1 = sub map { case (k, v) => (NVar(k.name), convert(v)) }
       NCall(name, args map { nSubst(_, sub1) })
   }
-  
+
   import StepKind._
   private def make(n: Node[Expr, SubStepInfo, Extra]): NExpr = {
+    if (n.isLeaf) {
+      return convert(n.conf)
+    }
+
     val children @ (n1 :: ns) = n.outs
-    
+
     n1.driveInfo.stepKind match {
-      case Stop =>
-        convert(n1.node.conf)
 
       case Transient =>
         fold(n1.node)
