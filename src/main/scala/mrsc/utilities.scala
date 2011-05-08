@@ -2,10 +2,16 @@ package mrsc
 
 import scala.annotation.tailrec
 
-// used to store the old `in` edge
+/*! Auxiliary data for transposing a cograph into a graph.
+ */
 case class Tmp[C, D, E](node: Node[C, D, E], in: In[C, D, E])
 
+/*! A transformer of cographs into graphs.
+ */
 object Transformations {
+  /*! Transposition is done in the following simple way. Nodes are grouped according to the 
+   levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
+   */
   def transpose[C, D, E](coGraph: CoGraph[C, D, E]): Graph[C, D, E] = {
     val leafPathes = coGraph.leaves.map(_.coPath)
     val levels = coGraph.nodes.groupBy(_.coPath.length).toList.sortBy(_._1).map(_._2)
@@ -16,7 +22,9 @@ object Transformations {
   }
 
   // sub-transposes cogpaph into graph level-by-level
-  private def subTranspose[C, D, E](nodes: List[CoNodes[C, D, E]], leaves: List[Path]): (List[Tmp[C, D, E]], List[Tmp[C, D, E]]) =
+  private def subTranspose[C, D, E](
+    nodes: List[CoNodes[C, D, E]],
+    leaves: List[Path]): (List[Tmp[C, D, E]], List[Tmp[C, D, E]]) =
     nodes match {
       case Nil =>
         (Nil, Nil)
@@ -24,7 +32,7 @@ object Transformations {
       // leaves only??
       case ns1 :: Nil =>
         val tmpNodes: List[Tmp[C, D, E]] = ns1 map { n =>
-          val node = Node[C, D, E](conf = n.conf, extraInfo = n.extraInfo, outs = Nil, base = n.base, path = n.path)
+          val node = Node[C, D, E](n.conf, n.extraInfo, Nil, n.base, n.path)
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp =>
@@ -47,6 +55,8 @@ object Transformations {
     }
 }
 
+/*! Ad Hoc console pretty printer for graphs.
+ */
 object GraphPrettyPrinter {
   def toString(node: Node[_, _, _], indent: String = ""): String = {
     val sb = new StringBuilder(indent + "|__" + node.conf)

@@ -63,8 +63,8 @@ case class SubStep[+C, +D, +E](label: C, info: D, extra: E)
  Processing of complete SC graphs is extracted into a separate abstraction.
  */
 
-/*! Since an instance of a graph may be pruned, and a client may be interested.  in it
-  `GraphConsumer` receives `Some(graph)` when graph is completed and receives `None` 
+/*! An instance of a graph may be pruned, and a client may be interested in knowing that fact:
+  so `GraphConsumer` receives `Some(graph)` when graph is completed and receives `None` 
   if the graph was pruned. 
  */
 trait CoGraphConsumer[C, D, E] {
