@@ -4,6 +4,8 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
+case class Blaming[C, D, E](blamed: Option[CoNode[C, D, E]], signal: Whistle.Whistle)
+
 object StepKind extends Enumeration {
   type StepKind = Value
   val Transient, CtrDecompose, LetDecompose, Variants, Generalization, Speculation = Value
