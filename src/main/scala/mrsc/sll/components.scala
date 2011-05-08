@@ -4,11 +4,13 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
-case class Blaming[C, D, E](blamed: Option[CoNode[C, D, E]], signal: Whistle.Whistle)
+import Signal._
+
+case class Blaming[C, D, E](blamed: Option[CoNode[C, D, E]], signal: Signal)
 
 object StepKind extends Enumeration {
   type StepKind = Value
-  val Transient, CtrDecompose, LetDecompose, Variants, Generalization, Speculation = Value
+  val Transient, CtrDecompose, LetDecompose, Variants, Generalization = Value
 
   def isDrive(v: Value) =
     v == Transient || v == Variants || v == CtrDecompose || v == LetDecompose
@@ -35,9 +37,6 @@ case class VariantBranchStep(contr: Contraction) extends SubStepInfo(Variants) {
 case object LetBodyStep extends SubStepInfo(LetDecompose)
 case class LetPartStep(v: Var) extends SubStepInfo(LetDecompose)
 case class GeneralizationStep(from: Expr) extends SubStepInfo(Generalization)
-case class SpeculationStep(from: Expr, to: Expr) extends SubStepInfo(Speculation) {
-  override def toString = from.toString + " -> " + to.toString
-}
 
 sealed trait Extra
 // TODO: rename to NoExtra
@@ -112,8 +111,8 @@ trait SLLWhistle {
 
   def blame(pState: PState[Expr, SubStepInfo, Extra]): Blaming[Expr, SubStepInfo, Extra] =
     whistle.blame(pState) match {
-      case None => Blaming(None, Whistle.OK)
-      case s @ Some(_) => Blaming(s, Whistle.Warning)
+      case None => Blaming(None, Signal.OK)
+      case s @ Some(_) => Blaming(s, Signal.Warning)
     }
 }
 

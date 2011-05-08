@@ -2,8 +2,8 @@ package mrsc.sll
 
 import mrsc._
 
-object Whistle extends Enumeration {
-  type Whistle = Value
+object Signal extends Enumeration {
+  type Signal = Value
   val OK, Warning = Value
 }
 

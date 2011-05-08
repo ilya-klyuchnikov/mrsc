@@ -1,7 +1,7 @@
 package mrsc.sll
 
 import mrsc._
-import Whistle._
+import Signal._
 import SLLGeneralizations._
 import SLLExpressions._
 

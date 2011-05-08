@@ -69,9 +69,6 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
       case Generalization =>
         fold(n1.node)
 
-      case Speculation =>
-        fold(n1.node)
-
       case Variants =>
         val sel = fold(n1.node)
         val branches = ns map { n2 =>
