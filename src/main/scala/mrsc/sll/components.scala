@@ -54,3 +54,53 @@ trait SLLDriving {
 
   private def freshPat(p: Pat) = Pat(p.name, p.args map freshVar)
 }
+
+// fold only into ancestors
+trait SLLFolding {
+
+  def fold(ps: PState[Expr, _, _]): List[Path] =
+    ps.node.ancestors.filter { renamingFilter(ps.node) } map { _.path }
+
+  private def renamingFilter(leaf: CoNode[Expr, _, _])(n: CoNode[Expr, _, _]) =
+    !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(leaf.conf, n.conf)
+}
+
+trait SLLWhistle {
+  val whistle: Whistle
+  def blame(pState: PState[Expr, SubStepInfo, Extra]) =
+    whistle.blame(pState) match {
+      case None => Blaming(None, Whistle.OK)
+      case s @ Some(_) => Blaming(s, Whistle.Warning)
+    }
+}
+
+trait SLLRebuildings {
+  def msg(conf: Expr, wrt: Expr): Expr =
+    msgToLet(conf, MSG.msg(conf, wrt))
+
+  def gens(conf: Expr): List[Expr] =
+    SLLGeneralizations.gens(conf)
+
+  private def msgToLet(ce: Expr, g: Gen) =
+    if (renaming(g.t, ce) || g.t.isInstanceOf[Var]) {
+      split(ce)
+    } else {
+      Let(g.t, g.m1.toList)
+    }
+
+  private def split(e: Expr): Expr =
+    e match {
+      case Ctr(name, args) => {
+        val vs = args map freshVar
+        Let(Ctr(name, vs), vs zip args)
+      }
+      case FCall(name, args) => {
+        val vs = args map freshVar
+        Let(FCall(name, vs), vs zip args)
+      }
+      case GCall(name, args) => {
+        val vs = args map freshVar
+        Let(GCall(name, vs), vs zip args)
+      }
+    }
+}
