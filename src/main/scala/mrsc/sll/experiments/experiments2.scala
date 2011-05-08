@@ -58,8 +58,9 @@ object experiments2 extends App {
     whistle = HEByCouplingWithRedexWhistle,
     speculate = false,
     rebuilduingStrategy = RebuilduingStrategy.CurrentByWhistle,
-    rebuilduingTactics = RebuilderTactics.AllGens))
+    rebuilduingTactics = RebuilderTactics.AllGens))*/
 
+  /*
   countPrograms(t4, new PSLLMultiMachine(program = t4.program,
     whistle = HEByCouplingWithRedexWhistle,
     speculate = false,
@@ -78,6 +79,15 @@ object experiments2 extends App {
     rebuilduingTactics = RebuilderTactics.AllGens))*/
     
   countPrograms(t1, new SC1(t1.program))
+  countPrograms(t1, new SC2(t1.program))
+  countPrograms(t2, new SC1(t2.program))
+  countPrograms(t2, new SC2(t2.program))
+  
+  countPrograms(t3, new SC1(t3.program))
+  countPrograms(t3, new SC2(t3.program))
+  
+  countPrograms(t4, new SC1(t4.program))
+  countPrograms(t4, new SC2(t4.program))
 
   def countPrograms(task: SLLTask, machine: MultiResultMachine[Expr, SubStepInfo, Extra]) = {
     println(task.target)

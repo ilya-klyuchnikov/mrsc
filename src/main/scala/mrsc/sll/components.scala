@@ -71,8 +71,10 @@ trait SLLDriving {
 // fold only into ancestors
 trait SLLFolding[D, E] {
 
-  def fold(ps: PState[Expr, D, E]): List[Path] =
-    ps.node.ancestors.filter { renamingFilter(ps.node) } map { _.path }
+  import StepKind._
+  def fold(ps: PState[Expr, SubStepInfo, Extra]): List[Path] =
+    if (ps.node.in != null && Stop == ps.node.in.driveInfo.stepKind) Nil else
+      ps.node.ancestors.filter { renamingFilter(ps.node) } map { _.path }
 
   private def renamingFilter(leaf: CoNode[Expr, _, _])(n: CoNode[Expr, _, _]) =
     !n.conf.isInstanceOf[Var] && SLLExpressions.renaming(leaf.conf, n.conf)
