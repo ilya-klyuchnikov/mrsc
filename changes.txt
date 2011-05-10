@@ -1,3 +1,13 @@
+10-05-2011
+----------
+Working examples of how to compose SLL scp component in 
+multi-samples.scala and single-samples.scala
+
+
+08-05-2011
+----------
+Machinery: decomposed into traits.
+
 06-05-2011
 ----------
 Builders: small improvements + literate documentation.
