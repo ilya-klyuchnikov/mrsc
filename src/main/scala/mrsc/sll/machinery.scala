@@ -6,6 +6,7 @@ import SLLGeneralizations._
 import SLLExpressions._
 
 // Here we define 2 variants of driving + 6 variants of rebuilding
+// TODO Really this part can be generalized: it should not-be SLL-specific.
 
 trait SLLSimpleDriving extends SLLDriving {
   def drive(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
