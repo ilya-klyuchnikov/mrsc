@@ -32,19 +32,20 @@ object Sample2 extends App {
       }
     }
 
-  def classic1(w: Whistle)(p: Program) = new Classic11(p, w)
-  def classic2(w: Whistle)(p: Program) = new Classic12(p, w)
-  def classic3(w: Whistle)(p: Program) = new Classic13(p, w)
+  def multi1(w: Whistle)(p: Program) = new Multi1(p, w)
+  def multi2(w: Whistle)(p: Program) = new Multi2(p, w)
+  def multi3(w: Whistle)(p: Program) = new Multi3(p, w)
 
   val scs = List(
-    ("classic, current, he", classic1(HEWhistle)_),
-    ("classic, current, he", classic2(HEWhistle)_),
-    ("classic, current, he", classic3(HEWhistle)_))
+    ("classic, current, he", multi1(HEWhistle)_),
+    ("classic, current, he", multi2(HEWhistle)_),
+    ("classic, current, he", multi3(HEWhistle)_))
 
   runTasks(scs)
 }
 
-class Classic11(val program: Program, val whistle: Whistle)
+// try all variants
+class Multi1(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
   with SLLPruningDriving
   with SLLFolding[SubStepInfo, Extra]
@@ -52,7 +53,8 @@ class Classic11(val program: Program, val whistle: Whistle)
   with SLLAlwaysCurrentGens
   with SLLNoTricks
 
-class Classic12(val program: Program, val whistle: Whistle)
+// generalize (in all possible ways) current configuration (when whistle blows) 
+class Multi2(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
   with SLLPruningDriving
   with SLLFolding[SubStepInfo, Extra]
@@ -60,7 +62,8 @@ class Classic12(val program: Program, val whistle: Whistle)
   with SLLWhistleCurrentGens
   with SLLNoTricks
 
-class Classic13(val program: Program, val whistle: Whistle)
+// generalize (in all possible ways) blamed configuration (when whistle blows)
+class Multi3(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
   with SLLPruningDriving
   with SLLFolding[SubStepInfo, Extra]

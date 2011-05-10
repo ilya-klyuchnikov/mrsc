@@ -32,23 +32,23 @@ object Sample1 extends App {
       }
     }
 
-  def classic1(w: Whistle)(p: Program) = new Classic1(p, w)
-  def classic2(w: Whistle)(p: Program) = new Classic2(p, w)
+  def classicBlamedGen(w: Whistle)(p: Program) = new ClassicBlamedGen(p, w)
+  def classicCurrentGen(w: Whistle)(p: Program) = new ClassicCurrentGen(p, w)
 
   val scs = List(
-    ("classic, current, he", classic1(HEWhistle)_),
-    ("classic, current, he + redex", classic1(HEWithRedexWhistle)_),
-    ("classic, current, coupling", classic1(HEByCouplingWhistle)_),
-    ("classic, current, coupling + redex", classic1(HEByCouplingWithRedexWhistle)_),
-    ("classic, blames, he", classic2(HEWhistle)_),
-    ("classic, blamed, he + redex", classic2(HEWithRedexWhistle)_),
-    ("classic, blamed, coupling", classic2(HEByCouplingWhistle)_),
-    ("classic, blamed, coupling + redex", classic2(HEByCouplingWithRedexWhistle)_))
+    ("classic, current, he", classicBlamedGen(HEWhistle)_),
+    ("classic, current, he + redex", classicBlamedGen(HEWithRedexWhistle)_),
+    ("classic, current, coupling", classicBlamedGen(HEByCouplingWhistle)_),
+    ("classic, current, coupling + redex", classicBlamedGen(HEByCouplingWithRedexWhistle)_),
+    ("classic, blames, he", classicCurrentGen(HEWhistle)_),
+    ("classic, blamed, he + redex", classicCurrentGen(HEWithRedexWhistle)_),
+    ("classic, blamed, coupling", classicCurrentGen(HEByCouplingWhistle)_),
+    ("classic, blamed, coupling + redex", classicCurrentGen(HEByCouplingWithRedexWhistle)_))
 
   runTasks(scs)
 }
 
-class Classic1(val program: Program, val whistle: Whistle)
+class ClassicBlamedGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
   with SLLSimpleDriving
   with SLLFolding[SubStepInfo, Extra]
@@ -56,7 +56,7 @@ class Classic1(val program: Program, val whistle: Whistle)
   with SLLCurentMsg
   with SLLNoTricks
 
-class Classic2(val program: Program, val whistle: Whistle)
+class ClassicCurrentGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
   with SLLSimpleDriving
   with SLLFolding[SubStepInfo, Extra]
