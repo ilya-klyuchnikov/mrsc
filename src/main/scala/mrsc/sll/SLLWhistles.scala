@@ -2,11 +2,6 @@ package mrsc.sll
 
 import mrsc._
 
-object Signal extends Enumeration {
-  type Signal = Value
-  val OK, Warning = Value
-}
-
 trait Whistle {
   def name: String
   def blame[D, E](ps: PState[Expr, D, E]): Option[CoNode[Expr, D, E]]

@@ -4,7 +4,7 @@ import mrsc._
 import mrsc.sll._
 
 object Sample1 extends App {
-  type Machine = MultiResultMachine[Expr, SubStepInfo, Extra]
+  type Machine = MultiResultMachine[Expr, SubStepInfo[Expr], Extra]
 
   def runTask(task: SLLTask, f: Program => Machine) = {
     try {
@@ -49,17 +49,17 @@ object Sample1 extends App {
 }
 
 class ClassicBlamedGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
   with SLLSimpleDriving
-  with SLLFolding[SubStepInfo, Extra]
+  with SLLFolding[SubStepInfo[Expr], Extra]
   with SLLWhistle
   with SLLCurentMsg
   with SLLNoTricks
 
 class ClassicCurrentGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
   with SLLSimpleDriving
-  with SLLFolding[SubStepInfo, Extra]
+  with SLLFolding[SubStepInfo[Expr], Extra]
   with SLLWhistle
   with SLLBlamedMsg
   with SLLNoTricks

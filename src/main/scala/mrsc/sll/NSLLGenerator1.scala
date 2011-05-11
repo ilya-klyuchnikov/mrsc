@@ -9,14 +9,14 @@ import mrsc.sll.NSLLExpressions._
 // generator of residual programs in NSLL
 // It generate a correct program for graphs where folding links to the upper node in the same path.
 // TODO: ensure that all cases of folding are considered here
-class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
+class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
   lazy val result = fixNames(fold(tree.root))
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make
-  private def fold(n: Node[Expr, SubStepInfo, Extra]): NExpr = n.base match {
+  private def fold(n: Node[Expr, SubStepInfo[Expr], Extra]): NExpr = n.base match {
 
     case None =>
       lazy val traversed = make(n)
@@ -45,7 +45,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
   }
 
   import StepKind._
-  private def make(n: Node[Expr, SubStepInfo, Extra]): NExpr = {
+  private def make(n: Node[Expr, SubStepInfo[Expr], Extra]): NExpr = {
     if (n.isLeaf) {
       return convert(n.conf)
     }
@@ -63,7 +63,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
 
       case LetDecompose =>
         val body = fold(n1.node)
-        val sub = ns.map { n2 => (NVar(n2.driveInfo.asInstanceOf[LetPartStep].v.name), fold(n2.node)) }.toMap
+        val sub = ns.map { n2 => (NVar(n2.driveInfo.asInstanceOf[LetPartStep].v), fold(n2.node)) }.toMap
         nSubst(body, sub)
 
       case Generalization =>
@@ -73,7 +73,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
         val sel = fold(n1.node)
         val branches = ns map { n2 =>
           val VariantBranchStep(Contraction(_, pat)) = n2.driveInfo
-          (convert(pat), fold(n2.node))
+          (convertPat(pat.asInstanceOf[Ctr]), fold(n2.node))
         }
         val sortedBranches = branches.sortBy(_._1.name)
         NCase(sel, sortedBranches)
@@ -81,7 +81,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo, Extra]) {
 
   }
 
-  private def createSignature(fNode: Node[Expr, SubStepInfo, Extra], recNodes: List[Node[Expr, SubStepInfo, Extra]]): (String, List[NVar]) = {
+  private def createSignature(fNode: Node[Expr, SubStepInfo[Expr], Extra], recNodes: List[Node[Expr, SubStepInfo[Expr], Extra]]): (String, List[NVar]) = {
     var fVars: List[Var] = vars(fNode.conf)
     (createFName(), fVars map { v => NVar(v.name) })
   }

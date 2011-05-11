@@ -7,14 +7,14 @@ import mrsc.sll.NSLLExpressions._
 // generator of residual programs in NSLL
 // It generate a correct program for graphs where folding links to the upper node in the same path.
 // TODO: ensure that all cases of folding are considered here
-class NSLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
+class NSLLResiduator(val tree: Graph[Expr, Contraction[Expr], Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
   lazy val result = fixNames(fold(tree.root))
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make
-  private def fold(n: Node[Expr, Contraction, Extra]): NExpr = n.base match {
+  private def fold(n: Node[Expr, Contraction[Expr], Extra]): NExpr = n.base match {
 
     case None => {
       lazy val traversed = make(n)
@@ -44,11 +44,11 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
     }
   }
 
-  private def make(n: Node[Expr, Contraction, Extra]): NExpr = n.conf match {
+  private def make(n: Node[Expr, Contraction[Expr], Extra]): NExpr = n.conf match {
     case Var(vn) => NVar(vn)
-    case Ctr(cn, _) => NCtr(cn, n.outs.map{_.node}.map(fold))
+    case Ctr(cn, _) => NCtr(cn, n.outs.map { _.node }.map(fold))
     case Let(_, bs) => {
-      val n0 :: ns = n.outs.map{_.node}
+      val n0 :: ns = n.outs.map { _.node }
       val sub = Map() ++ (bs map { kv => NVar(kv._1.name) } zip (ns map fold))
       nSubst(fold(n0), sub)
     }
@@ -58,14 +58,14 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
         fold(n.outs.head.node)
       } else {
         // variants
-        val sortedChildren = n.outs sortWith { (n1, n2) => (n1.driveInfo.pat.name compareTo n2.driveInfo.pat.name) < 0 }
-        val sel = NVar(n.outs.head.driveInfo.v.name)
-        val bs = sortedChildren map { c => (convert(c.driveInfo.pat), fold(c.node)) }
+        val sortedChildren = n.outs sortWith { (n1, n2) => (n1.driveInfo.pat.asInstanceOf[Ctr].name compareTo n2.driveInfo.pat.asInstanceOf[Ctr].name) < 0 }
+        val sel = NVar(n.outs.head.driveInfo.v)
+        val bs = sortedChildren map { c => (convertPat(c.driveInfo.pat.asInstanceOf[Ctr]), fold(c.node)) }
         NCase(sel, bs)
       }
   }
 
-  private def createSignature(fNode: Node[Expr, Contraction, Extra], recNodes: List[Node[Expr, Contraction, Extra]]): (String, List[NVar]) = {
+  private def createSignature(fNode: Node[Expr, Contraction[Expr], Extra], recNodes: List[Node[Expr, Contraction[Expr], Extra]]): (String, List[NVar]) = {
     var fVars: List[Var] = vars(fNode.conf)
     (createFName(), fVars map { v => NVar(v.name) })
   }
@@ -84,13 +84,13 @@ class NSLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
 }
 
 // Can create a correct program for any (almost any :)) graph
-class SLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
+class SLLResiduator(val tree: Graph[Expr, Contraction[Expr], Extra]) {
   type Sig = (String, List[Var])
   private val sigs = scala.collection.mutable.Map[Path, Sig]()
   private val defs = new scala.collection.mutable.ListBuffer[Def]
   lazy val result = (fold(tree.root), Program(defs.toList))
 
-  private def fold(n: Node[Expr, Contraction, Extra]): Expr = n.base match {
+  private def fold(n: Node[Expr, Contraction[Expr], Extra]): Expr = n.base match {
 
     case None => {
       tree.leaves.filter { _.base == Some(n.path) } match {
@@ -111,7 +111,7 @@ class SLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
       val fnode = tree.get(fpath)
       val sub = findSubst(fnode.conf, n.conf)
       val res = FCall(name, args map { subst(_, sub) })
-      
+
       tree.leaves.filter { _.base == Some(n.path) } match {
         case Nil =>
           res
@@ -127,14 +127,14 @@ class SLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
     }
   }
 
-  private def make(n: Node[Expr, Contraction, Extra], sig: Option[Sig]): Expr = n.conf match {
+  private def make(n: Node[Expr, Contraction[Expr], Extra], sig: Option[Sig]): Expr = n.conf match {
     case Var(vn) => Var(vn)
     case Ctr(cn, _) => {
       // TODO
-      Ctr(cn, n.outs.map{_.node}.map(fold))
+      Ctr(cn, n.outs.map { _.node }.map(fold))
     }
     case Let(_, bs) => {
-      val n0 :: ns = n.outs.map{_.node}
+      val n0 :: ns = n.outs.map { _.node }
       val body = fold(n0)
       val sub = Map() ++ (bs map { kv => Var(kv._1.name) } zip (ns map fold))
       subst(body, sub)
@@ -147,15 +147,17 @@ class SLLResiduator(val tree: Graph[Expr, Contraction, Extra]) {
           defs += FFun(fname, fargs, traversed)
         traversed
       } else {
-        val sig1@(gname, gargs) = sig.getOrElse(createSignature(n))
+        val sig1 @ (gname, gargs) = sig.getOrElse(createSignature(n))
         sigs(n.path) = sig1
         for (out <- n.outs)
-          defs += GFun(gname, out.driveInfo.pat, gargs.tail, fold(out.node))
+          defs += GFun(gname, toPat(out.driveInfo.pat.asInstanceOf[Ctr]), gargs.tail, fold(out.node))
         GCall(gname, gargs)
       }
   }
 
-  private def createSignature(fNode: Node[Expr, Contraction, Extra]): (String, List[Var]) = {
+  private def toPat(p: Ctr): Pat = Pat(p.name, p.args map { case v: Var => v })
+
+  private def createSignature(fNode: Node[Expr, Contraction[Expr], Extra]): (String, List[Var]) = {
     var fVars: List[Var] = vars(fNode.conf)
     (createFName(), fVars)
   }

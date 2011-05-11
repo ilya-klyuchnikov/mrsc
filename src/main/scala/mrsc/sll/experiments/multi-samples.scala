@@ -4,7 +4,7 @@ import mrsc._
 import mrsc.sll._
 
 object Sample2 extends App {
-  type Machine = MultiResultMachine[Expr, SubStepInfo, Extra]
+  type Machine = MultiResultMachine[Expr, SubStepInfo[Expr], Extra]
 
   def runTask(task: SLLTask, f: Program => Machine) = {
     try {
@@ -46,27 +46,27 @@ object Sample2 extends App {
 
 // try all variants
 class Multi1(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo, Extra]
+  with SLLFolding[SubStepInfo[Expr], Extra]
   with SLLWhistle
   with SLLAlwaysCurrentGens
   with SLLNoTricks
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo, Extra]
+  with SLLFolding[SubStepInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleCurrentGens
   with SLLNoTricks
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo, Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo, Extra]
+  with SLLFolding[SubStepInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleBlamedGens
   with SLLNoTricks

@@ -21,8 +21,8 @@ object NSLLExpressions {
     case GCall(n, args) => NCall(n, args map convert)
   }
 
-  def convert(p: Pat): NPat =
-    NPat(p.name, p.args map { v => NVar(v.name) })
+  def convertPat(p: Ctr): NPat =
+    NPat(p.name, p.args map { case v:Var => NVar(v.name) })
 
   def canon(e: NExpr): NExpr = null
 

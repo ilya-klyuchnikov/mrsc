@@ -38,7 +38,7 @@ case object MPrune extends MStep[Nothing, Nothing, Nothing]
 /*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
  Development is divided into several `subSteps`.
  */
-case class MAddForest[C, D, E](val subSteps: List[SubStep[C, D, E]]) extends MStep[C, D, E]
+case class MAddForest[+C, +D, +E](val subSteps: List[SubStep[C, D, E]]) extends MStep[C, D, E]
 
 /*! `MReplace` is fixing the current state of the branch.
  */

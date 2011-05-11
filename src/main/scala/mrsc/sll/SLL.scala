@@ -1,11 +1,8 @@
 package mrsc.sll
 
+import mrsc._
 // SLL = Simple Lazy Language, first-order with simple pattern matching.
 // The intended semantics is the usual normal order reduction of the lambda calculus.
-
-case class Contraction(v: Var, pat: Pat) {
-	override def toString = v + " = " + pat
-}
 
 abstract sealed class Expr {
   def size(): Int
