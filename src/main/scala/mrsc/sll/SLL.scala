@@ -4,7 +4,7 @@ import mrsc._
 // SLL = Simple Lazy Language, first-order with simple pattern matching.
 // The intended semantics is the usual normal order reduction of the lambda calculus.
 
-abstract sealed class Expr {
+sealed trait Expr {
   def size(): Int
 }
 
