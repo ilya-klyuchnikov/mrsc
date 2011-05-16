@@ -27,11 +27,11 @@ object SLLGeneralizations {
     // generalizations of subcomponents
     val xs = e match {
       case FCall(n, args) if !args.isEmpty =>
-        generalizeArgs(args) map { case (args1, sub1) => (FCall(n, args1), sub1) }
+        generalizeArgs(args) map { case (args1, sub1) => (FCall(n, args1), sub1 ++ sub) }
       case GCall(n, args) if !args.isEmpty =>
-        generalizeArgs(args) map { case (args1, sub1) => (GCall(n, args1), sub1) }
+        generalizeArgs(args) map { case (args1, sub1) => (GCall(n, args1), sub1 ++ sub) }
       case Ctr(n, args) if !args.isEmpty =>
-        generalizeArgs(args) map { case (args1, sub1) => (Ctr(n, args1), sub1) }
+        generalizeArgs(args) map { case (args1, sub1) => (Ctr(n, args1), sub1 ++ sub) }
       case t => List((t, sub))
     }
 
