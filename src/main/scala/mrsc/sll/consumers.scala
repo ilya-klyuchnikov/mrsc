@@ -3,17 +3,20 @@ package mrsc.sll
 import mrsc._
 
 // it just counts trees
-class CountGraphConsumer extends CoGraphConsumer[Expr, Contraction[Expr], Extra] {
+class CountGraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E] {
   val description = "counting completed and pruned graphs"
   var completed = 0
   var pruned = 0
 
-  def consume(result: Option[CoGraph[Expr, Contraction[Expr], Extra]]): Unit = {
+  def consume(result: Option[CoGraph[C, D, E]]): Unit = {
     result match {
       case None => pruned = pruned + 1
       case Some(cg) => completed = completed + 1
     }
-    if (completed > 50000 || pruned > 50000) {
+    if (pruned % 1000 == 0 || completed % 1000 == 0) {
+      println((completed, pruned))
+    }
+    if (completed > 10000000 || pruned > 10000000) {
       throw new ModelingError("too many results")
     }
   }
