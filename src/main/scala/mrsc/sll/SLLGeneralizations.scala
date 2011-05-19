@@ -10,7 +10,7 @@ object SLLGeneralizations {
   //
   // trick #2: do not generalize let expressions and constructors
   // because a sub-expression may be generalized further
-  def gens(e: Expr): List[Expr] = e match {
+  def gens(e: Expr): List[Let] = e match {
     case Let(_, _) => Nil
     case Ctr(_, _) => Nil
     case _ => generalize(e, Nil).
@@ -19,7 +19,7 @@ object SLLGeneralizations {
       }.
       filter { !_._1.isInstanceOf[Var] }. // remove full abstraction
       filter { !_._2.isEmpty }. // remove identity
-      map { case (t, sub) => if (sub.isEmpty) t else Let(t, sub) }
+      map { case (t, sub) => Let(t, sub) }
   }
 
   private def generalize(e: Expr, sub: Sub): List[(Expr, Sub)] = {
