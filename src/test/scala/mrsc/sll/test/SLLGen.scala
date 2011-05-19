@@ -29,10 +29,10 @@ object SLLGen {
     arity <- G.choose(1, 3)
     args <- terms(arity, depth - 1)
     cname = c + arity
-  } yield if (c == "f") {FCall(cname, args)} else {GCall(cname, args)}
+  } yield if (c == "f") { FCall(cname, args) } else { GCall(cname, args) }
 
   def terms(n: Int, depth: Int) = G.listOfN(n, term(depth))
 
   implicit def arbitraryExpr: Arbitrary[Expr] =
-    Arbitrary { G.sized(depth => term(depth)) }
+    Arbitrary { G.sized { depth => term(3) } }
 }

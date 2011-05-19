@@ -20,6 +20,8 @@ object GenSpec extends Properties("Generalizaions") {
   property("generalizations") = Prop.forAll { (e: Expr) =>
     println(e)
     val gens = SLLGeneralizations.gens(e)
+    println(gens.length + " generalizations")
+    println()
     val props1 = gens.map { g =>
       val Let(t, bindings) = g
       val sub = Map(bindings: _*)
@@ -30,6 +32,9 @@ object GenSpec extends Properties("Generalizaions") {
       val Let(t, bindings) = g
       ("let should be unique: " + g) |: (gens.filter(l => renaming(l.term, t)).length == 1)
     }
+    
+    val gens2 = SLLGeneralizations.gens2(e)
+    val prop3 = "fff" |: (gens2.length == gens.length)
 
     all(props1: _*) && all(props2: _*)
   }
