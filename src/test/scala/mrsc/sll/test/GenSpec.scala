@@ -32,9 +32,6 @@ object GenSpec extends Properties("Generalizaions") {
       val Let(t, bindings) = g
       ("let should be unique: " + g) |: (gens.filter(l => renaming(l.term, t)).length == 1)
     }
-    
-    val gens2 = SLLGeneralizations.gens2(e)
-    val prop3 = "fff" |: (gens2.length == gens.length)
 
     all(props1: _*) && all(props2: _*)
   }
