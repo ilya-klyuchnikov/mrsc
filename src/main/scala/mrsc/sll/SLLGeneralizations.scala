@@ -28,11 +28,13 @@ object SLLGeneralizations {
     val (t, s) = pair
     var s1: Sub = Nil
     var t1: Expr = t
-    val tvars = SLLExpressions.vars(t)
+    var tvars = SLLExpressions.vars(t)
     for ((v, e) <- s) {
-      val c = tvars.count(_ == v)
-      if (e.isInstanceOf[Var] && c == 1) {
+      val c1 = tvars.count(_ == v)
+      val c2 = tvars.count(_ == e)
+      if (e.isInstanceOf[Var] && c1 == 1 && c2 == 0) {
         t1 = SLLExpressions.subst(t1, Map(v -> e))
+        tvars = e.asInstanceOf[Var] :: tvars
       } else {
         s1 = (v, e) :: s1
       }
