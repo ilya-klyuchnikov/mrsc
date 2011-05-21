@@ -17,6 +17,17 @@ case class ExpressionSize(size: Int) extends Whistle {
   }
 }
 
+case class MaxGens(max: Int) extends Whistle {
+  val name = "no more than " + max + " lets"
+  def blame[D, E](ps: PState[Expr, D, E]): Option[CoNode[Expr, D, E]] = {
+    val lets = ps.node.ancestors.count(_.conf.isInstanceOf[Let])
+    if (lets > max)
+      Some(ps.node)
+    else
+      None
+  }
+}
+
 object HEWhistle extends Whistle {
   val name = "homeomorphic embedding"
   def blame[D, E](ps: PState[Expr, D, E]) = ps.node.conf match {
@@ -71,4 +82,18 @@ object HEByCouplingWithRedexWhistle extends Whistle {
       }
     }
   }
+}
+
+object Whistles {
+  def or(ws: Whistle*): Whistle =
+    new Whistle {
+      val name = ws map { _.name } mkString ("(", "||", ")")
+      override def blame[D, E](ps: PState[Expr, D, E]): Option[CoNode[Expr, D, E]] = {
+        for (w <- ws) {
+          val r = w.blame(ps)
+          if (r.isDefined) return r
+        }
+        None
+      }
+    }
 }
