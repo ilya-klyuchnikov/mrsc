@@ -20,11 +20,26 @@ case class ExpressionSize(size: Int) extends Whistle {
 case class MaxGens(max: Int) extends Whistle {
   val name = "no more than " + max + " lets"
   def blame[D, E](ps: PState[Expr, D, E]): Option[CoNode[Expr, D, E]] = {
-    val lets = ps.node.ancestors.count(_.conf.isInstanceOf[Let])
+    val lets = (ps.node :: ps.node.ancestors).count(_.conf.isInstanceOf[Let])
     if (lets > max)
       Some(ps.node)
     else
       None
+  }
+}
+
+case class MaxLetParts(max: Int) extends Whistle {
+  val name = "no more than " + max + " let parts"
+  def blame[D, E](ps: PState[Expr, D, E]): Option[CoNode[Expr, D, E]] = {
+    val letOpt = (ps.node :: ps.node.ancestors).find(_.conf.isInstanceOf[Let])
+    letOpt match {
+      case Some(CoNode(Let(_, bs), _, _, _, _)) =>
+        if (bs.length > max)
+          Some(ps.node)
+        else None
+      case _ => None
+    }
+
   }
 }
 
