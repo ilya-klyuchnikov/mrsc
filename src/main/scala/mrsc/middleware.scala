@@ -45,4 +45,4 @@ case class GeneralizationStep[C](from: C) extends SubStepInfo(Generalization)
 
 sealed trait Extra
 // TODO: rename to NoExtra
-object DummyExtra extends Extra
+case object DummyExtra extends Extra
