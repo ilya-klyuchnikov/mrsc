@@ -13,13 +13,34 @@ object SLLGeneralizations {
   def gens(e: Expr): List[Let] = e match {
     case Let(_, _) => Nil
     case Ctr(_, _) => Nil
-    case _ => generalize(e, Nil).
-      foldRight(List[(Expr, Sub)]()) { (elem, filtered) =>
-        filtered.find { x => SLLExpressions.renaming(elem._1, x._1) } match { case None => elem :: filtered; case Some(_) => filtered }
-      }.
-      filter { !_._1.isInstanceOf[Var] }. // remove full abstraction
-      filter { !_._2.isEmpty }. // remove identity
-      map { case (t, sub) => Let(t, sub) }
+    case _ =>
+      val gs = generalize(e, Nil)
+      val gs1 = gs.map(postProcess)
+      gs1.
+        filter { !_._1.isInstanceOf[Var] }. // remove full abstraction
+        filter { !_._2.isEmpty }. // remove identity
+        foldLeft(List[(Expr, Sub)]()) { (filtered, elem) => filtered.find { x => SLLExpressions.renaming(elem._1, x._1) } match { case None => elem :: filtered; case Some(_) => filtered } }.
+        map { case (t, sub) => Let(t, sub) }
+  }
+
+  // remove things like let v3=x in gRev(v3)
+  private def postProcess(pair: (Expr, Sub)): (Expr, Sub) = {
+    val (t, s) = pair
+    var s1: Sub = Nil
+    var t1: Expr = t
+    val tvars = SLLExpressions.vars(t)
+    for ((v, e) <- s) {
+      val c = tvars.count(_ == v)
+      if (e.isInstanceOf[Var] && c == 1) {
+        t1 = SLLExpressions.subst(t1, Map(v -> e))
+      } else {
+        s1 = (v, e) :: s1
+      }
+    }
+    val res = (t1, s1)
+    //println("1. " + pair)
+    //println("2. " + res)
+    res
   }
 
   private def generalize(e: Expr, sub: Sub): List[(Expr, Sub)] = {
