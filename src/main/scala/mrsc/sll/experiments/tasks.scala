@@ -3,8 +3,6 @@ package mrsc.sll.experiments
 import mrsc._
 import mrsc.sll._
 
-case class SLLTask(target: Expr, program: Program)
-
 object SLLTasks {
 
   implicit def text2Program(s: String) = SLLParsers parseProg s

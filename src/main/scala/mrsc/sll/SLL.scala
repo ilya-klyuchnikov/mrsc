@@ -50,3 +50,5 @@ case class Program(defs: List[Def]) {
   val gs = (defs :\ Map[String, List[GFun]]().withDefaultValue(Nil)) { case (x: GFun, m) => m + (x.name -> (x :: m(x.name))); case (_, m) => m }
   override def toString = defs.mkString("\n")
 }
+
+case class SLLTask(target: Expr, program: Program)
