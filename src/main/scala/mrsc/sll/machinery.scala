@@ -80,6 +80,51 @@ trait SLLBlamedMsg extends SLLRebuildings {
     }
 }
 
+// Currently it works only for coupling.
+// This Msg works as follows:
+// performs msg of the up expression wrt the down expression
+// and performs msg of the down expression wrt the up expression
+// when expressions are coupled, then at least one msg is non-trivial.
+trait SLLMixMsg extends SLLRebuildings {
+  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
+    whistle.signal match {
+      case OK =>
+        List()
+      case _ =>
+        val blamed = whistle.blamed.get
+        val currentConf = pState.node.conf
+        val blamedConf = blamed.conf
+        val g = MSG.msg(currentConf, blamedConf)
+        require(!g.t.isInstanceOf[Var])
+
+        //println("+++")
+        //println(blamedConf)
+        //println(currentConf)
+        //println(">>>")
+
+        val topMsg = if (renaming(g.t, blamedConf)) {
+          null
+        } else {
+          val let = Let(g.t, g.m2.toList)
+          //println(let)
+          //println("----")
+          MRollback(blamed, let, DummyExtra)
+        }
+
+        val downMsg = if (renaming(g.t, currentConf)) {
+          null
+        } else {
+          val let = Let(g.t, g.m1.toList)
+          //println(let)
+          //println("----")
+          MReplace(let, DummyExtra)
+        }
+
+        //println()
+        List(topMsg, downMsg).filter(_ != null)
+    }
+}
+
 trait SLLAlwaysCurrentGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] = {
     val expr = pState.node.conf
@@ -107,11 +152,46 @@ trait SLLWhistleBlamedGens extends SLLRebuildings {
         val blamedNode = whistle.blamed.get
         val blamedExpr = blamedNode.conf
         val currentExpr = pState.node.conf
-        gens(blamedExpr) map { MRollback(blamedNode, _, DummyExtra) }
+        println("generalizing")
+        println(blamedExpr)
+        println(currentExpr)
+        val gs = gens(blamedExpr)
+        gs.foreach(println)
+        println("***")
+        gs map { MRollback(blamedNode, _, DummyExtra) }
     }
 }
 
-trait SLLWhistleAllrGens extends SLLRebuildings {
+// if generalization of blamed configuration is empty,
+// then try ALL generalizations of the current configuration.
+trait SLLWhistleBlamedGens2 extends SLLRebuildings {
+  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
+    whistle.signal match {
+      case OK =>
+        List()
+      case _ =>
+        val blamedNode = whistle.blamed.get
+        val blamedExpr = blamedNode.conf
+        val currentExpr = pState.node.conf
+        println("generalizing")
+        println(blamedExpr)
+        println(currentExpr)
+        println("***")
+        val blamed = SLLGeneralizations.gens(blamedExpr) map {
+          MRollback(blamedNode, _, DummyExtra)
+        }
+        if (!blamed.isEmpty) {
+          blamed
+        } else {
+          val current = SLLGeneralizations.gens(currentExpr) map {
+            MReplace(_, DummyExtra)
+          }
+          current
+        }
+    }
+}
+
+trait SLLWhistleAllGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
     whistle.signal match {
       case OK =>
