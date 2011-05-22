@@ -147,6 +147,7 @@ class SLLResiduator(val tree: Graph[Expr, Contraction[Expr], Extra]) {
           defs += FFun(fname, fargs, traversed)
         traversed
       } else {
+        // variants
         val sig1 @ (gname, gargs) = sig.getOrElse(createSignature(n))
         sigs(n.path) = sig1
         for (out <- n.outs)
