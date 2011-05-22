@@ -92,24 +92,27 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
     }
   }
 
+  var nProgs: List[NExpr] = null
+  lazy val sllTasks = nProgs map {NSLL.toSLL} 
+  
   def showResults(): Unit = {
     println(completedCoGraphsCount + " completed graphs")
     println(prunedCoGraphsCount + " pruned graphs")
-
-    /*
-    for (cg <- coGraphs; graph = Transformations.transpose(cg)) {
-      println(graph)
-    }*/
-
+    
     val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NSLLResiduator2(graph).result, graph)
+    nProgs = allProgs map {_._1}
+    
     val mapProg = Map(allProgs: _*)
-    programs = allProgs map { _._1 } sortBy { _.size } distinct
+    programs = nProgs sortBy { _.size } distinct
 
     println(programs.length + " programs")
 
     println("""showing first 10 "minimal" programs""")
     for (p <- programs.take(10)) {
       println(p)
+      val sll = NSLL.toSLL(p)
+      println("<<>>")
+      println(sll)
       println("----")
       //println("============")
       //println(mapProg(p))
@@ -124,6 +127,8 @@ class SingleProgramConsumer extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
 
   var residualProgram: NExpr = null
   var graph: Graph[Expr, SubStepInfo[Expr], Extra] = null
+  
+  lazy val residualTask: SLLTask = NSLL.toSLL(residualProgram)
 
   def consume(result: Option[CoGraph[Expr, SubStepInfo[Expr], Extra]]): Unit = {
     result match {
@@ -135,6 +140,9 @@ class SingleProgramConsumer extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
     }
   }
 
-  def showResults(): Unit =
+  def showResults(): Unit = {
     println(residualProgram)
+    println("<<>>")
+    println(residualTask)
+  }
 }

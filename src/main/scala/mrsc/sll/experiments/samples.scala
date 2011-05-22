@@ -99,6 +99,8 @@ object Samples {
     builder1.buildCoGraph(task.target, DummyExtra)
     println("**classic up:**")
     consumer1.showResults
+    
+    Checker.check(task, consumer1.residualTask)
 
     val m2 = classic2(HEByCouplingWhistle)(task.program)
     val consumer2 = new SingleProgramConsumer()
@@ -106,6 +108,7 @@ object Samples {
     builder2.buildCoGraph(task.target, DummyExtra)
     println("**classic down:**")
     consumer2.showResults
+    Checker.check(task, consumer2.residualTask)
     
     val m3 = classic3(HEByCouplingWhistle)(task.program)
     val consumer3 = new CountProgramConsumer2()
@@ -113,6 +116,10 @@ object Samples {
     builder3.buildCoGraph(task.target, DummyExtra)
     println("**classic mix:**")
     consumer3.showResults
+    
+    for (sllTask2 <- consumer3.sllTasks) {
+      Checker.check(task, sllTask2)
+    }
     
     println()
   }
@@ -157,13 +164,14 @@ object Samples {
   def simpleAnalysis(): Unit = {
     report(SLLTasks.namedTasks("NaiveFib"))
     report(SLLTasks.namedTasks("FastFib"))
-    report(SLLTasks.namedTasks("NaiveReverse"))
-    report(SLLTasks.namedTasks("FastReverse"))
     report(SLLTasks.namedTasks("EqPlus"))
     report(SLLTasks.namedTasks("OddEven"))
-    report(SLLTasks.namedTasks("LastDouble"))
     report(SLLTasks.namedTasks("EvenMult"))
     report(SLLTasks.namedTasks("EvenSqr"))
+    
+    report(SLLTasks.namedTasks("NaiveReverse"))
+    report(SLLTasks.namedTasks("FastReverse"))
+    report(SLLTasks.namedTasks("LastDouble"))
     report(SLLTasks.namedTasks("Idle"))
   }
 
