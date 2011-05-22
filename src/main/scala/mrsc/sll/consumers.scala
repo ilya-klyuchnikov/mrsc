@@ -2,7 +2,7 @@ package mrsc.sll
 
 import mrsc._
 
-// it just counts trees
+// it just counts completed and pruned graphs
 class CountGraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E] {
   val description = "counting completed and pruned graphs"
   var completed = 0
@@ -65,8 +65,6 @@ class CountProgramConsumer extends CoGraphConsumer[Expr, Contraction[Expr], Extr
       println(p)
       println()
     }
-    //}
-
   }
 }
 
@@ -89,7 +87,7 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
         completedCoGraphsCount = completedCoGraphsCount + 1
         coGraphs = cg :: coGraphs
     }
-    if (completedCoGraphsCount > 1000) {
+    if (completedCoGraphsCount > 10000) {
       throw new ModelingError("too many results")
     }
   }
@@ -112,6 +110,7 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
     println("""showing first 10 "minimal" programs""")
     for (p <- programs.take(10)) {
       println(p)
+      println("----")
       //println("============")
       //println(mapProg(p))
       //println()
@@ -136,8 +135,6 @@ class SingleProgramConsumer extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
     }
   }
 
-  def showResults(): Unit = {
+  def showResults(): Unit =
     println(residualProgram)
-    //println(graph)
-  }
 }
