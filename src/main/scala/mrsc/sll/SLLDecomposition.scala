@@ -3,13 +3,15 @@ package mrsc.sll
 object Decomposition {
   abstract sealed class Dec
   case class DecLet(let: Let) extends Dec
-  abstract sealed class Observable extends Dec
+  sealed trait Observable extends Dec
   case class ObservableCtr(c: Ctr) extends Observable
   case class ObservableVar(v: Var) extends Observable
 
+  // maybe not so good - abstract case class
   abstract case class Context(red: Redex) extends Dec {
     def replaceRedex(t: Expr): Expr
   }
+  
   private class ContextHole(override val red: Redex) extends Context(red) {
     def replaceRedex(t: Expr): Expr = t
   }
