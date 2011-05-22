@@ -47,19 +47,3 @@ object Sample1 extends App {
 
   runTasks(scs)
 }
-
-class ClassicBlamedGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
-  with SLLSimpleDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
-  with SLLWhistle
-  with SLLCurentMsg
-  with SLLNoTricks
-
-class ClassicCurrentGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
-  with SLLSimpleDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
-  with SLLWhistle
-  with SLLBlamedMsg
-  with SLLNoTricks

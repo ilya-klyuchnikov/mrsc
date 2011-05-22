@@ -21,6 +21,22 @@ object Sample2 extends App {
     }
   }
 
+  def runTask1(task: SLLTask, f: Program => Machine) = {
+    try {
+      println(task.target)
+      val machine = f(task.program)
+      val consumer = new CountGraphConsumer[mrsc.sll.Expr, mrsc.SubStepInfo[mrsc.sll.Expr], mrsc.Extra]()
+      val builder = new MultiCoGraphBuilder(machine, consumer)
+      builder.buildCoGraph(task.target, DummyExtra)
+      consumer.showResults()
+      println()
+    } catch {
+      case e: ModelingError =>
+        Console.println("ERR:" + e.message)
+        println()
+    }
+  }
+
   def runTasks(ins: List[(String, Program => Machine)]) =
     for (t <- SLLTasks.tasks) {
       println("*****")
@@ -37,36 +53,13 @@ object Sample2 extends App {
   def multi3(w: Whistle)(p: Program) = new Multi3(p, w)
 
   val scs = List(
-    ("classic, current, he", multi1(HEWhistle)_),
-    ("classic, current, he", multi2(HEWhistle)_),
-    ("classic, current, he", multi3(HEWhistle)_))
+    //("classic, current, he", multi2(HEWhistle)_),
+    //("classic, blamed, he", multi3(HEWhistle)_),
+    ("classic, all, he", multi1(HEWhistle)_))
 
-  runTasks(scs)
+  //runTasks(scs)
+
+  val t = SLLTasks.tasks(6)
+  //runTask(t, multi1(Whistles.or(MaxGens(1), HEByCouplingWhistle))_)
+  runTask1(t, multi1(Whistles.or(MaxLetParts(3), MaxGens(2), HEByCouplingWhistle))_)
 }
-
-// try all variants
-class Multi1(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
-  with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
-  with SLLWhistle
-  with SLLAlwaysCurrentGens
-  with SLLNoTricks
-
-// generalize (in all possible ways) current configuration (when whistle blows) 
-class Multi2(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
-  with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
-  with SLLWhistle
-  with SLLWhistleCurrentGens
-  with SLLNoTricks
-
-// generalize (in all possible ways) blamed configuration (when whistle blows)
-class Multi3(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
-  with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
-  with SLLWhistle
-  with SLLWhistleBlamedGens
-  with SLLNoTricks
