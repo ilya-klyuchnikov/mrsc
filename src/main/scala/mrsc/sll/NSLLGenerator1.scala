@@ -13,6 +13,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
   lazy val result = fixNames(fold(tree.root))
+  private val extractCases = true
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make
@@ -21,6 +22,14 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
     case None =>
       lazy val traversed = make(n)
       tree.leaves.filter { _.base == Some(n.path) } match {
+
+        case Nil if extractCases && isCaseNode(n) =>
+          val (f, vars) = createSignature(n, Nil)
+          sigs(n.path) = (f, vars)
+          val newVars = vars map { p => createVar() }
+          val sub = Map(vars zip newVars: _*)
+          val body = nSubst(traversed, sub)
+          NLet(f, NFun(f, newVars, body), NCall(f, vars))
 
         case Nil =>
           traversed
@@ -45,6 +54,16 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
   }
 
   import StepKind._
+
+  private def isCaseNode(n: Node[Expr, SubStepInfo[Expr], Extra]): Boolean = {
+    if (n.isLeaf) {
+      return false
+    } else {
+      val children @ (n1 :: ns) = n.outs
+      n1.driveInfo.stepKind == Variants
+    }
+  }
+
   private def make(n: Node[Expr, SubStepInfo[Expr], Extra]): NExpr = {
     if (n.isLeaf) {
       return convert(n.conf)
