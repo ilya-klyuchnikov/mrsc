@@ -15,6 +15,68 @@ import scala.text.Document._
 object NSLL {
   val ED: scala.text.Document = empty
   def bToDoc(x: (NPat, NExpr)): Document = group(x._1.toDoc :: " ->" :: nest(2, ED :/: x._2.toDoc :: ";" :: ED))
+
+  import scala.collection.mutable.{ ListBuffer, Set => MSet }
+
+  // transforms nsll to sll
+  // assumptions: nsll is without lambda-dropping + 
+  // all case expressions are wrapped into let-expressions
+  // "good" case-expressions
+  def toSLL(ne: NExpr): SLLTask = {
+    val defs: ListBuffer[Def] = ListBuffer()
+    val gs = MSet[String]()
+
+    def traverse(ne: NExpr): Expr = ne match {
+      case NVar(n) =>
+        Var(n)
+      case NCtr(n, args) =>
+        Ctr(n, args map traverse)
+      case NCall(n, args) if gs(n) =>
+        GCall(n, args map traverse)
+      case NCall(n, args) =>
+        FCall(n, args map traverse)
+      case NLet(n, nfun, in) =>
+        traverseFun(nfun)
+        traverse(in)
+      case _ => throw new Error("unexpected expression: " + ne)
+    }
+
+    def traverseFun(nfun: NFun): Unit = nfun.term match {
+      case NCase(sel, bs) =>
+        gs += nfun.name
+        val sel1 = sel.asInstanceOf[NVar]
+        val sel2 = Var(sel1.n)
+        // TODO: decide what to do with substitution
+        for ((NPat(n, vars), e1) <- bs) {
+          val p1 = Pat(n, vars map { v => Var(v.n) })
+          val c1 = Ctr(n, vars map { v => Var(v.n) })
+          val body = traverse(e1)
+          val correctBody = SLLExpressions.subst(body, Map(sel2 -> c1))
+          val g = GFun(nfun.name, p1, nfun.args.tail map { v => Var(v.n) }, correctBody)
+          defs += g
+        }
+
+      case e =>
+        val f = FFun(nfun.name, nfun.args map { v => Var(v.n) }, traverse(nfun.term))
+        defs += f
+    }
+
+    val goal1 = traverse(ne)
+    val sorted = defs.sortWith { (d1, d2) =>
+      if (d1.name < d2.name) {
+        true
+      } else if (d1.name > d2.name) {
+        false
+      } else {
+        val g1 = d1.asInstanceOf[GFun]
+        val g2 = d2.asInstanceOf[GFun]
+        g1.p.name < g2.p.name
+      }
+    }.toList
+
+    val program = Program(sorted)
+    SLLTask(goal1, program)
+  }
 }
 
 import NSLL._
