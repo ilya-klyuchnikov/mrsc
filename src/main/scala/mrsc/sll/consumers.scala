@@ -143,6 +143,6 @@ class SingleProgramConsumer extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
   def showResults(): Unit = {
     println(residualProgram)
     println("<<>>")
-    println(residualTask)
+    //println(residualTask)
   }
 }

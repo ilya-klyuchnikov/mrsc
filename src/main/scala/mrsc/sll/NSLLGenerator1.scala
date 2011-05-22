@@ -23,6 +23,8 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
       lazy val traversed = make(n)
       tree.leaves.filter { _.base == Some(n.path) } match {
 
+        // this is ad-hoc hack
+        // this is a bit wrong: we need to simplify graph first
         case Nil if extractCases && isCaseNode(n) =>
           val (f, vars) = createSignature(n, Nil)
           sigs(n.path) = (f, vars)
