@@ -89,12 +89,15 @@ object SLLTasks {
     Map(
       "NaiveReverse" -> SLLTask("gRev(xs)", listProgram),
       "FastReverse" -> SLLTask("gFRev(xs, Nil())", listProgram),
-      "NaiveFib" -> SLLTask("gFib(x)", peanoProgram),
-      "FastFib" -> SLLTask("gFastFib(x, S(Z()), S(Z()))", peanoProgram),
-      "EqPlus" -> SLLTask("gEq(gAdd(x, y), gAdd(y, x))", peanoProgram),
-      "OddEven" -> SLLTask("gOr(gEven(x), gOdd(x))", peanoProgram),
+      "NaiveFib" -> SLLTask("gFib(m)", peanoProgram),
+      "FastFib" -> SLLTask("gFastFib(m, S(Z()), S(Z()))", peanoProgram),
+      "EqPlus" -> SLLTask("gEq(gAdd(m, n), gAdd(n, m))", peanoProgram),
+      "OddEven" -> SLLTask("gOr(gEven(m), gOdd(m))", peanoProgram),
       "LastDouble" -> SLLTask("gLast(gApp(xs, xs))", listProgram),
-      "EvenMult" -> SLLTask("gEven(gMult(x, y))", peanoProgram),
-      "EvenSqr" -> SLLTask("gEven(gMult(x, x))", peanoProgram),
+      "EvenMult" -> SLLTask("gEven(gMult(m, n))", peanoProgram),
+      "EvenSqr" -> SLLTask("gEven(gMult(m, m))", peanoProgram),
       "Idle" -> SLLTask("gIdle(xs)", listProgram))
+      
+   val task1 = SLLTask("gFib(S(S(S(S(S(S(Z())))))))", peanoProgram)
+   val task2 = SLLTask("gRev(Cons(A(), Cons(B(), Cons(C(), Nil()))))", listProgram)
 }
