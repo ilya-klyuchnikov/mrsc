@@ -36,7 +36,7 @@ case class Pat(name: String, args: List[Var]) {
   override def toString = name + args.mkString("(", ", ", ")")
 }
 
-abstract class Def { def name: String }
+sealed abstract class Def { def name: String }
 case class FFun(name: String, args: List[Var], term: Expr) extends Def {
   override def toString = name + args.mkString("(", ", ", ")") + " = " + term + ";"
 }
@@ -51,4 +51,6 @@ case class Program(defs: List[Def]) {
   override def toString = defs.mkString("\n")
 }
 
-case class SLLTask(target: Expr, program: Program)
+case class SLLTask(target: Expr, program: Program) {
+  override def toString = target + "\n" + program
+}
