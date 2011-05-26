@@ -120,30 +120,30 @@ case class PartialCoGraph[C, D, E](
   /*! The main logic of MRSC is here. 
      Step created by SC machine is "applied" to the current active leaf.
    */
-  def addStep(step: MStep[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
+  def addStep(step: Step[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
     case active :: ls =>
       step match {
         /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
          */
-        case MMakeLeaf =>
+        case Leaf =>
           PartialCoGraph(active :: completeLeaves, ls, active :: completeNodes)
         /*! Replacing the configuration of the current node. 
            The main use case is the rebuilding (generalization) of the active node.
          */
-        case MReplace(conf, extra) =>
+        case Replace(conf, extra) =>
           val node = active.copy(conf = conf, extraInfo = extra)
           PartialCoGraph(completeLeaves, node :: ls, completeNodes)
         /*! Just folding: creating a loopback and moving the node into the complete part 
             of the SC graph.  
          */
-        case MFold(basePath) =>
+        case Fold(basePath) =>
           val node = active.copy(base = Some(basePath))
           PartialCoGraph(node :: completeLeaves, ls, node :: completeNodes)
         /*! This step corresponds (mainly) to driving: adds children to the current node. Then
             current node is moved to the complete part and new children are moved into 
             the incomplete part. Also the (co-)path is calculated for any child node.
          */
-        case MAddForest(subSteps) =>
+        case Forest(subSteps) =>
           val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
             case (SubStep(conf, dInfo, eInfo), i) =>
               val in = CoEdge(active, dInfo)
@@ -152,7 +152,7 @@ case class PartialCoGraph[C, D, E](
           PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)
         /*! When doing rollback, we also prune all successors of the dangerous node. 
          */
-        case MRollback(dangNode, c, eInfo) =>
+        case Rollback(dangNode, c, eInfo) =>
           def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
           val node = dangNode.copy(conf = c, extraInfo = eInfo)
           val completeNodes1 = completeNodes.remove(prune_?)
@@ -161,7 +161,7 @@ case class PartialCoGraph[C, D, E](
           PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
         /*! A graph cannot prune itself - it should be performed by a builder.
          */
-        case MPrune =>
+        case Prune =>
           throw new Error()
       }
     case _ =>

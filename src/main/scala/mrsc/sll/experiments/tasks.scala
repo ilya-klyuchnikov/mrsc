@@ -91,7 +91,17 @@ object SLLTasks {
       "FastReverse" -> SLLTask("gFRev(xs, Nil())", listProgram),
       "NaiveFib" -> SLLTask("gFib(m)", peanoProgram),
       "FastFib" -> SLLTask("gFastFib(m, S(Z()), S(Z()))", peanoProgram),
+      
       "EqPlus" -> SLLTask("gEq(gAdd(m, n), gAdd(n, m))", peanoProgram),
+      "EqPlusa" -> SLLTask("gEq(gAdd(m, n), gAdd(p, m))", peanoProgram),
+      "EqPlusb" -> SLLTask("gEq(gAdd(m, n), gAdd(n, q))", peanoProgram),
+      "EqPlusc" -> SLLTask("gEq(gAdd(m, n), gAdd(p, q))", peanoProgram),
+      
+      "EqPlus1" -> SLLTask("gEq(gAdd(m, S(n)), gAdd(n, S(m)))", peanoProgram),
+      "EqPlus1a" -> SLLTask("gEq(gAdd(m, S(p)), gAdd(n, S(m)))", peanoProgram),
+      "EqPlus1b" -> SLLTask("gEq(gAdd(m, S(n)), gAdd(n, S(q)))", peanoProgram),
+      "EqPlus1c" -> SLLTask("gEq(gAdd(m, S(p)), gAdd(n, S(q)))", peanoProgram),
+      
       "OddEven" -> SLLTask("gOr(gEven(m), gOdd(m))", peanoProgram),
       "LastDouble" -> SLLTask("gLast(gApp(xs, xs))", listProgram),
       "EvenMult" -> SLLTask("gEven(gMult(m, n))", peanoProgram),

@@ -96,8 +96,6 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
   lazy val sllTasks = nProgs map {NSLL.toSLL} 
   
   def showResults(): Unit = {
-    println(completedCoGraphsCount + " completed graphs")
-    println(prunedCoGraphsCount + " pruned graphs")
     
     val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NSLLResiduator2(graph).result, graph)
     nProgs = allProgs map {_._1}
@@ -105,20 +103,26 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
     val mapProg = Map(allProgs: _*)
     programs = nProgs sortBy { _.size } distinct
 
-    println(programs.length + " programs")
+    //println(programs.length + " programs")
 
-    println("""showing first 10 "minimal" programs""")
-    for (p <- programs.take(10)) {
-      println(p)
-      val sll = NSLL.toSLL(p)
-      println("<<>>")
-      println(sll)
-      println("----")
+    //val firsts = programs.take(40)
+    //println("""showing first """ + firsts.length + """ "minimal" programs""")
+    //for (p <- firsts) {
+      //println(p)
+      
+      //val sll = NSLL.toSLL(p)
+      //println("<<>>")
+      //println(sll)
+      //println("----")
       //println("============")
       //println(mapProg(p))
       //println()
-    }
+    //}
 
+  }
+  
+  def result(): String = {
+    "" + programs.length
   }
 }
 

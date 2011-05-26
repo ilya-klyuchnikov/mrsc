@@ -36,6 +36,8 @@ object Checker {
   private def values(v: Var): List[Expr] = v match {
     case Var("m") => ns
     case Var("n") => ns
+    case Var("p") => ns
+    case Var("q") => ns
     case _ => ls
   }
 

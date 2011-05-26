@@ -4,16 +4,11 @@ package mrsc
   
   An abstract machine represents the semantics of the object language 
   (more precisely, meta-semantics) through operations over SC graphs. 
-  `SingleResultMachine` corresponds to a classical (= deterministic) supercompiler,
-  while `MultiResultMachine` corresponds to a novel (= non-deterministic) supercompiler.
+  `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 
-trait SingleResultMachine[C, D, E] {
-  def makeStep(pState: PState[C, D, E]): MStep[C, D, E]
-}
-
-trait MultiResultMachine[C, D, E] {
-  def makeSteps(pState: PState[C, D, E]): List[MStep[C, D, E]]
+trait Machine[C, D, E] {
+  def steps(pState: PState[C, D, E]): List[Step[C, D, E]]
 }
 
 /*!# Abstract steps
@@ -22,37 +17,37 @@ trait MultiResultMachine[C, D, E] {
  Low-level operations should be translated into high-level abstract operations (or messages) 
  over SC graphs.
  */
-sealed trait MStep[+C, +D, +E]
+sealed trait Step[+C, +D, +E]
 
 /*! The step `MMakeLeaf` means that the current branch of the graph in focus is
    a terminal node (leaf).
  */
-case object MMakeLeaf extends MStep[Nothing, Nothing, Nothing]
+case object Leaf extends Step[Nothing, Nothing, Nothing]
 
 /*! The step `MPrune` means that the current graph should be discarded. In the case of 
  the "single-result" supercompilation it means failure (= no good result). In the case of
  multi-result supercompilation it means that we should continue with the next variant.   
  */
-case object MPrune extends MStep[Nothing, Nothing, Nothing]
+case object Prune extends Step[Nothing, Nothing, Nothing]
 
 /*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
  Development is divided into several `subSteps`.
  */
-case class MAddForest[+C, +D, +E](val subSteps: List[SubStep[C, D, E]]) extends MStep[C, D, E]
+case class Forest[+C, +D, +E](val subSteps: List[SubStep[C, D, E]]) extends Step[C, D, E]
 
 /*! `MReplace` is fixing the current state of the branch.
  */
-case class MReplace[C, D, E](val conf: C, val extraInfo: E) extends MStep[C, D, E]
+case class Replace[C, D, E](val conf: C, val extraInfo: E) extends Step[C, D, E]
 
 /*! `MRollback` is fixing the past `dangerous` state of the current branch.
  */
-case class MRollback[C, D, E](val dangerous: CoNode[C, D, E],
-  val safe: C, val extra: E) extends MStep[C, D, E]
+case class Rollback[C, D, E](val dangerous: CoNode[C, D, E],
+  val safe: C, val extra: E) extends Step[C, D, E]
 
 /*! `MFold` signals that there is a path to something similar to the current state in the past
  of the current SC Graph.
  */
-case class MFold(val path: Path) extends MStep[Nothing, Nothing, Nothing]
+case class Fold(val path: Path) extends Step[Nothing, Nothing, Nothing]
 
 /* Usually `SubStep` hides internals of driving.  */
 case class SubStep[+C, +D, +E](label: C, info: D, extra: E)
@@ -90,14 +85,14 @@ class ModelingError(val message: String) extends Exception(message: String)
   
  So `W` here stands for "whistle signal".
 */
-trait GenericMultiMachine[C, D, E, W] extends MultiResultMachine[C, D, E] {
+trait GenericMultiMachine[C, D, E, W] extends Machine[C, D, E] {
 
   def isLeaf(pState: PState[C, D, E]): Boolean
   def fold(pState: PState[C, D, E]): Option[Path]
   def blame(pState: PState[C, D, E]): W
-  def drive(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
-  def rebuildings(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
-  def tricks(whistle: W, pState: PState[C, D, E]): List[MStep[C, D, E]]
+  def drive(whistle: W, pState: PState[C, D, E]): List[Step[C, D, E]]
+  def rebuildings(whistle: W, pState: PState[C, D, E]): List[Step[C, D, E]]
+  def tricks(whistle: W, pState: PState[C, D, E]): List[Step[C, D, E]]
 
   /*! The logic of this machine is straightforward:
      
@@ -107,12 +102,12 @@ trait GenericMultiMachine[C, D, E, W] extends MultiResultMachine[C, D, E] {
     
    Note that the whistle signal is passed to `drive`, `rebuildings` and `tricks`.
   */
-  override def makeSteps(pState: PState[C, D, E]): List[MStep[C, D, E]] =
+  override def steps(pState: PState[C, D, E]): List[Step[C, D, E]] =
     if (isLeaf(pState))
-      List(MMakeLeaf)
+      List(Leaf)
     else fold(pState) match {
       case Some(path) =>
-        List(MFold(path))
+        List(Fold(path))
       case _ =>
         val signal = blame(pState)
         val driveSteps = drive(signal, pState)

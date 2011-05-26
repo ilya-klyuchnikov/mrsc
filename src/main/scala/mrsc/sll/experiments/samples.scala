@@ -75,7 +75,7 @@ class ClassicMix(val program: Program, val whistle: Whistle)
   with SLLNoTricks
 
 object Samples {
-  type Machine = MultiResultMachine[Expr, SubStepInfo[Expr], Extra]
+  type Machine1 = Machine[Expr, SubStepInfo[Expr], Extra]
 
   def multi1(w: Whistle)(p: Program) = new Multi1(p, w)
   def multi2(w: Whistle)(p: Program) = new Multi2(p, w)
@@ -89,10 +89,8 @@ object Samples {
   // just tries classic variants of 
   // SLL supercompilation
   def classic(task: SLLTask): Unit = {
-    println()
-    println("--------")
-    println(task.target)
 
+    /*
     val m1 = classic1(HEByCouplingWhistle)(task.program)
     val consumer1 = new SingleProgramConsumer()
     val builder1 = new MultiCoGraphBuilder(m1, consumer1)
@@ -100,7 +98,7 @@ object Samples {
     println("**classic up:**")
     consumer1.showResults
     
-    Checker.check(task, consumer1.residualTask)
+    //Checker.check(task, consumer1.residualTask)
 
     val m2 = classic2(HEByCouplingWhistle)(task.program)
     val consumer2 = new SingleProgramConsumer()
@@ -108,19 +106,41 @@ object Samples {
     builder2.buildCoGraph(task.target, DummyExtra)
     println("**classic down:**")
     consumer2.showResults
-    Checker.check(task, consumer2.residualTask)
-    
-    val m3 = classic3(HEByCouplingWhistle)(task.program)
-    val consumer3 = new CountProgramConsumer2()
-    val builder3 = new MultiCoGraphBuilder(m3, consumer3)
-    builder3.buildCoGraph(task.target, DummyExtra)
-    println("**classic mix:**")
-    consumer3.showResults
-    
+    //Checker.check(task, consumer2.residualTask)
+     
+     */
+
+    val h1 = expand(40, task.target.toString)
+    print(h1)
+
+    {
+      val m3 = classic3(HEByCouplingWhistle)(task.program)
+      val consumer3 = new CountProgramConsumer2()
+      val builder3 = new CoGraphBuilder(m3, consumer3)
+      builder3.buildCoGraph(task.target, DummyExtra)
+      consumer3.showResults
+
+      val r1 = expandRight(5, consumer3.result)
+      print(r1)
+    }
+
+    {
+      val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
+      val consumer3 = new CountProgramConsumer2()
+      val builder3 = new CoGraphBuilder(m3, consumer3)
+      builder3.buildCoGraph(task.target, DummyExtra)
+      consumer3.showResults
+
+      val r1 = expandRight(5, consumer3.result)
+      print(r1)
+    }
+
+    /*
     for (sllTask2 <- consumer3.sllTasks) {
       Checker.check(task, sllTask2)
     }
-    
+    */
+
     println()
   }
 
@@ -131,11 +151,11 @@ object Samples {
   // instead of generating programs,
   // this pre-run just estimate the maximum number of programs
   // pre-run is not memory consuming, but potentially is time-consuming
-  def preRunTask(task: SLLTask, f: Program => Machine) = {
+  def preRunTask(task: SLLTask, f: Program => Machine1) = {
     try {
       val machine = f(task.program)
       val consumer = new CountProgramConsumer2()
-      val builder = new MultiCoGraphBuilder(machine, consumer)
+      val builder = new CoGraphBuilder(machine, consumer)
       builder.buildCoGraph(task.target, DummyExtra)
       consumer.showResults()
       println()
@@ -146,11 +166,11 @@ object Samples {
     }
   }
 
-  def runTask(task: SLLTask, f: Program => Machine) = {
+  def runTask(task: SLLTask, f: Program => Machine1) = {
     try {
       val machine = f(task.program)
       val consumer = new CountProgramConsumer2()
-      val builder = new MultiCoGraphBuilder(machine, consumer)
+      val builder = new CoGraphBuilder(machine, consumer)
       builder.buildCoGraph(task.target, DummyExtra)
       consumer.showResults()
       println()
@@ -162,17 +182,51 @@ object Samples {
   }
 
   def simpleAnalysis(): Unit = {
+
+    val header = expand(40, """Task \ Supercompiler""") + expandRight(5, "1") +
+      expandRight(5, "2") + expandRight(5, "3") 
+    println(header)
+    println()
+
     report(SLLTasks.namedTasks("NaiveFib"))
     report(SLLTasks.namedTasks("FastFib"))
+
     report(SLLTasks.namedTasks("EqPlus"))
+
+    report(SLLTasks.namedTasks("EqPlusa"))
+    report(SLLTasks.namedTasks("EqPlusb"))
+    report(SLLTasks.namedTasks("EqPlusc"))
+
+    report(SLLTasks.namedTasks("EqPlus1"))
+    report(SLLTasks.namedTasks("EqPlus1a"))
+    report(SLLTasks.namedTasks("EqPlus1b"))
+    report(SLLTasks.namedTasks("EqPlus1c"))
+
     report(SLLTasks.namedTasks("OddEven"))
     report(SLLTasks.namedTasks("EvenMult"))
     report(SLLTasks.namedTasks("EvenSqr"))
-    
+
     report(SLLTasks.namedTasks("NaiveReverse"))
     report(SLLTasks.namedTasks("FastReverse"))
     report(SLLTasks.namedTasks("LastDouble"))
     report(SLLTasks.namedTasks("Idle"))
+
+    println()
+    println("1 - classic msg mix, he by coupling")
+    println("2 - classic msg mix, he by coupling with redex")
+    println("3 - classic all mutial gens, he by coupling")
+  }
+
+  private def expand(n: Int, s: String): String = {
+    val init = " " * n
+    val tmp = s + init
+    tmp take n
+  }
+
+  private def expandRight(n: Int, s: String): String = {
+    val init = " " * n
+    val tmp = init + s
+    tmp takeRight n
   }
 
   def main(args: Array[String]): Unit = {
@@ -186,4 +240,5 @@ object Samples {
     simpleAnalysis()
 
   }
+
 }

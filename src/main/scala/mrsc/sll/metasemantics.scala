@@ -16,7 +16,7 @@ trait SLLDriving {
   }
 
   def drive(ps: SLLState): SLLStep =
-    MAddForest(drive_(ps.node.conf))
+    Forest(drive_(ps.node.conf))
 
   private def drive_(conf: Expr): List[SubStep[Expr, SubStepInfo[Expr], Extra]] =
     decompose(conf) match {

@@ -24,7 +24,7 @@ trait SLLPruningDriving extends SLLDriving {
       case OK =>
         List(drive(pState))
       case _ =>
-        List(MPrune)
+        List(Prune)
     }
 }
 
@@ -40,15 +40,15 @@ trait SLLCurentMsg extends SLLRebuildings {
         val g = MSG.msg(currentConf, blamedConf)
         if (renaming(g.t, currentConf)) {
           val topSplitted = split(blamedConf)
-          val rollback = MRollback(blamed, topSplitted, DummyExtra)
+          val rollback = Rollback(blamed, topSplitted, DummyExtra)
           List(rollback)
         } else if (g.t.isInstanceOf[Var]) {
           val let = split(currentConf)
-          val replace = MReplace(let, DummyExtra)
+          val replace = Replace(let, DummyExtra)
           List(replace)
         } else {
           val let = Let(g.t, g.m1.toList)
-          val replace = MReplace(let, DummyExtra)
+          val replace = Replace(let, DummyExtra)
           List(replace)
         }
     }
@@ -68,12 +68,12 @@ trait SLLBlamedMsg extends SLLRebuildings {
         val g = MSG.msg(blamedConf, currentConf)
         if (g.t.isInstanceOf[Var] || renaming(g.t, blamedConf)) {
           val let = split(currentConf)
-          val replace = MReplace(let, DummyExtra)
+          val replace = Replace(let, DummyExtra)
           //println("replace: " + let)
           List(replace)
         } else {
           val let = Let(g.t, g.m1.toList)
-          val rollback = MRollback(blamed, let, DummyExtra)
+          val rollback = Rollback(blamed, let, DummyExtra)
           //println("rollback: " + let)
           List(rollback)
         }
@@ -108,7 +108,7 @@ trait SLLMixMsg extends SLLRebuildings {
           val let = Let(g.t, g.m2.toList)
           //println(let)
           //println("----")
-          MRollback(blamed, let, DummyExtra)
+          Rollback(blamed, let, DummyExtra)
         }
 
         val downMsg = if (renaming(g.t, currentConf)) {
@@ -117,7 +117,7 @@ trait SLLMixMsg extends SLLRebuildings {
           val let = Let(g.t, g.m1.toList)
           //println(let)
           //println("----")
-          MReplace(let, DummyExtra)
+          Replace(let, DummyExtra)
         }
 
         //println()
@@ -125,10 +125,28 @@ trait SLLMixMsg extends SLLRebuildings {
     }
 }
 
+// tries all mutual superconfiguration for blamed
+// and current configurations
+trait SLLMix extends SLLRebuildings {
+  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
+    whistle.signal match {
+      case OK =>
+        List()
+      case _ =>
+        val blamed = whistle.blamed.get
+        val currentConf = pState.node.conf
+        val blamedConf = blamed.conf
+        
+        val mutualSupers1 = gens(currentConf)
+        
+        mutualSupers1 map { Replace(_, DummyExtra) }
+    }
+}
+
 trait SLLAlwaysCurrentGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] = {
     val expr = pState.node.conf
-    gens(expr) map { MReplace(_, DummyExtra) }
+    gens(expr) map { Replace(_, DummyExtra) }
   }
 }
 
@@ -139,7 +157,7 @@ trait SLLWhistleCurrentGens extends SLLRebuildings {
         List()
       case _ =>
         val expr = pState.node.conf
-        gens(expr) map { MReplace(_, DummyExtra) }
+        gens(expr) map { Replace(_, DummyExtra) }
     }
 }
 
@@ -158,7 +176,7 @@ trait SLLWhistleBlamedGens extends SLLRebuildings {
         val gs = gens(blamedExpr)
         gs.foreach(println)
         println("***")
-        gs map { MRollback(blamedNode, _, DummyExtra) }
+        gs map { Rollback(blamedNode, _, DummyExtra) }
     }
 }
 
@@ -178,13 +196,13 @@ trait SLLWhistleBlamedGens2 extends SLLRebuildings {
         println(currentExpr)
         println("***")
         val blamed = SLLGeneralizations.gens(blamedExpr) map {
-          MRollback(blamedNode, _, DummyExtra)
+          Rollback(blamedNode, _, DummyExtra)
         }
         if (!blamed.isEmpty) {
           blamed
         } else {
           val current = SLLGeneralizations.gens(currentExpr) map {
-            MReplace(_, DummyExtra)
+            Replace(_, DummyExtra)
           }
           current
         }
@@ -201,10 +219,10 @@ trait SLLWhistleAllGens extends SLLRebuildings {
         val blamedExpr = blamedNode.conf
         val currentExpr = pState.node.conf
         val blamed = SLLGeneralizations.gens(blamedExpr) map {
-          MRollback(blamedNode, _, DummyExtra)
+          Rollback(blamedNode, _, DummyExtra)
         }
         val current = SLLGeneralizations.gens(currentExpr) map {
-          MReplace(_, DummyExtra)
+          Replace(_, DummyExtra)
         }
         blamed ++ current
     }

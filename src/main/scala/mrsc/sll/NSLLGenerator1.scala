@@ -13,7 +13,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
   lazy val result = fixNames(fold(tree.root))
-  private val extractCases = true
+  private val extractCases = false
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make

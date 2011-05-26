@@ -9,35 +9,10 @@ import scala.annotation.tailrec
  cograph further.
  */
 
-/*! `SingleCoGraphBuilder` just applies steps of abstract machine till cograph is complete. 
- */
-// TODO: it is better to take a consumer (in order to understand why scp fails) 
-class SingleCoGraphBuilder[C, D, E](machine: SingleResultMachine[C, D, E]) {
-
-  def buildCoGraph(conf: C, info: E): CoGraph[C, D, E] = {
-    val startNode = CoNode[C, D, E](conf, info, null, None, Nil)
-    val initialCoGraph = new PartialCoGraph(List(), List(startNode), Nil)
-    val finalCoGraph = build(initialCoGraph)
-    // TODO: do we need to sort it??
-    val orderedNodes = finalCoGraph.completeNodes.sortBy(_.coPath)(PathOrdering)
-    val rootNode = orderedNodes.head
-    CoGraph(rootNode, finalCoGraph.completeLeaves, orderedNodes)
-  }
-
-  @tailrec
-  private def build(g: PartialCoGraph[C, D, E]): PartialCoGraph[C, D, E] =
-    g.activeLeaf match {
-      case None => g
-      case Some(leaf) => build(g.addStep(machine.makeStep(g.pState)))
-    }
-}
-
 /*! `MultiCoGraphBuilder` considers all steps returned by `MultiResultMachine` and proceeds with
   all possible variants.
  */
-class MultiCoGraphBuilder[C, D, E](
-  machine: MultiResultMachine[C, D, E],
-  consumer: CoGraphConsumer[C, D, E]) {
+class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E]) {
 
   /*! It maintains a list of partial cographs ...
    */
@@ -77,9 +52,9 @@ class MultiCoGraphBuilder[C, D, E](
            */
           case Some(leaf) =>
             partialCoGraphs = gs
-            for (step <- machine.makeSteps(g.pState)) step match {
+            for (step <- machine.steps(g.pState)) step match {
               /*! informing `consumer` about pruning, if any */
-              case MPrune =>
+              case Prune =>
                 consumer.consume(None)
               /*! or adding new cograph to the pending list otherwise */
               case s =>

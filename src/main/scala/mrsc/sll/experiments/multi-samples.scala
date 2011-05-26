@@ -4,13 +4,13 @@ import mrsc._
 import mrsc.sll._
 
 object Sample2 extends App {
-  type Machine = MultiResultMachine[Expr, SubStepInfo[Expr], Extra]
+  type Machine2 = Machine[Expr, SubStepInfo[Expr], Extra]
 
-  def runTask(task: SLLTask, f: Program => Machine) = {
+  def runTask(task: SLLTask, f: Program => Machine2) = {
     try {
       val machine = f(task.program)
       val consumer = new CountProgramConsumer2()
-      val builder = new MultiCoGraphBuilder(machine, consumer)
+      val builder = new CoGraphBuilder(machine, consumer)
       builder.buildCoGraph(task.target, DummyExtra)
       consumer.showResults()
       println()
@@ -21,12 +21,12 @@ object Sample2 extends App {
     }
   }
 
-  def runTask1(task: SLLTask, f: Program => Machine) = {
+  def runTask1(task: SLLTask, f: Program => Machine2) = {
     try {
       println(task.target)
       val machine = f(task.program)
       val consumer = new CountGraphConsumer[mrsc.sll.Expr, mrsc.SubStepInfo[mrsc.sll.Expr], mrsc.Extra]()
-      val builder = new MultiCoGraphBuilder(machine, consumer)
+      val builder = new CoGraphBuilder(machine, consumer)
       builder.buildCoGraph(task.target, DummyExtra)
       consumer.showResults()
       println()
@@ -37,7 +37,7 @@ object Sample2 extends App {
     }
   }
 
-  def runTasks(ins: List[(String, Program => Machine)]) =
+  def runTasks(ins: List[(String, Program => Machine2)]) =
     for (t <- SLLTasks.tasks) {
       println("*****")
       println(t.target)
