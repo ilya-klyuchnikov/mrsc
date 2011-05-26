@@ -36,7 +36,8 @@ import scala.annotation.tailrec
 
 /*! The labeled directed edge. `N` is a destination node; `D` is driving info.
  */
-case class Edge[N, D](node: N, driveInfo: D)
+case class Edge[C, D, E](node: Node[C, D, E], driveInfo: D)
+case class CoEdge[C, D, E](coNode: CoNode[C, D, E], driveInfo: D)
 
 /*! `Graph[C, D, E]`. 
   `C` (configuration) is a type of node label; `D` (driving) is a type of edge label;
@@ -53,7 +54,7 @@ case class Graph[C, D, E](root: Node[C, D, E], leaves: Nodes[C, D, E]) {
 case class Node[C, D, E](
   conf: C,
   extraInfo: E,
-  outs: List[Edge[Node[C, D, E], D]],
+  outs: List[Edge[C, D, E]],
   base: Loopback,
   path: Path) {
 
@@ -84,14 +85,14 @@ case class CoGraph[C, D, E](
 case class CoNode[C, D, E](
   conf: C,
   extraInfo: E,
-  in: In[C, D, E],
+  in: CoEdge[C, D, E],
   base: Loopback,
   coPath: CoPath) {
 
   lazy val path = coPath.reverse
 
   val ancestors: List[CoNode[C, D, E]] =
-    if (in == null) List() else in.node :: in.node.ancestors
+    if (in == null) List() else in.coNode :: in.coNode.ancestors
 
   override def toString = conf.toString
 }
@@ -143,7 +144,7 @@ case class PartialCoGraph[C, D, E](
         case MAddForest(subSteps) =>
           val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
             case (SubStep(conf, dInfo, eInfo), i) =>
-              val in = Edge(active, dInfo)
+              val in = CoEdge(active, dInfo)
               CoNode(conf, eInfo, in, None, i :: active.coPath)
           }
           PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)

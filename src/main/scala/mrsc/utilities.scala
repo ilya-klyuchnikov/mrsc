@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 
 /*! Auxiliary data for transposing a cograph into a graph.
  */
-case class Tmp[C, D, E](node: Node[C, D, E], in: In[C, D, E])
+case class Tmp[C, D, E](node: Node[C, D, E], in: CoEdge[C, D, E])
 
 /*! A transformer of cographs into graphs.
  */
