@@ -7,7 +7,9 @@ import scala.annotation.tailrec
  In MRSC SC Graph is a special kind of graph that can be seen as a tree (skeleton), 
  some leaves of which can have loopbacks.
  Note that loopbacks can start only from leaves. 
- /Q: Is there a term for such graphs in graph theory?/
+ 
+ In some sense, SC Graph is similar to accessible
+ pointed graphs (APGs) used in the theory of non-well-founded sets.
  
  Here is the simplest SC graph. There are two loopbacks: j⇢c and h⇢d. 
  There is also a concept of a path. The path to the node g is [0,0,1].
@@ -167,6 +169,7 @@ case class PartialCoGraph[C, D, E](
   }
 }
 
-/*! Based on the current `PState`, SCP machine should decide what should be done next.
+/*! `PState` stands for partial state.
+ Based on the current `PState`, SCP machine should decide what should be done next.
  */
 case class PState[C, D, E](val node: CoNode[C, D, E], val completeNodes: CoNodes[C, D, E])
