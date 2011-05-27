@@ -11,7 +11,7 @@ object Sample1 extends App {
       val machine = f(task.program)
       val consumer = new SingleProgramConsumer()
       val builder = new CoGraphBuilder(machine, consumer)
-      builder.buildCoGraph(task.target, DummyExtra)
+      builder.buildCoGraph(task.target, NoExtra)
       consumer.showResults()
       println()
     } catch {

@@ -22,12 +22,12 @@ trait SLLDriving {
     decompose(conf) match {
 
       case DecLet(Let(term, bs)) =>
-        SubStep(term, LetBodyStep, DummyExtra) :: bs.map {
-          case (k, v) => SubStep(v, LetPartStep(k.name), DummyExtra)
+        SubStep(term, LetBodyStep, NoExtra) :: bs.map {
+          case (k, v) => SubStep(v, LetPartStep(k.name), NoExtra)
         }
 
       case ObservableCtr(Ctr(_, args)) =>
-        args map { a => SubStep(a, CtrArgStep, DummyExtra) }
+        args map { a => SubStep(a, CtrArgStep, NoExtra) }
 
       case ObservableVar(v) =>
         List()
@@ -35,13 +35,13 @@ trait SLLDriving {
       case context @ Context(RedexFCall(FCall(name, args))) =>
         val fReduced = subst(program.f(name).term, Map(program.f(name).args.zip(args): _*))
         val nExpr = context.replaceRedex(fReduced)
-        List(SubStep(nExpr, TransientStep, DummyExtra))
+        List(SubStep(nExpr, TransientStep, NoExtra))
 
       case context @ Context(RedexGCallCtr(GCall(name, args), Ctr(cname, cargs))) =>
         val g = program.g(name, cname)
         val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (cargs ::: args.tail): _*))
         val nExpr = context.replaceRedex(gReduced)
-        List(new SubStep(nExpr, TransientStep, DummyExtra))
+        List(new SubStep(nExpr, TransientStep, NoExtra))
 
       case context @ Context(RedexGCallVar(GCall(name, args), v)) =>
         val branches = program.gs(name) map { g =>
@@ -49,9 +49,9 @@ trait SLLDriving {
           val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (fp.args ::: args.tail): _*))
           val info = Map(v -> Ctr(fp.name, fp.args))
           val driven = subst(context.replaceRedex(gReduced), info)
-          new SubStep(driven, VariantBranchStep(Contraction(v.name, fp)), DummyExtra)
+          new SubStep(driven, VariantBranchStep(Contraction(v.name, fp)), NoExtra)
         }
-        val sel = new SubStep(v, VariantSelectorStep, DummyExtra)
+        val sel = new SubStep(v, VariantSelectorStep, NoExtra)
         sel :: branches
 
     }

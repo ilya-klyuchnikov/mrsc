@@ -117,7 +117,7 @@ object Samples {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
       val consumer3 = new CountProgramConsumer2()
       val builder3 = new CoGraphBuilder(m3, consumer3)
-      builder3.buildCoGraph(task.target, DummyExtra)
+      builder3.buildCoGraph(task.target, NoExtra)
       consumer3.showResults
 
       val r1 = expandRight(5, consumer3.result)
@@ -128,7 +128,7 @@ object Samples {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
       val consumer3 = new CountProgramConsumer2()
       val builder3 = new CoGraphBuilder(m3, consumer3)
-      builder3.buildCoGraph(task.target, DummyExtra)
+      builder3.buildCoGraph(task.target, NoExtra)
       consumer3.showResults
 
       val r1 = expandRight(5, consumer3.result)
@@ -156,7 +156,7 @@ object Samples {
       val machine = f(task.program)
       val consumer = new CountProgramConsumer2()
       val builder = new CoGraphBuilder(machine, consumer)
-      builder.buildCoGraph(task.target, DummyExtra)
+      builder.buildCoGraph(task.target, NoExtra)
       consumer.showResults()
       println()
     } catch {
@@ -171,7 +171,7 @@ object Samples {
       val machine = f(task.program)
       val consumer = new CountProgramConsumer2()
       val builder = new CoGraphBuilder(machine, consumer)
-      builder.buildCoGraph(task.target, DummyExtra)
+      builder.buildCoGraph(task.target, NoExtra)
       consumer.showResults()
       println()
     } catch {

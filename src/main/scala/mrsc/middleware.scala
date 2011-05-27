@@ -37,8 +37,6 @@ case class VariantBranchStep[C](contr: Contraction[C]) extends SubStepInfo[C](Va
 }
 case object LetBodyStep extends SubStepInfo(LetDecompose)
 case class LetPartStep(v: Name) extends SubStepInfo(LetDecompose)
-case class GeneralizationStep[C](from: C) extends SubStepInfo(Generalization)
 
 sealed trait Extra
-// TODO: rename to NoExtra
-case object DummyExtra extends Extra
+case object NoExtra extends Extra
