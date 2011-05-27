@@ -78,26 +78,17 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
       case Transient =>
         fold(n1.node)
 
-      case CtrDecompose =>
-        val ctrName = n.conf.asInstanceOf[Ctr].name
-        NCtr(ctrName, children.map(out => fold(out.node)))
-
-      case LetDecompose =>
-        val body = fold(n1.node)
-        val sub = ns.map { n2 => (NVar(n2.driveInfo.asInstanceOf[LetPartStep].v), fold(n2.node)) }.toMap
-        nSubst(body, sub)
-
-      case Generalization =>
-        fold(n1.node)
+      case Decompose =>
+        val ds = n1.driveInfo.asInstanceOf[DecomposeStep]
+        ds.compose(children.map(out => fold(out.node)))
 
       case Variants =>
-        val sel = fold(n1.node)
-        val branches = ns map { n2 =>
+        val branches = children map { n2 =>
           val VariantBranchStep(Contraction(_, pat)) = n2.driveInfo
           (convertPat(pat.asInstanceOf[Ctr]), fold(n2.node))
         }
         val sortedBranches = branches.sortBy(_._1.name)
-        NCase(sel, sortedBranches)
+        NCase(NVar(n1.driveInfo.asInstanceOf[VariantBranchStep[Expr]].contr.v), sortedBranches)
     }
 
   }

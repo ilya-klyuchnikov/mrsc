@@ -22,12 +22,22 @@ trait SLLDriving {
     decompose(conf) match {
 
       case DecLet(Let(term, bs)) =>
-        SubStep(term, LetBodyStep, NoExtra) :: bs.map {
-          case (k, v) => SubStep(v, LetPartStep(k.name), NoExtra)
+        val compose = { parts: List[NExpr] =>
+          val sub = (bs.map { p => NVar(p._1.name) } zip parts.tail).toMap
+          val body = parts.head
+          NSLLExpressions.nSubst(body, sub)
+        }
+        val stepInfo = DecomposeStep(compose)
+        SubStep(term, stepInfo, NoExtra) :: bs.map {
+          case (k, v) => SubStep(v, stepInfo, NoExtra)
         }
 
-      case ObservableCtr(Ctr(_, args)) =>
-        args map { a => SubStep(a, CtrArgStep, NoExtra) }
+      case ObservableCtr(Ctr(cn, args)) =>
+        val compose = { parts: List[NExpr] =>
+          NCtr(cn, parts)
+        }
+        val stepInfo = DecomposeStep(compose)
+        args map { a => SubStep(a, stepInfo, NoExtra) }
 
       case ObservableVar(v) =>
         List()
@@ -51,8 +61,7 @@ trait SLLDriving {
           val driven = subst(context.replaceRedex(gReduced), info)
           new SubStep(driven, VariantBranchStep(Contraction(v.name, fp)), NoExtra)
         }
-        val sel = new SubStep(v, VariantSelectorStep, NoExtra)
-        sel :: branches
+        branches
 
     }
 

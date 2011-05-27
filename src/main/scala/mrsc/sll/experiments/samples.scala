@@ -122,6 +122,11 @@ object Samples {
 
       val r1 = expandRight(5, consumer3.result)
       print(r1)
+      
+      /*
+      for (sllTask2 <- consumer3.sllTasks) {
+        Checker.check(task, sllTask2)
+      }*/
     }
 
     {
@@ -133,13 +138,12 @@ object Samples {
 
       val r1 = expandRight(5, consumer3.result)
       print(r1)
-    }
 
-    /*
-    for (sllTask2 <- consumer3.sllTasks) {
-      Checker.check(task, sllTask2)
+      /*
+      for (sllTask2 <- consumer3.sllTasks) {
+        Checker.check(task, sllTask2)
+      }*/
     }
-    */
 
     println()
   }
@@ -184,7 +188,7 @@ object Samples {
   def simpleAnalysis(): Unit = {
 
     val header = expand(40, """Task \ Supercompiler""") + expandRight(5, "1") +
-      expandRight(5, "2") + expandRight(5, "3") 
+      expandRight(5, "2") + expandRight(5, "3")
     println(header)
     println()
 
