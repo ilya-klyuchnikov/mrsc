@@ -1,5 +1,7 @@
 package mrsc
 
+// TODO: in the future there will be
+// new type of signal: hint for generalization
 object Signal extends Enumeration {
   type Signal = Value
   val OK, Warning = Value
@@ -16,12 +18,6 @@ case class Contraction[C](v: Name, pat: C) {
 object StepKind extends Enumeration {
   type StepKind = Value
   val Transient, CtrDecompose, LetDecompose, Variants, Generalization = Value
-
-  def isDrive(v: Value) =
-    v == Transient || v == Variants || v == CtrDecompose || v == LetDecompose
-
-  def isReduction(v: Value) =
-    v == Transient || v == Variants
 }
 
 import StepKind._
