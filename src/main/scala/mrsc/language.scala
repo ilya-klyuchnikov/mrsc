@@ -8,6 +8,8 @@ trait Syntax[C] {
   def subst(c: C, sub: Subst[C]): C
   def rebuildings(c: C): List[Rebuilding[C]]
   def rebuilding2Configuration(rebuilding: Rebuilding[C]): C
+
+  def findSubst(from: C, to: C): Subst[C]
 }
 
 case class Contraction1[C](param: Name, pattern: C)
@@ -27,4 +29,8 @@ trait MetaEvaluator[C] {
 
 trait Termination[C] {
   def embeddding: PartialOrdering[C]
+}
+
+trait Residuator[C, R] {
+  def residuate(graph: Graph[R, SubStepInfo[R], _]): R
 }
