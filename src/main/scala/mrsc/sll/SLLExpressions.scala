@@ -1,12 +1,22 @@
 package mrsc.sll
 
+// FIXME: Here we assume that in bodies of let expressions and
+// where expressions no free variables
 object SLLExpressions {
 
   def subst(term: Expr, m: Map[Var, Expr]): Expr = term match {
-    case v: Var => m.getOrElse(v, v)
-    case Ctr(name, args) => Ctr(name, args map { subst(_, m) })
-    case FCall(name, args) => FCall(name, args map { subst(_, m) })
-    case GCall(name, args) => GCall(name, args map { subst(_, m) })
+    case v: Var =>
+      m.getOrElse(v, v)
+    case Ctr(name, args) =>
+      Ctr(name, args map { subst(_, m) })
+    case FCall(name, args) =>
+      FCall(name, args map { subst(_, m) })
+    case GCall(name, args) =>
+      GCall(name, args map { subst(_, m) })
+    case Where(e, defs) =>
+      Where(subst(e, m), defs)
+    case Let(e, bs) =>
+      Let(subst(e, m), bs)
   }
 
   def renaming(t1: Expr, t2: Expr): Boolean = t1.size == t2.size && inst(t1, t2) && inst(t2, t1)
@@ -26,13 +36,21 @@ object SLLExpressions {
   }
 
   def vars(t: Expr): List[Var] = t match {
-    case v: Var => (List(v))
-    case Ctr(_, args) => (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
-    case FCall(_, args) => (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
-    case GCall(_, args) => (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
+    case v: Var =>
+      List(v)
+    case Ctr(_, args) =>
+      (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
+    case FCall(_, args) =>
+      (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
+    case GCall(_, args) =>
+      (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
+    case Let(e, _) =>
+      vars(e)
+    case Where(e, _) =>
+      vars(e)
   }
 
-  private var i: Long = 0; 
-  def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) }; 
-  
+  private var i: Long = 0;
+  def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) };
+
 }

@@ -29,18 +29,31 @@ case class GCall(name: String, args: List[Expr]) extends Expr {
 
 case class Let(term: Expr, bindings: List[(Var, Expr)]) extends Expr {
   lazy val size = 1 + (bindings map { _._2.size }).sum
-  override def toString = "let " + (bindings map {case (x, y) => x + "="+y} mkString(", ")) + " in " + term
+  override def toString = "let " + (bindings map { case (x, y) => x + "=" + y } mkString (", ")) + " in " + term
+}
+case class Where(e: Expr, defs: List[Def]) extends Expr {
+  lazy val size = 1 + (defs map { _.rhs.size }).sum
 }
 
 case class Pat(name: String, args: List[Var]) {
   override def toString = name + args.mkString("(", ", ", ")")
 }
 
-sealed abstract class Def { def name: String }
+sealed abstract class Def {
+  def name: String
+  def lhs: Expr
+  def rhs: Expr
+}
 case class FFun(name: String, args: List[Var], term: Expr) extends Def {
+  override val lhs = FCall(name, args)
+  override val rhs = term
+
   override def toString = name + args.mkString("(", ", ", ")") + " = " + term + ";"
 }
 case class GFun(name: String, p: Pat, args: List[Var], term: Expr) extends Def {
+  override val lhs = GCall(name, Ctr(p.name, p.args) :: args)
+  override val rhs = term
+
   override def toString = name + (p :: args).mkString("(", ", ", ")") + " = " + term + ";"
 }
 

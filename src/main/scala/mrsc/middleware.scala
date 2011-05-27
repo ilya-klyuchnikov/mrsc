@@ -24,11 +24,13 @@ import StepKind._
 // TODO: rename later
 abstract sealed class SubStepInfo[+C](val stepKind: StepKind)
 case object TransientStep extends SubStepInfo[Nothing](Transient) {
-  override def toString = " "
+  override def toString = "->"
 }
-// TODO: this is a hack for now,
-// FIXME
+// FIXME: remove later
 case class DecomposeStep(compose: List[NExpr] => NExpr) extends SubStepInfo[Nothing](Decompose) {
+  override def toString = ""
+}
+case class DecomposeStepNew[C](compose: List[C] => C) extends SubStepInfo[C](Decompose) {
   override def toString = ""
 }
 case class VariantBranchStep[C](contr: Contraction[C]) extends SubStepInfo[C](Variants) {
