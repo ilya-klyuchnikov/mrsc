@@ -8,8 +8,7 @@ trait Syntax[C] {
   def subst(c: C, sub: Subst[C]): C
   def rebuildings(c: C): List[Rebuilding[C]]
   def rebuilding2Configuration(rebuilding: Rebuilding[C]): C
-
-  def findSubst(from: C, to: C): Subst[C]
+  def findSubst(from: C, to: C): Option[Subst[C]]
 }
 
 case class Contraction1[C](param: Name, pattern: C)
@@ -33,4 +32,17 @@ trait Termination[C] {
 
 trait Residuator[C, R] {
   def residuate(graph: Graph[R, SubStepInfo[R], _]): R
+}
+
+trait SimplePartialOrdering[T] extends PartialOrdering[T] {
+  override def tryCompare(x: T, y: T): Option[Int] = (lteq(x, y), lteq(y, x)) match {
+    case (false, false) =>
+      None
+    case (false, true) =>
+      Some(1)
+    case (true, false) =>
+      Some(-1)
+    case (true, true) =>
+      Some(0)
+  }
 }

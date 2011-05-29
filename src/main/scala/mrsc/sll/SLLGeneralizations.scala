@@ -1,5 +1,7 @@
 package mrsc.sll
 
+import mrsc._
+
 // should be rewritten in more transparent way
 // for now we just AD-HOC generate and remove duplicates here 
 object SLLGeneralizations {
@@ -22,6 +24,19 @@ object SLLGeneralizations {
         foldLeft(List[(Expr, Sub)]()) { (filtered, elem) => filtered.find { x => SLLExpressions.renaming(elem._1, x._1) } match { case None => elem :: filtered; case Some(_) => filtered } }.
         map { case (t, sub) => Let(t, sub) }
   }
+  
+  def gens2(e: Expr): List[Rebuilding[Expr]] = e match {
+    case Let(_, _) => Nil
+    case Ctr(_, _) => Nil
+    case _ =>
+      val gs = generalize(e, Nil)
+      val gs1 = gs.map(postProcess)
+      gs1.
+        filter { !_._1.isInstanceOf[Var] }. // remove full abstraction
+        filter { !_._2.isEmpty }. // remove identity
+        foldLeft(List[(Expr, Sub)]()) { (filtered, elem) => filtered.find { x => SLLExpressions.renaming(elem._1, x._1) } match { case None => elem :: filtered; case Some(_) => filtered } }.
+        map { case (t, sub) => (t, (sub map {case (k, v) => (k.name, v)}).toMap) }
+  } 
 
   // remove things like let v3=x in gRev(v3)
   private def postProcess(pair: (Expr, Sub)): (Expr, Sub) = {
