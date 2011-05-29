@@ -3,6 +3,7 @@ package mrsc.sll
 import mrsc._
 
 object SLLSyntax extends Syntax[Expr] {
+
   override val instance: PartialOrdering[Expr] = new SimplePartialOrdering[Expr] {
     override def lteq(x: Expr, y: Expr) = SLLExpressions.inst(x, y)
   }
@@ -29,6 +30,14 @@ object SLLSyntax extends Syntax[Expr] {
       val sub = sllSub map { case (k, v) => (k.name, v) }
       Some(sub)
     }
+  }
+
+}
+
+object SLLTermination extends Termination[Expr] {
+
+  override val embedding = new SimplePartialOrdering[Expr] {
+    override def lteq(x: Expr, y: Expr) = HE.heByCoupling(x, y)
   }
 
 }

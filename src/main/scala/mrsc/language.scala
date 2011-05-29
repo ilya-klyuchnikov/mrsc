@@ -27,7 +27,7 @@ trait MetaEvaluator[C] {
 }
 
 trait Termination[C] {
-  def embeddding: PartialOrdering[C]
+  def embedding: PartialOrdering[C]
 }
 
 trait Residuator[C, R] {
