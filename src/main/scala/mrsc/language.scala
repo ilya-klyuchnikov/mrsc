@@ -23,6 +23,7 @@ case class Variants1[C](cases: List[(Contraction[C], C)]) extends EvalStep[C]
  */
 trait MetaEvaluator[C] {
   def eval(c: C): EvalStep[C]
+  def isReducible(c: C): Boolean
 }
 
 trait Termination[C] {

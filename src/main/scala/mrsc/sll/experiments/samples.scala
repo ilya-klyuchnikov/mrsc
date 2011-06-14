@@ -6,7 +6,8 @@ import mrsc.sll._
 // try all variants
 class Multi1(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLPruningDriving
+  with SLLMetaEvaluator
+  with PruningDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLAlwaysCurrentGens
@@ -15,7 +16,8 @@ class Multi1(val program: Program, val whistle: Whistle)
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLPruningDriving
+  with SLLMetaEvaluator
+  with PruningDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleCurrentGens
@@ -24,7 +26,8 @@ class Multi2(val program: Program, val whistle: Whistle)
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLPruningDriving
+  with SLLMetaEvaluator
+  with PruningDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleBlamedGens
@@ -35,7 +38,8 @@ class Multi3(val program: Program, val whistle: Whistle)
 // 2. the current one
 class Multi4(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLPruningDriving
+  with SLLMetaEvaluator
+  with PruningDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleAllGens
@@ -44,7 +48,8 @@ class Multi4(val program: Program, val whistle: Whistle)
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi5(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLPruningDriving
+  with SLLMetaEvaluator
+  with PruningDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleBlamedGens2
@@ -52,7 +57,8 @@ class Multi5(val program: Program, val whistle: Whistle)
 
 class ClassicBlamedGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLSimpleDriving
+  with SLLMetaEvaluator
+  with SimpleDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLBlamedMsg
@@ -60,7 +66,8 @@ class ClassicBlamedGen(val program: Program, val whistle: Whistle)
 
 class ClassicCurrentGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLSimpleDriving
+  with SLLMetaEvaluator
+  with SimpleDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLCurentMsg
@@ -68,7 +75,8 @@ class ClassicCurrentGen(val program: Program, val whistle: Whistle)
 
 class ClassicMix(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLSimpleDriving
+  with SLLMetaEvaluator
+  with SimpleDriving[Expr]
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLMixMsg

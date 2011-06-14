@@ -44,7 +44,8 @@ object SLLTermination extends Termination[Expr] {
 
 }
 
-class SLLMetaEvaluator(program: Program) extends MetaEvaluator[Expr] {
+trait SLLMetaEvaluator extends MetaEvaluator[Expr] {
+  val program: Program
 
   override def eval(conf: Expr): EvalStep[Expr] =
     decompose(conf) match {
@@ -91,6 +92,12 @@ class SLLMetaEvaluator(program: Program) extends MetaEvaluator[Expr] {
         Variants1(cases)
 
     }
+  
+  override def isReducible(e: Expr): Boolean = e match {
+    case Var(_) => false
+    case Ctr(_, Nil) => false
+    case _ => true
+  }
 
   private def freshPat(p: Pat) = Ctr(p.name, p.args map freshVar)
 }

@@ -1,3 +1,41 @@
+TODO:
+Interpreter, testing equivalences for all inputs.
+Generator with/without lambda-lifting.
+True pretty-printer.
+If there is no lambda lifting, then SLL canonical program.
+As more tests/checks as possible.
+Good reports.
+
+14-06-2011
+----------
+Common supercompilation patterns are extracted into machinery.scala
+Some examples use new techniques now.
+
+29-05-2011
+----------
+Generalizing how language is defined.
+Starting patterns of supercompilation.
+
+22-05-2011
+----------
+Starting reports: from simple (a few results) to complex (many results).
+More interesting generalization combinators.
+Interpreter (for testing/checking the correctness of transformations)
+Initial checker, that generates a set of test inputs and checks that results are the same.
+
+21-05-2011
+----------
+Polishing sll-generalization: preventing from generalizations like
+	let x = v, ... in e iff 
+		1. v is a variable and 
+		2. x is used once in e
+		
+Starting whistle algebra.
+
+16-05-2011
+----------
+Generalization fixed (part of substitution was lost sometimes)
+
 11-05-2011
 ----------
 An attempt of extracting of general semantics into middleware.scala

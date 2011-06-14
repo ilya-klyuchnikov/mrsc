@@ -90,7 +90,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
   type W = Option[CoNode[C, D, E]]
   def isLeaf(pState: PState[C, D, E]): Boolean
   def fold(pState: PState[C, D, E]): Option[Path]
-  def blame(pState: PState[C, D, E]): W 
+  def blame(pState: PState[C, D, E]): W
   def drive(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
   def rebuildings(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
   def tricks(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
@@ -115,5 +115,43 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
         val genSteps = rebuildings(signal, pState)
         val trickySteps = tricks(signal, pState)
         driveSteps ++ (trickySteps ++ genSteps)
+    }
+}
+
+// doesn't not care about whistle signals 
+trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with MetaEvaluator[C] {
+  override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
+    eval(pState.node.conf) match {
+      case Stop1 =>
+        List()
+      case Decomposition1(compose, args) =>
+        val stepInfo = DecomposeStep(compose)
+        val subSteps = args map { a => SubStep(a, stepInfo, NoExtra) }
+        List(AddForest(subSteps))
+      case Transient1(next) =>
+        val subSteps = List(SubStep(next, TransientStep, NoExtra))
+        List(AddForest(subSteps))
+      case Variants1(cases) =>
+        val subSteps = cases map { case (contr, next) => SubStep(next, VariantBranchStep(contr), NoExtra) }
+        List(AddForest(subSteps))
+    }
+
+  override def isLeaf(pState: PState[C, DriveInfo[C], Extra]) =
+    !isReducible(pState.node.conf)
+}
+
+trait SimpleDriving[C] extends Driving[C] {
+  override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
+    whistle match {
+      case Some(blamed) => List()
+      case None => super.drive(whistle, pState)
+    }
+}
+
+trait PruningDriving[C] extends Driving[C] {
+  override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
+    whistle match {
+      case Some(blamed) => List(Prune)
+      case None => super.drive(whistle, pState)
     }
 }
