@@ -22,10 +22,10 @@ trait SLLDriving {
     decompose(conf) match {
 
       case DecLet(Let(term, bs)) =>
-        val compose = { parts: List[NExpr] =>
-          val sub = (bs.map { p => NVar(p._1.name) } zip parts.tail).toMap
-          val body = parts.head
-          NSLLExpressions.nSubst(body, sub)
+        val compose = { parts: List[Expr] =>
+          val in :: binds = parts
+          val sub = (bs.map { p => Var(p._1.name) } zip binds).toMap
+          subst(in, sub)
         }
         val stepInfo = DecomposeStep(compose)
         SubStep(term, stepInfo, NoExtra) :: bs.map {
@@ -33,8 +33,8 @@ trait SLLDriving {
         }
 
       case ObservableCtr(Ctr(cn, args)) =>
-        val compose = { parts: List[NExpr] =>
-          NCtr(cn, parts)
+        val compose = { parts: List[Expr] =>
+          Ctr(cn, parts)
         }
         val stepInfo = DecomposeStep(compose)
         args map { a => SubStep(a, stepInfo, NoExtra) }

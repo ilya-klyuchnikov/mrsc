@@ -26,11 +26,7 @@ abstract sealed class SubStepInfo[+C](val stepKind: StepKind)
 case object TransientStep extends SubStepInfo[Nothing](Transient) {
   override def toString = "->"
 }
-// FIXME: remove later
-case class DecomposeStep(compose: List[NExpr] => NExpr) extends SubStepInfo[Nothing](Decompose) {
-  override def toString = ""
-}
-case class DecomposeStepNew[C](compose: List[C] => C) extends SubStepInfo[C](Decompose) {
+case class DecomposeStep[C](compose: List[C] => C) extends SubStepInfo[C](Decompose) {
   override def toString = ""
 }
 case class VariantBranchStep[C](contr: Contraction[C]) extends SubStepInfo[C](Variants) {

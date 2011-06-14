@@ -44,7 +44,7 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
         n1.driveInfo match {
           case TransientStep =>
             fold(n1.node)
-          case DecomposeStepNew(compose) =>
+          case DecomposeStep(compose) =>
             compose(children.map { out => fold(out.node) })
           case VariantBranchStep(c) =>
             val fname = createFName()
