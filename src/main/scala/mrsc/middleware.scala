@@ -2,14 +2,6 @@ package mrsc
 
 import mrsc.sll._
 
-object Signal extends Enumeration {
-  type Signal = Value
-  val OK, Warning, Hint = Value
-}
-
-import Signal._
-
-case class Blaming[C, D, E](blamed: Option[CoNode[C, D, E]], signal: Signal)
 case class Contraction[C](v: Name, pat: C) {
   override def toString = v + " = " + pat
 }

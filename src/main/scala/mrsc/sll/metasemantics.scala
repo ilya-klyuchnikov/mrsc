@@ -4,8 +4,6 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
-import Signal._
-
 trait SLLDriving {
   val program: Program
 
@@ -16,7 +14,7 @@ trait SLLDriving {
   }
 
   def drive(ps: SLLState): SLLStep =
-    Forest(drive_(ps.node.conf))
+    AddForest(drive_(ps.node.conf))
 
   private def drive_(conf: Expr): List[SubStep[Expr, DriveInfo[Expr], Extra]] =
     decompose(conf) match {
@@ -82,11 +80,8 @@ trait SLLFolding[D, E] {
 trait SLLWhistle {
   val whistle: Whistle
 
-  def blame(pState: PState[Expr, DriveInfo[Expr], Extra]): Blaming[Expr, DriveInfo[Expr], Extra] =
-    whistle.blame(pState) match {
-      case None => Blaming(None, Signal.OK)
-      case s @ Some(_) => Blaming(s, Signal.Warning)
-    }
+  def blame(pState: PState[Expr, DriveInfo[Expr], Extra]): SLLSignal =
+    whistle.blame(pState)
 }
 
 trait SLLRebuildings {

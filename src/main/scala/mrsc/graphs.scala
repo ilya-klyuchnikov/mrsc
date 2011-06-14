@@ -121,12 +121,12 @@ case class PartialCoGraph[C, D, E](
   /*! The main logic of MRSC is here. 
      Step created by SC machine is "applied" to the current active leaf.
    */
-  def addStep(step: Step[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
+  def addStep(step: Command[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
     case active :: ls =>
       step match {
         /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
          */
-        case Leaf =>
+        case MakeLeaf =>
           PartialCoGraph(active :: completeLeaves, ls, active :: completeNodes)
         /*! Replacing the configuration of the current node. 
            The main use case is the rebuilding (generalization) of the active node.
@@ -137,14 +137,14 @@ case class PartialCoGraph[C, D, E](
         /*! Just folding: creating a loopback and moving the node into the complete part 
             of the SC graph.  
          */
-        case Fold(basePath) =>
+        case MakeFold(basePath) =>
           val node = active.copy(base = Some(basePath))
           PartialCoGraph(node :: completeLeaves, ls, node :: completeNodes)
         /*! This step corresponds (mainly) to driving: adds children to the current node. Then
             current node is moved to the complete part and new children are moved into 
             the incomplete part. Also the (co-)path is calculated for any child node.
          */
-        case Forest(subSteps) =>
+        case AddForest(subSteps) =>
           val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
             case (SubStep(conf, dInfo, eInfo), i) =>
               val in = CoEdge(active, dInfo)

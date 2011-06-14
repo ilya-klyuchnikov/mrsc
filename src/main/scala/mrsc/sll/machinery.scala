@@ -1,7 +1,6 @@
 package mrsc.sll
 
 import mrsc._
-import Signal._
 import SLLGeneralizations._
 import SLLExpressions._
 
@@ -10,31 +9,27 @@ import SLLExpressions._
 
 trait SLLSimpleDriving extends SLLDriving {
   def drive(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
-        List(drive(pState))
-      case _ =>
-        List()
+    whistle match {
+      case None => List(drive(pState))
+      case Some(_) => List()
     }
 }
 
+// the only difference with
 trait SLLPruningDriving extends SLLDriving {
   def drive(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
-        List(drive(pState))
-      case _ =>
-        List(Prune)
+    whistle match {
+      case None => List(drive(pState))
+      case Some(_) => List(Prune)
     }
 }
 
 trait SLLCurentMsg extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
-        val blamed = whistle.blamed.get
+      case Some(blamed) =>
         val currentConf = pState.node.conf
         val blamedConf = blamed.conf
         val g = MSG.msg(currentConf, blamedConf)
@@ -56,11 +51,10 @@ trait SLLCurentMsg extends SLLRebuildings {
 
 trait SLLBlamedMsg extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
-        val blamed = whistle.blamed.get
+      case Some(blamed) =>
         val currentConf = pState.node.conf
         val blamedConf = blamed.conf
         //println("msg")
@@ -87,11 +81,10 @@ trait SLLBlamedMsg extends SLLRebuildings {
 // when expressions are coupled, then at least one msg is non-trivial.
 trait SLLMixMsg extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
-        val blamed = whistle.blamed.get
+      case Some(blamed) =>
         val currentConf = pState.node.conf
         val blamedConf = blamed.conf
         val g = MSG.msg(currentConf, blamedConf)
@@ -129,11 +122,10 @@ trait SLLMixMsg extends SLLRebuildings {
 // and current configurations
 trait SLLMix extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
-        val blamed = whistle.blamed.get
+      case Some(blamed) =>
         val currentConf = pState.node.conf
         val blamedConf = blamed.conf
         
@@ -152,10 +144,10 @@ trait SLLAlwaysCurrentGens extends SLLRebuildings {
 
 trait SLLWhistleCurrentGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
+      case Some(blamed) =>
         val expr = pState.node.conf
         gens(expr) map { Replace(_, NoExtra) }
     }
@@ -163,12 +155,11 @@ trait SLLWhistleCurrentGens extends SLLRebuildings {
 
 trait SLLWhistleBlamedGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
-        val blamedNode = whistle.blamed.get
-        val blamedExpr = blamedNode.conf
+      case Some(blamed) =>
+        val blamedExpr = blamed.conf
         val currentExpr = pState.node.conf
         println("generalizing")
         println(blamedExpr)
@@ -176,7 +167,7 @@ trait SLLWhistleBlamedGens extends SLLRebuildings {
         val gs = gens(blamedExpr)
         gs.foreach(println)
         println("***")
-        gs map { Rollback(blamedNode, _, NoExtra) }
+        gs map { Rollback(blamed, _, NoExtra) }
     }
 }
 
@@ -184,22 +175,21 @@ trait SLLWhistleBlamedGens extends SLLRebuildings {
 // then try ALL generalizations of the current configuration.
 trait SLLWhistleBlamedGens2 extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
-        val blamedNode = whistle.blamed.get
-        val blamedExpr = blamedNode.conf
+      case Some(blamed) =>
+        val blamedExpr = blamed.conf
         val currentExpr = pState.node.conf
         println("generalizing")
         println(blamedExpr)
         println(currentExpr)
         println("***")
-        val blamed = SLLGeneralizations.gens(blamedExpr) map {
-          Rollback(blamedNode, _, NoExtra)
+        val rollbacks = SLLGeneralizations.gens(blamedExpr) map {
+          Rollback(blamed, _, NoExtra)
         }
-        if (!blamed.isEmpty) {
-          blamed
+        if (!rollbacks.isEmpty) {
+          rollbacks
         } else {
           val current = SLLGeneralizations.gens(currentExpr) map {
             Replace(_, NoExtra)
@@ -211,20 +201,19 @@ trait SLLWhistleBlamedGens2 extends SLLRebuildings {
 
 trait SLLWhistleAllGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle.signal match {
-      case OK =>
+    whistle match {
+      case None =>
         List()
-      case _ =>
-        val blamedNode = whistle.blamed.get
-        val blamedExpr = blamedNode.conf
+      case Some(blamed) =>
+        val blamedExpr = blamed.conf
         val currentExpr = pState.node.conf
-        val blamed = SLLGeneralizations.gens(blamedExpr) map {
-          Rollback(blamedNode, _, NoExtra)
+        val rollbacks = SLLGeneralizations.gens(blamedExpr) map {
+          Rollback(blamed, _, NoExtra)
         }
         val current = SLLGeneralizations.gens(currentExpr) map {
           Replace(_, NoExtra)
         }
-        blamed ++ current
+        rollbacks ++ current
     }
 }
 

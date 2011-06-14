@@ -75,7 +75,7 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
   var prunedCoGraphsCount = 0
 
   var coGraphs: List[CoGraph[Expr, DriveInfo[Expr], Extra]] = Nil
-  var programs: List[NExpr] = Nil
+  var programs: List[Expr] = Nil
 
   var residualPrograms: List[NExpr] = Nil
 
@@ -92,12 +92,12 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
     }
   }
 
-  var nProgs: List[NExpr] = null
-  lazy val sllTasks = nProgs map {NSLL.toSLL} 
+  var nProgs: List[Expr] = null
+  lazy val sllTasks = nProgs 
   
   def showResults(): Unit = {
     
-    val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NSLLResiduator2(graph).result, graph)
+    val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NaiveResiduator().residuate(graph), graph)
     nProgs = allProgs map {_._1}
     
     val mapProg = Map(allProgs: _*)

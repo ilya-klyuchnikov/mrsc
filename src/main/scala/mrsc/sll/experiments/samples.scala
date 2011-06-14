@@ -5,7 +5,7 @@ import mrsc.sll._
 
 // try all variants
 class Multi1(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLPruningDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -14,7 +14,7 @@ class Multi1(val program: Program, val whistle: Whistle)
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLPruningDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -23,7 +23,7 @@ class Multi2(val program: Program, val whistle: Whistle)
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLPruningDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -34,7 +34,7 @@ class Multi3(val program: Program, val whistle: Whistle)
 // 1. the blamed one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLPruningDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -43,7 +43,7 @@ class Multi4(val program: Program, val whistle: Whistle)
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi5(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLPruningDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -51,7 +51,7 @@ class Multi5(val program: Program, val whistle: Whistle)
   with SLLNoTricks
 
 class ClassicBlamedGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSimpleDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -59,7 +59,7 @@ class ClassicBlamedGen(val program: Program, val whistle: Whistle)
   with SLLNoTricks
 
 class ClassicCurrentGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSimpleDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -67,7 +67,7 @@ class ClassicCurrentGen(val program: Program, val whistle: Whistle)
   with SLLNoTricks
 
 class ClassicMix(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSimpleDriving
   with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
@@ -111,7 +111,7 @@ object Samples {
      */
 
     val h1 = expand(40, task.target.toString)
-    print(h1)
+    //print(h1)
 
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
@@ -121,7 +121,11 @@ object Samples {
       consumer3.showResults
 
       val r1 = expandRight(5, consumer3.result)
-      print(r1)
+      //print(r1)
+      
+      for (sllTask2 <- consumer3.sllTasks) {
+       println(sllTask2)
+      }
       
       /*
       for (sllTask2 <- consumer3.sllTasks) {
@@ -137,7 +141,7 @@ object Samples {
       consumer3.showResults
 
       val r1 = expandRight(5, consumer3.result)
-      print(r1)
+      //print(r1)
 
       /*
       for (sllTask2 <- consumer3.sllTasks) {
