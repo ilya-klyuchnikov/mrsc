@@ -42,9 +42,10 @@ case class Edge[C, D, E](node: Node[C, D, E], driveInfo: D)
 case class CoEdge[C, D, E](coNode: CoNode[C, D, E], driveInfo: D)
 
 /*! `Graph[C, D, E]`. 
-  `C` (configuration) is a type of node label; `D` (driving) is a type of edge label;
-  `E` (extra information) is a type of extra label of a node. Extra information may be seen as an 
-  additional "instrumentation" of SC graph.
+  `C` (configuration) is a type of node label; 
+  `D` (driving) is a type of edge label;
+  `E` (extra information) is a type of extra label of a node. 
+  Extra information may be seen as an additional "instrumentation" of SC graph.
  */
 case class Graph[C, D, E](root: Node[C, D, E], leaves: Nodes[C, D, E]) {
   def get(path: Path): Node[C, D, E] = root.get(path)

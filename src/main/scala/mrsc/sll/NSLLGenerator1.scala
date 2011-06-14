@@ -4,12 +4,12 @@ import mrsc._
 import mrsc.sll.SLLExpressions._
 import mrsc.sll.NSLLExpressions._
 
-// Generator for new types of information in graphs (SubStepInfo)
+// Generator for new types of information in graphs (DriveInfo)
 //
 // generator of residual programs in NSLL
 // It generate a correct program for graphs where folding links to the upper node in the same path.
 // TODO: ensure that all cases of folding are considered here
-class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
+class NSLLResiduator2(val tree: Graph[Expr, DriveInfo[Expr], Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
   lazy val result = fixNames(fold(tree.root))
@@ -17,7 +17,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make
-  private def fold(n: Node[Expr, SubStepInfo[Expr], Extra]): NExpr = n.base match {
+  private def fold(n: Node[Expr, DriveInfo[Expr], Extra]): NExpr = n.base match {
 
     case None =>
       lazy val traversed = make(n)
@@ -57,7 +57,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
 
   import StepKind._
 
-  private def isCaseNode(n: Node[Expr, SubStepInfo[Expr], Extra]): Boolean = {
+  private def isCaseNode(n: Node[Expr, DriveInfo[Expr], Extra]): Boolean = {
     if (n.isLeaf) {
       return false
     } else {
@@ -66,7 +66,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
     }
   }
 
-  private def make(n: Node[Expr, SubStepInfo[Expr], Extra]): NExpr = {
+  private def make(n: Node[Expr, DriveInfo[Expr], Extra]): NExpr = {
     if (n.isLeaf) {
       return convert(n.conf)
     }
@@ -95,7 +95,7 @@ class NSLLResiduator2(val tree: Graph[Expr, SubStepInfo[Expr], Extra]) {
 
   }
 
-  private def createSignature(fNode: Node[Expr, SubStepInfo[Expr], Extra], recNodes: List[Node[Expr, SubStepInfo[Expr], Extra]]): (String, List[NVar]) = {
+  private def createSignature(fNode: Node[Expr, DriveInfo[Expr], Extra], recNodes: List[Node[Expr, DriveInfo[Expr], Extra]]): (String, List[NVar]) = {
     var fVars: List[Var] = vars(fNode.conf)
     (createFName(), fVars map { v => NVar(v.name) })
   }

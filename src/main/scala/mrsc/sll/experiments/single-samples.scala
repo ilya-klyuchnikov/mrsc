@@ -4,7 +4,7 @@ import mrsc._
 import mrsc.sll._
 
 object Sample1 extends App {
-  type Machine1 = Machine[Expr, SubStepInfo[Expr], Extra]
+  type Machine1 = Machine[Expr, DriveInfo[Expr], Extra]
 
   def runTask(task: SLLTask, f: Program => Machine1) = {
     try {

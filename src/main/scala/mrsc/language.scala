@@ -31,7 +31,7 @@ trait Termination[C] {
 }
 
 trait Residuator[C, R] {
-  def residuate(graph: Graph[R, SubStepInfo[R], _]): R
+  def residuate(graph: Graph[R, DriveInfo[R], _]): R
 }
 
 trait SimplePartialOrdering[T] extends PartialOrdering[T] {

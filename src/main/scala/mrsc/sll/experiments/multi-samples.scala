@@ -4,7 +4,7 @@ import mrsc._
 import mrsc.sll._
 
 object Sample2 extends App {
-  type Machine2 = Machine[Expr, SubStepInfo[Expr], Extra]
+  type Machine2 = Machine[Expr, DriveInfo[Expr], Extra]
 
   def runTask(task: SLLTask, f: Program => Machine2) = {
     try {
@@ -25,7 +25,7 @@ object Sample2 extends App {
     try {
       println(task.target)
       val machine = f(task.program)
-      val consumer = new CountGraphConsumer[mrsc.sll.Expr, mrsc.SubStepInfo[mrsc.sll.Expr], mrsc.Extra]()
+      val consumer = new CountGraphConsumer[mrsc.sll.Expr, mrsc.DriveInfo[mrsc.sll.Expr], mrsc.Extra]()
       val builder = new CoGraphBuilder(machine, consumer)
       builder.buildCoGraph(task.target, NoExtra)
       consumer.showResults()

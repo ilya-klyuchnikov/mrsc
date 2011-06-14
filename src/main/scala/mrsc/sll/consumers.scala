@@ -68,18 +68,18 @@ class CountProgramConsumer extends CoGraphConsumer[Expr, Contraction[Expr], Extr
   }
 }
 
-class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo[Expr], Extra] {
+class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra] {
   val description = "counting completed and pruned graphs and showing residual programs"
 
   var completedCoGraphsCount = 0
   var prunedCoGraphsCount = 0
 
-  var coGraphs: List[CoGraph[Expr, SubStepInfo[Expr], Extra]] = Nil
+  var coGraphs: List[CoGraph[Expr, DriveInfo[Expr], Extra]] = Nil
   var programs: List[NExpr] = Nil
 
   var residualPrograms: List[NExpr] = Nil
 
-  def consume(result: Option[CoGraph[Expr, SubStepInfo[Expr], Extra]]): Unit = {
+  def consume(result: Option[CoGraph[Expr, DriveInfo[Expr], Extra]]): Unit = {
     result match {
       case None =>
         prunedCoGraphsCount = prunedCoGraphsCount + 1
@@ -126,15 +126,15 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, SubStepInfo[Expr], Ext
   }
 }
 
-class SingleProgramConsumer extends CoGraphConsumer[Expr, SubStepInfo[Expr], Extra] {
+class SingleProgramConsumer extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra] {
   val description = "I expect one result"
 
   var residualProgram: NExpr = null
-  var graph: Graph[Expr, SubStepInfo[Expr], Extra] = null
+  var graph: Graph[Expr, DriveInfo[Expr], Extra] = null
   
   lazy val residualTask: SLLTask = NSLL.toSLL(residualProgram)
 
-  def consume(result: Option[CoGraph[Expr, SubStepInfo[Expr], Extra]]): Unit = {
+  def consume(result: Option[CoGraph[Expr, DriveInfo[Expr], Extra]]): Unit = {
     result match {
       case Some(cg) if residualProgram == null =>
         graph = Transformations.transpose(cg)

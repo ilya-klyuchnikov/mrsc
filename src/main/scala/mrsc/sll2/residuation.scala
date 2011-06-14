@@ -7,9 +7,9 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[Var])]()
 
-  override def residuate(tree: Graph[Expr, SubStepInfo[Expr], _]): Expr = {
+  override def residuate(tree: Graph[Expr, DriveInfo[Expr], _]): Expr = {
 
-    def fold(n: Node[Expr, SubStepInfo[Expr], _]): Expr = n.base match {
+    def fold(n: Node[Expr, DriveInfo[Expr], _]): Expr = n.base match {
 
       case None =>
         lazy val traversed = build(n)
@@ -36,7 +36,7 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
         recCall
     }
 
-    def build(n: Node[Expr, SubStepInfo[Expr], _]): Expr =
+    def build(n: Node[Expr, DriveInfo[Expr], _]): Expr =
       if (n.isLeaf) {
         return n.conf
       } else {
@@ -61,7 +61,7 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
     fold(tree.root)
   }
 
-  private def createSignature(fNode: Node[Expr, SubStepInfo[Expr], _]): (String, List[Var]) = {
+  private def createSignature(fNode: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
     var fVars: List[Var] = vars(fNode.conf)
     (createFName(), fVars)
   }

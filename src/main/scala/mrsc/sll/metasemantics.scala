@@ -18,7 +18,7 @@ trait SLLDriving {
   def drive(ps: SLLState): SLLStep =
     Forest(drive_(ps.node.conf))
 
-  private def drive_(conf: Expr): List[SubStep[Expr, SubStepInfo[Expr], Extra]] =
+  private def drive_(conf: Expr): List[SubStep[Expr, DriveInfo[Expr], Extra]] =
     decompose(conf) match {
 
       case DecLet(Let(term, bs)) =>
@@ -72,7 +72,7 @@ trait SLLDriving {
 trait SLLFolding[D, E] {
 
   import StepKind._
-  def fold(ps: PState[Expr, SubStepInfo[Expr], Extra]): Option[Path] =
+  def fold(ps: PState[Expr, DriveInfo[Expr], Extra]): Option[Path] =
     ps.node.ancestors.find { renamingFilter(ps.node) } map { _.path }
 
   private def renamingFilter(leaf: CoNode[Expr, _, _])(n: CoNode[Expr, _, _]) =
@@ -82,7 +82,7 @@ trait SLLFolding[D, E] {
 trait SLLWhistle {
   val whistle: Whistle
 
-  def blame(pState: PState[Expr, SubStepInfo[Expr], Extra]): Blaming[Expr, SubStepInfo[Expr], Extra] =
+  def blame(pState: PState[Expr, DriveInfo[Expr], Extra]): Blaming[Expr, DriveInfo[Expr], Extra] =
     whistle.blame(pState) match {
       case None => Blaming(None, Signal.OK)
       case s @ Some(_) => Blaming(s, Signal.Warning)

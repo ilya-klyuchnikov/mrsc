@@ -5,27 +5,27 @@ import mrsc.sll._
 
 // try all variants
 class Multi1(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLAlwaysCurrentGens
   with SLLNoTricks
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleCurrentGens
   with SLLNoTricks
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleBlamedGens
   with SLLNoTricks
@@ -34,48 +34,48 @@ class Multi3(val program: Program, val whistle: Whistle)
 // 1. the blamed one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleAllGens
   with SLLNoTricks
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi5(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLPruningDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLWhistleBlamedGens2
   with SLLNoTricks
 
 class ClassicBlamedGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLSimpleDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLBlamedMsg
   with SLLNoTricks
 
 class ClassicCurrentGen(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLSimpleDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLCurentMsg
   with SLLNoTricks
 
 class ClassicMix(val program: Program, val whistle: Whistle)
-  extends GenericMultiMachine[Expr, SubStepInfo[Expr], Extra, SLLSignal]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra, SLLSignal]
   with SLLSimpleDriving
-  with SLLFolding[SubStepInfo[Expr], Extra]
+  with SLLFolding[DriveInfo[Expr], Extra]
   with SLLWhistle
   with SLLMixMsg
   with SLLNoTricks
 
 object Samples {
-  type Machine1 = Machine[Expr, SubStepInfo[Expr], Extra]
+  type Machine1 = Machine[Expr, DriveInfo[Expr], Extra]
 
   def multi1(w: Whistle)(p: Program) = new Multi1(p, w)
   def multi2(w: Whistle)(p: Program) = new Multi2(p, w)
