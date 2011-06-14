@@ -1,6 +1,6 @@
 package mrsc
 
-/*! # Means for specifying languages.
+/*! # Means for specifying languages and ordering on language expressions.
  */
 
 trait Syntax[C] {
@@ -15,7 +15,7 @@ case class Contraction1[C](param: Name, pattern: C)
 sealed trait EvalStep[+C]
 case class Transient1[C](next: C) extends EvalStep[C]
 case object Stop1 extends EvalStep[Nothing]
-case class Decomposition1[C](parts: List[C], compose: List[C] => C) extends EvalStep[C]
+case class Decomposition1[C](compose: List[C] => C, parts: List[C]) extends EvalStep[C]
 case class Variants1[C](cases: List[(Contraction1[C], C)]) extends EvalStep[C]
 
 /*! # `MetaEvaluator` is an explosive mixture of 
