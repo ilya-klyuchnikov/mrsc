@@ -84,7 +84,7 @@ class SLLMetaEvaluator(program: Program) extends MetaEvaluator[Expr] {
           val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (fp.args ::: args.tail): _*))
           val ctr : Expr = Ctr(fp.name, fp.args)
           val info = Map(v -> ctr)
-          val contraction = Contraction1(v.name, ctr)
+          val contraction = Contraction(v.name, ctr)
           val driven = subst(context.replaceRedex(gReduced), info)
           (contraction, driven)
         }

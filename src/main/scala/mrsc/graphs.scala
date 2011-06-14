@@ -43,8 +43,8 @@ case class CoEdge[C, D, E](coNode: CoNode[C, D, E], driveInfo: D)
 
 /*! `Graph[C, D, E]`. 
   `C` (configuration) is a type of node label; 
-  `D` (driving) is a type of edge label;
-  `E` (extra information) is a type of extra label of a node. 
+  `D` (driving) is a type of edge label (driving info);
+  `E` (extra information) is a type of extra label of a node (extra info). 
   Extra information may be seen as an additional "instrumentation" of SC graph.
  */
 case class Graph[C, D, E](root: Node[C, D, E], leaves: Nodes[C, D, E]) {

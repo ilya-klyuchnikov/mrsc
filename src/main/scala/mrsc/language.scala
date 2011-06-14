@@ -11,12 +11,11 @@ trait Syntax[C] {
   def findSubst(from: C, to: C): Option[Subst[C]]
 }
 
-case class Contraction1[C](param: Name, pattern: C)
 sealed trait EvalStep[+C]
 case class Transient1[C](next: C) extends EvalStep[C]
 case object Stop1 extends EvalStep[Nothing]
 case class Decomposition1[C](compose: List[C] => C, parts: List[C]) extends EvalStep[C]
-case class Variants1[C](cases: List[(Contraction1[C], C)]) extends EvalStep[C]
+case class Variants1[C](cases: List[(Contraction[C], C)]) extends EvalStep[C]
 
 /*! # `MetaEvaluator` is an explosive mixture of 
  operational semantics and denotational semantics.
