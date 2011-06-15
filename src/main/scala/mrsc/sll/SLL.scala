@@ -33,6 +33,8 @@ case class Let(term: Expr, bindings: List[(Var, Expr)]) extends Expr {
 }
 case class Where(e: Expr, defs: List[Def]) extends Expr {
   lazy val size = 1 + (defs map { _.rhs.size }).sum
+  //override def toString = e + " where " + defs.mkString("{", " ", "}")
+  override def toString = " let " + defs.mkString("{", " ", "}") + " in " + e 
 }
 
 case class Pat(name: String, args: List[Var]) {
