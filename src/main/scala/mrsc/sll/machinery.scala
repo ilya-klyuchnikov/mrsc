@@ -157,6 +157,7 @@ trait SLLWhistleBlamedGens extends SLLRebuildings {
 // if generalization of blamed configuration is empty,
 // then try ALL generalizations of the current configuration.
 trait SLLWhistleBlamedGens2 extends SLLRebuildings {
+  val debug = false
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
     whistle match {
       case None =>
@@ -164,18 +165,24 @@ trait SLLWhistleBlamedGens2 extends SLLRebuildings {
       case Some(blamed) =>
         val blamedExpr = blamed.conf
         val currentExpr = pState.node.conf
-        println("generalizing")
-        println(blamedExpr)
-        println(currentExpr)
-        println("***")
-        val rollbacks = SLLGeneralizations.gens(blamedExpr) map {
-          Rollback(blamed, _, NoExtra)
+        if (debug) {
+          println("generalizing")
+          println(blamedExpr)
+          println(currentExpr)
+          println("***")
         }
+        val rollbacks = SLLGeneralizations.gens(blamedExpr) map { x =>
+          if (debug) {println(x)}
+          Rollback(blamed, x, NoExtra)
+        }
+        if (debug) println(">>>")
         if (!rollbacks.isEmpty) {
           rollbacks
         } else {
-          val current = SLLGeneralizations.gens(currentExpr) map {
-            Replace(_, NoExtra)
+          if (debug) println("UP empty, doing DOWN:")
+          val current = SLLGeneralizations.gens(currentExpr) map { x =>
+            if (debug) {println(x)}
+            Replace(x, NoExtra)
           }
           current
         }

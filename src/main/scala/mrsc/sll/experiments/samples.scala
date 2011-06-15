@@ -98,25 +98,26 @@ object Samples {
   // SLL supercompilation
   def classic(task: SLLTask): Unit = {
 
-    /*
+    
     val m1 = classic1(HEByCouplingWhistle)(task.program)
     val consumer1 = new SingleProgramConsumer()
-    val builder1 = new MultiCoGraphBuilder(m1, consumer1)
-    builder1.buildCoGraph(task.target, DummyExtra)
+    val builder1 = new CoGraphBuilder(m1, consumer1)
+    builder1.buildCoGraph(task.target, NoExtra)
     println("**classic up:**")
     consumer1.showResults
     
-    //Checker.check(task, consumer1.residualTask)
+    Checker.check(task, consumer1.residualTask)
 
     val m2 = classic2(HEByCouplingWhistle)(task.program)
     val consumer2 = new SingleProgramConsumer()
-    val builder2 = new MultiCoGraphBuilder(m2, consumer2)
-    builder2.buildCoGraph(task.target, DummyExtra)
+    val builder2 = new CoGraphBuilder(m2, consumer2)
+    builder2.buildCoGraph(task.target, NoExtra)
     println("**classic down:**")
     consumer2.showResults
-    //Checker.check(task, consumer2.residualTask)
+    
+    Checker.check(task, consumer2.residualTask)
      
-     */
+    
 
     val h1 = expand(40, task.target.toString)
     //print(h1)
@@ -133,12 +134,14 @@ object Samples {
       
       for (sllTask2 <- consumer3.sllTasks) {
        println(sllTask2)
+       //println(SLLExpressions.pretty(sllTask2))
+       println("***")
+       val taskS = SLLExpressions.expr2Task(sllTask2)
+       println(taskS)
+       println("+++")
+       Checker.check(task, taskS)
       }
       
-      /*
-      for (sllTask2 <- consumer3.sllTasks) {
-        Checker.check(task, sllTask2)
-      }*/
     }
 
     {
@@ -151,10 +154,15 @@ object Samples {
       val r1 = expandRight(5, consumer3.result)
       //print(r1)
 
-      /*
       for (sllTask2 <- consumer3.sllTasks) {
-        Checker.check(task, sllTask2)
-      }*/
+       println(sllTask2)
+       //println(SLLExpressions.pretty(sllTask2))
+       println("***")
+       val taskS = SLLExpressions.expr2Task(sllTask2)
+       println(taskS)
+       println("+++")
+       Checker.check(task, taskS)
+      }
     }
 
     println()
@@ -204,6 +212,7 @@ object Samples {
     println(header)
     println()
 
+    
     report(SLLTasks.namedTasks("NaiveFib"))
     report(SLLTasks.namedTasks("FastFib"))
 
@@ -224,7 +233,10 @@ object Samples {
 
     report(SLLTasks.namedTasks("NaiveReverse"))
     report(SLLTasks.namedTasks("FastReverse"))
+    
     report(SLLTasks.namedTasks("LastDouble"))
+    report(SLLTasks.namedTasks("App"))
+    
     report(SLLTasks.namedTasks("Idle"))
 
     println()
@@ -247,12 +259,16 @@ object Samples {
 
   def main(args: Array[String]): Unit = {
 
-    //runTask(SLLTasks.namedTasks("Naive Reverse"), multi5(HEByCouplingWhistle)_)
-    //runTask(SLLTasks.namedTasks("Fast Reverse"), multi5(HEByCouplingWhistle)_)
-    //runTask(SLLTasks.namedTasks("Naive Fib"), multi5(HEByCouplingWhistle)_)
-    //runTask(SLLTasks.namedTasks("Fast Fib"), multi5(HEByCouplingWhistle)_)
-    //runTask(SLLTasks.namedTasks("Fast Fib"), multi3(HEByCouplingWhistle)_)
-
+    runTask(SLLTasks.namedTasks("NaiveReverse"), multi5(HEByCouplingWhistle)_)
+    runTask(SLLTasks.namedTasks("FastReverse"), multi5(HEByCouplingWhistle)_)
+    runTask(SLLTasks.namedTasks("NaiveFib"), multi5(HEByCouplingWhistle)_)
+    
+    // 85726 completed graphs here:
+    //runTask(SLLTasks.namedTasks("FastFib"), multi5(HEWhistle)_)
+    
+    // 0 results here (because only UP generalization is allowed)
+    // runTask(SLLTasks.namedTasks("FastFib"), multi3(HEByCouplingWhistle)_)
+    
     simpleAnalysis()
 
   }

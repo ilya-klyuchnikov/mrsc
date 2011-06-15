@@ -87,7 +87,8 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
         completedCoGraphsCount = completedCoGraphsCount + 1
         coGraphs = cg :: coGraphs
     }
-    if (completedCoGraphsCount > 10000) {
+    //println((completedCoGraphsCount, prunedCoGraphsCount))
+    if (completedCoGraphsCount > 1000) {
       throw new ModelingError("too many results")
     }
   }
@@ -103,12 +104,12 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
     val mapProg = Map(allProgs: _*)
     programs = nProgs sortBy { _.size } distinct
 
-    //println(programs.length + " programs")
+    println(programs.length + " programs")
 
-    //val firsts = programs.take(40)
-    //println("""showing first """ + firsts.length + """ "minimal" programs""")
-    //for (p <- firsts) {
-      //println(p)
+    val firsts = programs.take(40)
+    println("""showing first """ + firsts.length + """ "minimal" programs""")
+    for (p <- firsts) {
+      println(p)
       
       //val sll = NSLL.toSLL(p)
       //println("<<>>")
@@ -117,7 +118,7 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
       //println("============")
       //println(mapProg(p))
       //println()
-    //}
+    }
 
   }
   
@@ -129,16 +130,16 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
 class SingleProgramConsumer extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra] {
   val description = "I expect one result"
 
-  var residualProgram: NExpr = null
+  var residualProgram: Expr = null
   var graph: Graph[Expr, DriveInfo[Expr], Extra] = null
   
-  lazy val residualTask: SLLTask = NSLL.toSLL(residualProgram)
+  lazy val residualTask: SLLTask = SLLExpressions.expr2Task(residualProgram)
 
   def consume(result: Option[CoGraph[Expr, DriveInfo[Expr], Extra]]): Unit = {
     result match {
       case Some(cg) if residualProgram == null =>
         graph = Transformations.transpose(cg)
-        residualProgram = new NSLLResiduator2(graph).result
+        residualProgram = new NaiveResiduator().residuate(graph)
       case _ =>
         throw new Error()
     }
@@ -146,7 +147,6 @@ class SingleProgramConsumer extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
 
   def showResults(): Unit = {
     println(residualProgram)
-    println("<<>>")
-    //println(residualTask)
+    println()
   }
 }
