@@ -10,60 +10,66 @@ object SLLTasks {
 
   val peanoProgram: Program =
     """
-	gEq(Z(), y) = gEqZ(y);
     gEq(S(x), y) = gEqS(y, x);
+	gEq(Z(), y) = gEqZ(y);
 
+	gEqZ(S(x)) = False();
     gEqZ(Z()) = True();
-    gEqZ(S(x)) = False();
-
-    gEqS(Z(), x) = False();
+	  
     gEqS(S(y), x) = gEq(x, y);
-
-    gAdd(Z(), y) = y;
+    gEqS(Z(), x) = False();
+    
     gAdd(S(x), y) = S(gAdd(x, y));
-    gMult(Z(), y) = Z();
+	gAdd(Z(), y) = y;
+    
     gMult(S(x), y) = gAdd(y, gMult(x, y));
+    gMult(Z(), y) = Z();
 
+    gFib(S(x)) = gFib1(x);
     gFib(Z()) = S(Z());
-	gFib(S(x)) = gFib1(x);
-    gFib1(Z()) = S(Z());
+	
     gFib1(S(x)) = gAdd(gFib(S(x)), gFib(x));
+    gFib1(Z()) = S(Z());
 
-    gFastFib(Z(), x, y) = x;
     gFastFib(S(m), x, y) = gFastFib(m, y, gAdd(x, y));
-
-    gAddAcc(Z(), y) = y;
+    gFastFib(Z(), x, y) = x;
+    
     gAddAcc(S(x), y) = gAddAcc(x, S(y));
+    gAddAcc(Z(), y) = y;  
 
-    gEven(Z()) = True();
     gEven(S(x)) = gOdd(x);
-    gOdd(Z()) = False();
+    gEven(Z()) = True();
+    
     gOdd(S(x)) = gEven(x);
-
-    gOr(True(), x) = True();
+    gOdd(Z()) = False();
+    
     gOr(False(), x) = x;
+    gOr(True(), x) = True();
 	"""
 
   val listProgram: Program =
     """
-    gApp(Nil(), vs) = vs;
-    gApp(Cons(u, us), vs) = Cons(u, gApp(us, vs));
-    gRev(Nil()) = Nil();
-    gRev(Cons(x, xs))=gApp(gRev(xs), Cons(x, Nil()));
-
-    gFRev(Nil(), ys) = ys;
-    gFRev(Cons(x, xs), ys) = gFRev(xs, Cons(x, ys)); 
     
-    g1(Nil(), y, z) = g2(y, z);
+    gApp(Cons(u, us), vs) = Cons(u, gApp(us, vs));
+    gApp(Nil(), vs) = vs;
+    
+    gRev(Cons(x, xs))=gApp(gRev(xs), Cons(x, Nil()));
+    gRev(Nil()) = Nil();
+
+    gFRev(Cons(x, xs), ys) = gFRev(xs, Cons(x, ys));
+    gFRev(Nil(), ys) = ys; 
+    
     g1(Cons(a, b), y, z) = Cons(a, g1(b, y, z));
-    g2(Nil(), z) = z;
+    g1(Nil(), y, z) = g2(y, z);
+    
     g2(Cons(a, b), z) = Cons(a, g2(b, z));
-
-    gLast(Nil()) = Nil();
+    g2(Nil(), z) = z;
+    
     gLast(Cons(x, xs)) = gLast(xs);
+    gLast(Nil()) = Nil();
 
-    gIdle(Nil()) = Nil();
     gIdle(Cons(x, xs)) = gIdle(gIdle(xs));
+    gIdle(Nil()) = Nil();
     """
 
   val tasks = List(
@@ -104,6 +110,7 @@ object SLLTasks {
       
       "OddEven" -> SLLTask("gOr(gEven(m), gOdd(m))", peanoProgram),
       "LastDouble" -> SLLTask("gLast(gApp(xs, xs))", listProgram),
+      "App" -> SLLTask("gApp(xs, xs)", listProgram),
       "EvenMult" -> SLLTask("gEven(gMult(m, n))", peanoProgram),
       "EvenSqr" -> SLLTask("gEven(gMult(m, m))", peanoProgram),
       "Idle" -> SLLTask("gIdle(xs)", listProgram))
