@@ -44,20 +44,20 @@ object SLLTermination extends Termination[Expr] {
 
 }
 
-trait SLLMetaEvaluator extends MetaEvaluator[Expr] {
+trait SLLMetaEvaluator extends Semantics[Expr] {
   val program: Program
 
-  override def eval(conf: Expr): EvalStep[Expr] =
+  override def eval(conf: Expr): DriveStep[Expr] =
     decompose(conf) match {
 
       case ObservableVar(v) =>
-        Stop1
+        StopDriveStep
 
       case ObservableCtr(Ctr(cn, args)) =>
         val compose = { parts: List[Expr] =>
           Ctr(cn, parts)
         }
-        Decomposition1(compose, args)
+        DecomposeDriveStep(compose, args)
 
       case DecLet(Let(term, bs)) =>
         val compose = { parts: List[Expr] =>
@@ -66,18 +66,18 @@ trait SLLMetaEvaluator extends MetaEvaluator[Expr] {
           subst(in, sub)
         }
         val parts = term :: (bs map (_._2))
-        Decomposition1(compose, parts)
+        DecomposeDriveStep(compose, parts)
 
       case context @ Context(RedexFCall(FCall(name, args))) =>
         val fReduced = subst(program.f(name).term, Map(program.f(name).args.zip(args): _*))
         val nExpr = context.replaceRedex(fReduced)
-        Transient1(nExpr)
+        TransientDriveStep(nExpr)
 
       case context @ Context(RedexGCallCtr(GCall(name, args), Ctr(cname, cargs))) =>
         val g = program.g(name, cname)
         val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (cargs ::: args.tail): _*))
         val nExpr = context.replaceRedex(gReduced)
-        Transient1(nExpr)
+        TransientDriveStep(nExpr)
 
       case context @ Context(RedexGCallVar(GCall(name, args), v)) =>
         val cases = program.gs(name) map { g =>
@@ -89,7 +89,7 @@ trait SLLMetaEvaluator extends MetaEvaluator[Expr] {
           val driven = subst(context.replaceRedex(gReduced), info)
           (contraction, driven)
         }
-        Variants1(cases)
+        VariantsDriveStep(cases)
 
     }
   

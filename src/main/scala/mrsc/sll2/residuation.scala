@@ -3,7 +3,7 @@ package mrsc.sll
 import mrsc._
 import mrsc.sll.SLLExpressions._
 
-class NaiveResiduator extends Residuator[Expr, Expr] {
+class NaiveResiduator extends Residuation[Expr, Expr] {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[Var])]()
 
@@ -49,12 +49,12 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
             val e1 = compose(ch1)
             e1
             
-          case VariantStepInfo(c) =>
+          case VariantsStepInfo(c) =>
             val fname = createFName()
             val vars = SLLExpressions.vars(n.conf)
             val vars1 = vars remove {_ == Var(c.v)}
             val branches = children map { n2 =>
-              val VariantStepInfo(Contraction(v, pat)) = n2.driveInfo
+              val VariantsStepInfo(Contraction(v, pat)) = n2.driveInfo
               GFun(fname, toPat(pat.asInstanceOf[Ctr]), vars1, fold(n2.node))
             }
             val sortedBranches = branches.sortBy(_.p.name)

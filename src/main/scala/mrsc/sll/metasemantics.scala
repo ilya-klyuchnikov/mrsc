@@ -7,7 +7,6 @@ import SLLExpressions._
 // fold only into ancestors
 trait SLLFolding[D, E] {
 
-  import StepKind._
   def fold(ps: PState[Expr, DriveInfo[Expr], Extra]): Option[Path] =
     ps.node.ancestors.find { renamingFilter(ps.node) } map { _.path }
 

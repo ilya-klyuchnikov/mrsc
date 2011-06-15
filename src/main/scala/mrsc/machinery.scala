@@ -119,20 +119,20 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 }
 
 // doesn't not care about whistle signals 
-trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with MetaEvaluator[C] {
+trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semantics[C] {
   override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
     eval(pState.node.conf) match {
-      case Stop1 =>
+      case StopDriveStep =>
         List()
-      case Decomposition1(compose, args) =>
+      case DecomposeDriveStep(compose, args) =>
         val stepInfo = DecomposeStepInfo(compose)
         val subSteps = args map { a => SubStep(a, stepInfo, NoExtra) }
         List(AddForest(subSteps))
-      case Transient1(next) =>
+      case TransientDriveStep(next) =>
         val subSteps = List(SubStep(next, TransientStepInfo, NoExtra))
         List(AddForest(subSteps))
-      case Variants1(cases) =>
-        val subSteps = cases map { case (contr, next) => SubStep(next, VariantStepInfo(contr), NoExtra) }
+      case VariantsDriveStep(cases) =>
+        val subSteps = cases map { case (contr, next) => SubStep(next, VariantsStepInfo(contr), NoExtra) }
         List(AddForest(subSteps))
     }
 

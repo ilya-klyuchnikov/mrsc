@@ -11,18 +11,12 @@ trait Syntax[C] {
   def findSubst(from: C, to: C): Option[Subst[C]]
 }
 
-sealed trait EvalStep[+C]
-case class Transient1[C](next: C) extends EvalStep[C]
-case object Stop1 extends EvalStep[Nothing]
-case class Decomposition1[C](compose: List[C] => C, parts: List[C]) extends EvalStep[C]
-case class Variants1[C](cases: List[(Contraction[C], C)]) extends EvalStep[C]
-
 /*! # `MetaEvaluator` is an explosive mixture of 
  operational semantics and denotational semantics.
  Also it is a mix of small-step semantics and big-step semantics.
  */
-trait MetaEvaluator[C] {
-  def eval(c: C): EvalStep[C]
+trait Semantics[C] {
+  def eval(c: C): DriveStep[C]
   def isReducible(c: C): Boolean
 }
 
@@ -30,7 +24,7 @@ trait Termination[C] {
   def embedding: PartialOrdering[C]
 }
 
-trait Residuator[C, R] {
+trait Residuation[C, R] {
   def residuate(graph: Graph[R, DriveInfo[R], _]): R
 }
 
