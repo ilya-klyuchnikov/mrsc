@@ -20,7 +20,7 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
         } else {
           val (f, vars) = createSignature(n)
           sigs(n.path) = (f, vars)
-          val newVars = vars map { p => createVar() }
+          val newVars = vars // map { p => createVar() }
           val sub = (vars zip newVars).toMap
           val rhs = subst(traversed, sub)
           val fun = FFun(f, newVars, rhs)
@@ -45,20 +45,25 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
           case TransientStep =>
             fold(n1.node)
           case DecomposeStep(compose) =>
-            compose(children.map { out => fold(out.node) })
+            val ch1 = children.map { out => fold(out.node) }
+            val e1 = compose(ch1)
+            e1
+            
           case VariantBranchStep(c) =>
             val fname = createFName()
+            val vars = SLLExpressions.vars(n.conf)
+            val vars1 = vars remove {_ == Var(c.v)}
             val branches = children map { n2 =>
-              val VariantBranchStep(Contraction(_, pat)) = n2.driveInfo
-              GFun(fname, toPat(pat.asInstanceOf[Ctr]), List(), fold(n2.node))
+              val VariantBranchStep(Contraction(v, pat)) = n2.driveInfo
+              GFun(fname, toPat(pat.asInstanceOf[Ctr]), vars1, fold(n2.node))
             }
             val sortedBranches = branches.sortBy(_.p.name)
-            val call = GCall(fname, List(Var(c.v)))
+            val call = GCall(fname, Var(c.v) :: vars1 )
             Where(call, branches)
         }
       }
 
-    fold(tree.root)
+    fixNames(fold(tree.root))
   }
 
   private def createSignature(fNode: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
@@ -69,14 +74,15 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
   var fCount = 0
   private def createFName(): String = {
     fCount = fCount + 1
-    "_." + fCount
+    "f." + fCount
   }
 
+  /*
   var vCount = 0
   private def createVar(): Var = {
     vCount = vCount + 1
     Var("_." + vCount)
-  }
+  }*/
 
   private def toPat(p: Ctr): Pat = Pat(p.name, p.args map { case v: Var => v })
 }
