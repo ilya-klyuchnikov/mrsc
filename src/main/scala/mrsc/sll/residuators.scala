@@ -10,7 +10,7 @@ import mrsc.sll.NSLLExpressions._
 class NSLLResiduator(val tree: Graph[Expr, Contraction[Expr], Extra]) {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[NVar])]()
-  lazy val result = fixNames(fold(tree.root))
+  lazy val result = NSLLExpressions.fixNames(fold(tree.root))
 
   // proceed base node or repeat node by creating letrec or call respectively 
   // otherwise, delegate to make
