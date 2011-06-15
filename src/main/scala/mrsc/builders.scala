@@ -2,6 +2,31 @@ package mrsc
 
 import scala.annotation.tailrec
 
+/*!# Processing of complete graphs
+ 
+ Graph builder knows only how to build a graph, but not what to do with this graph later.
+ Processing of complete SC graphs is extracted into a separate abstraction.
+ */
+
+/*! An instance of a graph may be pruned, and a client may be interested in knowing that fact:
+  so `GraphConsumer` receives `Some(graph)` when graph is completed and receives `None` 
+  if the graph was pruned. 
+ */
+trait CoGraphConsumer[C, D, E] {
+  val description: String
+  def consume(graph: Option[CoGraph[C, D, E]]): Unit
+}
+
+/*!# Abstract machines
+  
+  An abstract machine represents the semantics of the object language 
+  (more precisely, meta-semantics) through operations over SC graphs. 
+  `Machine` corresponds to a novel (= non-deterministic) supercompiler.
+ */
+trait Machine[C, D, E] {
+  def steps(pState: PState[C, D, E]): List[Command[C, D, E]]
+}
+
 /*!# SC cographs builders
  
  SC cographs builders implement the logic of constructing SC cographs step-by-step by invoking
