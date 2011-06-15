@@ -1,7 +1,5 @@
 package mrsc
 
-import mrsc.sll._
-
 case class Contraction[C](v: Name, pat: C) {
   override def toString = v + " = " + pat
 }
