@@ -125,14 +125,14 @@ trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with MetaEv
       case Stop1 =>
         List()
       case Decomposition1(compose, args) =>
-        val stepInfo = DecomposeStep(compose)
+        val stepInfo = DecomposeStepInfo(compose)
         val subSteps = args map { a => SubStep(a, stepInfo, NoExtra) }
         List(AddForest(subSteps))
       case Transient1(next) =>
-        val subSteps = List(SubStep(next, TransientStep, NoExtra))
+        val subSteps = List(SubStep(next, TransientStepInfo, NoExtra))
         List(AddForest(subSteps))
       case Variants1(cases) =>
-        val subSteps = cases map { case (contr, next) => SubStep(next, VariantBranchStep(contr), NoExtra) }
+        val subSteps = cases map { case (contr, next) => SubStep(next, VariantStepInfo(contr), NoExtra) }
         List(AddForest(subSteps))
     }
 

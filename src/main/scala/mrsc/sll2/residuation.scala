@@ -42,19 +42,19 @@ class NaiveResiduator extends Residuator[Expr, Expr] {
       } else {
         val children @ (n1 :: ns) = n.outs
         n1.driveInfo match {
-          case TransientStep =>
+          case TransientStepInfo =>
             fold(n1.node)
-          case DecomposeStep(compose) =>
+          case DecomposeStepInfo(compose) =>
             val ch1 = children.map { out => fold(out.node) }
             val e1 = compose(ch1)
             e1
             
-          case VariantBranchStep(c) =>
+          case VariantStepInfo(c) =>
             val fname = createFName()
             val vars = SLLExpressions.vars(n.conf)
             val vars1 = vars remove {_ == Var(c.v)}
             val branches = children map { n2 =>
-              val VariantBranchStep(Contraction(v, pat)) = n2.driveInfo
+              val VariantStepInfo(Contraction(v, pat)) = n2.driveInfo
               GFun(fname, toPat(pat.asInstanceOf[Ctr]), vars1, fold(n2.node))
             }
             val sortedBranches = branches.sortBy(_.p.name)

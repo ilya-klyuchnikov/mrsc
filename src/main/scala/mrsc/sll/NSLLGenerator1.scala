@@ -80,17 +80,17 @@ class NSLLResiduator2(val tree: Graph[Expr, DriveInfo[Expr], Extra]) {
 
       case Decompose =>
         // TODO: fix it
-        val ds = n1.driveInfo.asInstanceOf[DecomposeStep[NExpr]]
+        val ds = n1.driveInfo.asInstanceOf[DecomposeStepInfo[NExpr]]
         ds.compose(children.map(out => fold(out.node)))
         null
 
       case Variants =>
         val branches = children map { n2 =>
-          val VariantBranchStep(Contraction(_, pat)) = n2.driveInfo
+          val VariantStepInfo(Contraction(_, pat)) = n2.driveInfo
           (convertPat(pat.asInstanceOf[Ctr]), fold(n2.node))
         }
         val sortedBranches = branches.sortBy(_._1.name)
-        NCase(NVar(n1.driveInfo.asInstanceOf[VariantBranchStep[Expr]].contr.v), sortedBranches)
+        NCase(NVar(n1.driveInfo.asInstanceOf[VariantStepInfo[Expr]].contr.v), sortedBranches)
     }
 
   }
