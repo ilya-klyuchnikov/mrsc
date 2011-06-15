@@ -18,15 +18,15 @@ trait SLLCurentMsg extends SLLRebuildings {
         val g = MSG.msg(currentConf, blamedConf)
         if (renaming(g.t, currentConf)) {
           val topSplitted = split(blamedConf)
-          val rollback = Rollback(blamed, topSplitted, NoExtra)
+          val rollback = RollbackSubGraph(blamed, topSplitted, NoExtra)
           List(rollback)
         } else if (g.t.isInstanceOf[Var]) {
           val let = split(currentConf)
-          val replace = Replace(let, NoExtra)
+          val replace = ReplaceNode(let, NoExtra)
           List(replace)
         } else {
           val let = Let(g.t, g.m1.toList)
-          val replace = Replace(let, NoExtra)
+          val replace = ReplaceNode(let, NoExtra)
           List(replace)
         }
     }
@@ -45,12 +45,12 @@ trait SLLBlamedMsg extends SLLRebuildings {
         val g = MSG.msg(blamedConf, currentConf)
         if (g.t.isInstanceOf[Var] || renaming(g.t, blamedConf)) {
           val let = split(currentConf)
-          val replace = Replace(let, NoExtra)
+          val replace = ReplaceNode(let, NoExtra)
           //println("replace: " + let)
           List(replace)
         } else {
           val let = Let(g.t, g.m1.toList)
-          val rollback = Rollback(blamed, let, NoExtra)
+          val rollback = RollbackSubGraph(blamed, let, NoExtra)
           //println("rollback: " + let)
           List(rollback)
         }
@@ -84,7 +84,7 @@ trait SLLMixMsg extends SLLRebuildings {
           val let = Let(g.t, g.m2.toList)
           //println(let)
           //println("----")
-          Rollback(blamed, let, NoExtra)
+          RollbackSubGraph(blamed, let, NoExtra)
         }
 
         val downMsg = if (renaming(g.t, currentConf)) {
@@ -93,7 +93,7 @@ trait SLLMixMsg extends SLLRebuildings {
           val let = Let(g.t, g.m1.toList)
           //println(let)
           //println("----")
-          Replace(let, NoExtra)
+          ReplaceNode(let, NoExtra)
         }
 
         //println()
@@ -114,14 +114,14 @@ trait SLLMix extends SLLRebuildings {
         
         val mutualSupers1 = gens(currentConf)
         
-        mutualSupers1 map { Replace(_, NoExtra) }
+        mutualSupers1 map { ReplaceNode(_, NoExtra) }
     }
 }
 
 trait SLLAlwaysCurrentGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] = {
     val expr = pState.node.conf
-    gens(expr) map { Replace(_, NoExtra) }
+    gens(expr) map { ReplaceNode(_, NoExtra) }
   }
 }
 
@@ -132,7 +132,7 @@ trait SLLWhistleCurrentGens extends SLLRebuildings {
         List()
       case Some(blamed) =>
         val expr = pState.node.conf
-        gens(expr) map { Replace(_, NoExtra) }
+        gens(expr) map { ReplaceNode(_, NoExtra) }
     }
 }
 
@@ -150,7 +150,7 @@ trait SLLWhistleBlamedGens extends SLLRebuildings {
         val gs = gens(blamedExpr)
         gs.foreach(println)
         println("***")
-        gs map { Rollback(blamed, _, NoExtra) }
+        gs map { RollbackSubGraph(blamed, _, NoExtra) }
     }
 }
 
@@ -173,7 +173,7 @@ trait SLLWhistleBlamedGens2 extends SLLRebuildings {
         }
         val rollbacks = SLLGeneralizations.gens(blamedExpr) map { x =>
           if (debug) {println(x)}
-          Rollback(blamed, x, NoExtra)
+          RollbackSubGraph(blamed, x, NoExtra)
         }
         if (debug) println(">>>")
         if (!rollbacks.isEmpty) {
@@ -182,7 +182,7 @@ trait SLLWhistleBlamedGens2 extends SLLRebuildings {
           if (debug) println("UP empty, doing DOWN:")
           val current = SLLGeneralizations.gens(currentExpr) map { x =>
             if (debug) {println(x)}
-            Replace(x, NoExtra)
+            ReplaceNode(x, NoExtra)
           }
           current
         }
@@ -198,10 +198,10 @@ trait SLLWhistleAllGens extends SLLRebuildings {
         val blamedExpr = blamed.conf
         val currentExpr = pState.node.conf
         val rollbacks = SLLGeneralizations.gens(blamedExpr) map {
-          Rollback(blamed, _, NoExtra)
+          RollbackSubGraph(blamed, _, NoExtra)
         }
         val current = SLLGeneralizations.gens(currentExpr) map {
-          Replace(_, NoExtra)
+          ReplaceNode(_, NoExtra)
         }
         rollbacks ++ current
     }

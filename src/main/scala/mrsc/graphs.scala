@@ -126,12 +126,12 @@ case class PartialCoGraph[C, D, E](
       step match {
         /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
          */
-        case MakeLeaf =>
+        case ConvertToLeaf =>
           PartialCoGraph(active :: completeLeaves, ls, active :: completeNodes)
         /*! Replacing the configuration of the current node. 
            The main use case is the rebuilding (generalization) of the active node.
          */
-        case Replace(conf, extra) =>
+        case ReplaceNode(conf, extra) =>
           val node = active.copy(conf = conf, extraInfo = extra)
           PartialCoGraph(completeLeaves, node :: ls, completeNodes)
         /*! Just folding: creating a loopback and moving the node into the complete part 
@@ -144,16 +144,16 @@ case class PartialCoGraph[C, D, E](
             current node is moved to the complete part and new children are moved into 
             the incomplete part. Also the (co-)path is calculated for any child node.
          */
-        case AddForest(subSteps) =>
+        case AddChildNodes(subSteps) =>
           val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
-            case (SubStep(conf, dInfo, eInfo), i) =>
+            case (ChildNode(conf, dInfo, eInfo), i) =>
               val in = CoEdge(active, dInfo)
               CoNode(conf, eInfo, in, None, i :: active.coPath)
           }
           PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)
         /*! When doing rollback, we also prune all successors of the dangerous node. 
          */
-        case Rollback(dangNode, c, eInfo) =>
+        case RollbackSubGraph(dangNode, c, eInfo) =>
           def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
           val node = dangNode.copy(conf = c, extraInfo = eInfo)
           val completeNodes1 = completeNodes.remove(prune_?)
@@ -162,7 +162,7 @@ case class PartialCoGraph[C, D, E](
           PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
         /*! A graph cannot prune itself - it should be performed by a builder.
          */
-        case Prune =>
+        case DiscardGraph =>
           throw new Error()
       }
     case _ =>

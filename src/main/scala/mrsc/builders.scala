@@ -79,7 +79,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
             partialCoGraphs = gs
             for (step <- machine.steps(g.pState)) step match {
               /*! informing `consumer` about pruning, if any */
-              case Prune =>
+              case DiscardGraph =>
                 consumer.consume(None)
               /*! or adding new cograph to the pending list otherwise */
               case s =>

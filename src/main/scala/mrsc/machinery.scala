@@ -11,12 +11,15 @@ sealed trait Command[+C, +D, +E]
 /*! The step `MMakeLeaf` means that the current branch of the graph in focus is
    a terminal node (leaf).
  */
-case object MakeLeaf extends Command[Nothing, Nothing, Nothing]
+case object ConvertToLeaf extends Command[Nothing, Nothing, Nothing]
 
 /*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
  Development is divided into several `subSteps`.
  */
-case class AddForest[+C, +D, +E](val subSteps: List[SubStep[C, D, E]]) extends Command[C, D, E]
+case class AddChildNodes[+C, +D, +E](val childNodes: List[ChildNode[C, D, E]]) extends Command[C, D, E]
+
+/* Usually `SubStep` hides internals of driving.  */
+case class ChildNode[+C, +D, +E](conf: C, driveInfo: D, extraInfo: E)
 
 /*! `MFold` signals that there is a path to something similar to the current state in the past
  of the current SC Graph.
@@ -27,18 +30,16 @@ case class MakeFold(val path: Path) extends Command[Nothing, Nothing, Nothing]
  the "single-result" supercompilation it means failure (= no good result). In the case of
  multi-result supercompilation it means that we should continue with the next variant.   
  */
-case object Prune extends Command[Nothing, Nothing, Nothing]
+case object DiscardGraph extends Command[Nothing, Nothing, Nothing]
 
 /*! `MReplace` is fixing the current state of the branch.
  */
-case class Replace[C, D, E](val conf: C, val extraInfo: E) extends Command[C, D, E]
+case class ReplaceNode[C, D, E](val conf: C, val extraInfo: E) extends Command[C, D, E]
 
 /*! `MRollback` is fixing the past `dangerous` state of the current branch.
  */
-case class Rollback[C, D, E](val dangerous: CoNode[C, D, E], val safe: C, val extra: E) extends Command[C, D, E]
-
-/* Usually `SubStep` hides internals of driving.  */
-case class SubStep[+C, +D, +E](label: C, info: D, extra: E)
+case class RollbackSubGraph[C, D, E](val subGraphRoot: CoNode[C, D, E],
+  val conf: C, val extraInfo: E) extends Command[C, D, E]
 
 /*!# Modeling expectations
  */
@@ -78,7 +79,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
   */
   override def steps(pState: PState[C, D, E]): List[Command[C, D, E]] =
     if (isLeaf(pState))
-      List(MakeLeaf)
+      List(ConvertToLeaf)
     else fold(pState) match {
       case Some(path) =>
         List(MakeFold(path))
@@ -99,14 +100,14 @@ trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semant
         List()
       case DecomposeDriveStep(compose, args) =>
         val stepInfo = DecomposeStepInfo(compose)
-        val subSteps = args map { a => SubStep(a, stepInfo, NoExtra) }
-        List(AddForest(subSteps))
+        val subSteps = args map { a => ChildNode(a, stepInfo, NoExtra) }
+        List(AddChildNodes(subSteps))
       case TransientDriveStep(next) =>
-        val subSteps = List(SubStep(next, TransientStepInfo, NoExtra))
-        List(AddForest(subSteps))
+        val subSteps = List(ChildNode(next, TransientStepInfo, NoExtra))
+        List(AddChildNodes(subSteps))
       case VariantsDriveStep(cases) =>
-        val subSteps = cases map { case (contr, next) => SubStep(next, VariantsStepInfo(contr), NoExtra) }
-        List(AddForest(subSteps))
+        val subSteps = cases map { case (contr, next) => ChildNode(next, VariantsStepInfo(contr), NoExtra) }
+        List(AddChildNodes(subSteps))
     }
 
   override def isLeaf(pState: PState[C, DriveInfo[C], Extra]) =
@@ -124,7 +125,7 @@ trait SimpleDriving[C] extends Driving[C] {
 trait PruningDriving[C] extends Driving[C] {
   override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
     whistle match {
-      case Some(blamed) => List(Prune)
+      case Some(blamed) => List(DiscardGraph)
       case None => super.drive(whistle, pState)
     }
 }
