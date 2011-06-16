@@ -100,77 +100,90 @@ case class CoNode[C, D, E](
   override def toString = conf.toString
 }
 
-/*! `PartialCoGraph[C, I]` is a central concept of MRSC. It represents a "work in progress".
- We know already processed part of an SC graph (`completeLeaves`, `completeNodes`) and a frontier 
- of incomplete part (`incompleteLeaves`).
+/*! Auxiliary data for transposing a cograph into a graph.
  */
-case class PartialCoGraph[C, D, E](
-  completeLeaves: CoNodes[C, D, E],
-  incompleteLeaves: CoNodes[C, D, E],
-  completeNodes: CoNodes[C, D, E]) {
+case class Tmp[C, D, E](node: Node[C, D, E], in: CoEdge[C, D, E])
 
-  /*! `activeLeaf` is the vanguard of the incomplete part. It will be processed next.
+/*! A transformer of cographs into graphs.
+ */
+object Transformations {
+  /*! Transposition is done in the following simple way. Nodes are grouped according to the 
+   levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
-  val activeLeaf: Option[CoNode[C, D, E]] = incompleteLeaves.headOption
+  def transpose[C, D, E](coGraph: CoGraph[C, D, E]): Graph[C, D, E] = {
+    val leafPathes = coGraph.leaves.map(_.coPath)
+    val levels = coGraph.nodes.groupBy(_.coPath.length).toList.sortBy(_._1).map(_._2)
+    val (tNodes, tLeaves) = subTranspose(levels, leafPathes)
+    val nodes = tNodes map { _.node }
+    val leaves = tLeaves map { _.node }
+    return Graph(nodes(0), leaves)
+  }
 
-  /*! Partial state is exposed to SC machines. SC machine decides what step should be done next 
-      based on `pState`.
-   */
-  val pState = PState(activeLeaf.getOrElse(null), completeNodes)
+  // sub-transposes cogpaph into graph level-by-level
+  private def subTranspose[C, D, E](
+    nodes: List[CoNodes[C, D, E]],
+    leaves: List[Path]): (List[Tmp[C, D, E]], List[Tmp[C, D, E]]) =
+    nodes match {
+      case Nil =>
+        (Nil, Nil)
 
-  /*! The main logic of MRSC is here. 
-     Step created by SC machine is "applied" to the current active leaf.
-   */
-  def executeCommand(command: Command[C, D, E]): PartialCoGraph[C, D, E] = incompleteLeaves match {
-    case active :: ls =>
-      command match {
-        /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
-         */
-        case ConvertToLeaf =>
-          PartialCoGraph(active :: completeLeaves, ls, active :: completeNodes)
-        /*! Replacing the configuration of the current node. 
-           The main use case is the rebuilding (generalization) of the active node.
-         */
-        case ReplaceNode(conf, extra) =>
-          val node = active.copy(conf = conf, extraInfo = extra)
-          PartialCoGraph(completeLeaves, node :: ls, completeNodes)
-        /*! Just folding: creating a loopback and moving the node into the complete part 
-            of the SC graph.  
-         */
-        case MakeFold(basePath) =>
-          val node = active.copy(base = Some(basePath))
-          PartialCoGraph(node :: completeLeaves, ls, node :: completeNodes)
-        /*! This step corresponds (mainly) to driving: adds children to the current node. Then
-            current node is moved to the complete part and new children are moved into 
-            the incomplete part. Also the (co-)path is calculated for any child node.
-         */
-        case AddChildNodes(subSteps) =>
-          val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
-            case (ChildNode(conf, dInfo, eInfo), i) =>
-              val in = CoEdge(active, dInfo)
-              CoNode(conf, eInfo, in, None, i :: active.coPath)
-          }
-          PartialCoGraph(completeLeaves, deltaLeaves ++ ls, active :: completeNodes)
-        /*! When doing rollback, we also prune all successors of the dangerous node. 
-         */
-        case RollbackSubGraph(dangNode, c, eInfo) =>
-          def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
-          val node = dangNode.copy(conf = c, extraInfo = eInfo)
-          val completeNodes1 = completeNodes.remove(prune_?)
-          val completeLeaves1 = completeLeaves.remove(prune_?)
-          val incompleteLeaves1 = ls.remove(prune_?)
-          PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
-        /*! A graph cannot prune itself - it should be performed by a builder.
-         */
-        case DiscardGraph =>
-          throw new Error()
+      // leaves only??
+      case ns1 :: Nil =>
+        val tmpNodes: List[Tmp[C, D, E]] = ns1 map { n =>
+          val node = Node[C, D, E](n.conf, n.extraInfo, Nil, n.base, n.path)
+          Tmp(node, n.in)
+        }
+        val tmpLeaves = tmpNodes.filter { tmp =>
+          leaves.contains(tmp.node.coPath)
+        }
+        (tmpNodes, tmpLeaves)
+
+      case ns1 :: ns => {
+        val (allCh, leaves1) = subTranspose(ns, leaves)
+        val allchildren = allCh.groupBy { _.node.coPath.tail }
+        val tmpNodes = ns1 map { n =>
+          val children: List[Tmp[C, D, E]] = allchildren.getOrElse(n.coPath, Nil)
+          val edges = children map { tmp => Edge(tmp.node, tmp.in.driveInfo) }
+          val node = new Node(n.conf, n.extraInfo, edges, n.base, n.path)
+          Tmp(node, n.in)
+        }
+        val tmpLeaves = tmpNodes.filter { tmp => leaves.contains(tmp.node.coPath) }
+        (tmpNodes, tmpLeaves ++ leaves1)
       }
-    case _ =>
-      throw new Error()
+    }
+}
+
+/*! Ad Hoc console pretty printer for graphs.
+ */
+object GraphPrettyPrinter {
+  def toString(node: Node[_, _, _], indent: String = ""): String = {
+    val sb = new StringBuilder(indent + "|__" + node.conf)
+    if (node.base.isDefined) {
+      sb.append("*******")
+    }
+    for (edge <- node.outs) {
+      sb.append("\n  " + indent + "|" + (if (edge.driveInfo != null) edge.driveInfo else ""))
+      sb.append("\n" + toString(edge.node, indent + "  "))
+    }
+    sb.toString
   }
 }
 
-/*! `PState` stands for partial state.
- Based on the current `PState`, SCP machine should decide what should be done next.
+/*! The simple lexicographic order on paths.
  */
-case class PState[C, D, E](val node: CoNode[C, D, E], val completeNodes: CoNodes[C, D, E])
+object PathOrdering extends Ordering[Path] {
+  @tailrec
+  final def compare(p1: Path, p2: Path) =
+    if (p1.length < p2.length) {
+      -1
+    } else if (p1.length > p2.length) {
+      +1
+    } else {
+      val result = p1.head compare p2.head
+      if (result == 0) {
+        compare(p1.tail, p2.tail)
+      } else {
+        result
+      }
+    }
+}

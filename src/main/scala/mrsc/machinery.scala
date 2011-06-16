@@ -1,45 +1,28 @@
 package mrsc
 
-/*!# Abstract steps
-  
- Under the hood an abstract machine deals with some kind of semantics of the language.
- Low-level operations should be translated into high-level abstract operations (or messages) 
- over SC graphs.
- */
-sealed trait Command[+C, +D, +E]
+case class Contraction[C](v: Name, pat: C) {
+  override def toString = v + " = " + pat
+}
 
-/*! The step `MMakeLeaf` means that the current branch of the graph in focus is
-   a terminal node (leaf).
- */
-case object ConvertToLeaf extends Command[Nothing, Nothing, Nothing]
+abstract sealed trait DriveStep[+C]
+case class TransientDriveStep[C](next: C) extends DriveStep[C]
+case object StopDriveStep extends DriveStep[Nothing]
+case class DecomposeDriveStep[C](compose: List[C] => C, parts: List[C]) extends DriveStep[C]
+case class VariantsDriveStep[C](cases: List[(Contraction[C], C)]) extends DriveStep[C]
 
-/*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
- Development is divided into several `subSteps`.
- */
-case class AddChildNodes[+C, +D, +E](val childNodes: List[ChildNode[C, D, E]]) extends Command[C, D, E]
+abstract sealed class DriveInfo[+C]
+case object TransientStepInfo extends DriveInfo[Nothing] {
+  override def toString = "->"
+}
+case class DecomposeStepInfo[C](compose: List[C] => C) extends DriveInfo[C] {
+  override def toString = ""
+}
+case class VariantsStepInfo[C](contr: Contraction[C]) extends DriveInfo[C] {
+  override def toString = contr.toString
+}
 
-/* Usually `SubStep` hides internals of driving.  */
-case class ChildNode[+C, +D, +E](conf: C, driveInfo: D, extraInfo: E)
-
-/*! `MFold` signals that there is a path to something similar to the current state in the past
- of the current SC Graph.
- */
-case class MakeFold(val path: Path) extends Command[Nothing, Nothing, Nothing]
-
-/*! The step `MPrune` means that the current graph should be discarded. In the case of 
- the "single-result" supercompilation it means failure (= no good result). In the case of
- multi-result supercompilation it means that we should continue with the next variant.   
- */
-case object DiscardGraph extends Command[Nothing, Nothing, Nothing]
-
-/*! `MReplace` is fixing the current state of the branch.
- */
-case class ReplaceNode[C, D, E](val conf: C, val extraInfo: E) extends Command[C, D, E]
-
-/*! `MRollback` is fixing the past `dangerous` state of the current branch.
- */
-case class RollbackSubGraph[C, D, E](val subGraphRoot: CoNode[C, D, E],
-  val conf: C, val extraInfo: E) extends Command[C, D, E]
+sealed trait Extra
+case object NoExtra extends Extra
 
 /*!# Modeling expectations
  */
@@ -95,7 +78,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 // doesn't not care about whistle signals 
 trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semantics[C] {
   override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
-    eval(pState.node.conf) match {
+    drive(pState.node.conf) match {
       case StopDriveStep =>
         List()
       case DecomposeDriveStep(compose, args) =>
@@ -111,7 +94,7 @@ trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semant
     }
 
   override def isLeaf(pState: PState[C, DriveInfo[C], Extra]) =
-    !isReducible(pState.node.conf)
+    !isDrivable(pState.node.conf)
 }
 
 trait SimpleDriving[C] extends Driving[C] {

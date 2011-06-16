@@ -1,4 +1,3 @@
-
 /*! Just shortcuts for types.
  */
 package object mrsc {

@@ -16,8 +16,8 @@ trait Syntax[C] {
  Also it is a mix of small-step semantics and big-step semantics.
  */
 trait Semantics[C] {
-  def eval(c: C): DriveStep[C]
-  def isReducible(c: C): Boolean
+  def drive(c: C): DriveStep[C]
+  def isDrivable(c: C): Boolean
 }
 
 trait Termination[C] {

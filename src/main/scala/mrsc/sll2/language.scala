@@ -47,7 +47,7 @@ object SLLTermination extends Termination[Expr] {
 trait SLLMetaEvaluator extends Semantics[Expr] {
   val program: Program
 
-  override def eval(conf: Expr): DriveStep[Expr] =
+  override def drive(conf: Expr): DriveStep[Expr] =
     decompose(conf) match {
 
       case ObservableVar(v) =>
@@ -93,7 +93,7 @@ trait SLLMetaEvaluator extends Semantics[Expr] {
 
     }
   
-  override def isReducible(e: Expr): Boolean = e match {
+  override def isDrivable(e: Expr): Boolean = e match {
     case Var(_) => false
     case Ctr(_, Nil) => false
     case _ => true
