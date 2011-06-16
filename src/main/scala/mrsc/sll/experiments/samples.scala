@@ -4,103 +4,103 @@ import mrsc._
 import mrsc.sll._
 
 // try all variants
-class Multi1(val program: Program, val whistle: Whistle)
+class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLAlwaysCurrentGens
   with NoTricks[Expr]
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
-class Multi2(val program: Program, val whistle: Whistle)
+class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLWhistleCurrentGens
   with NoTricks[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
-class Multi3(val program: Program, val whistle: Whistle)
+class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLWhistleBlamedGens
   with NoTricks[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
 // 1. the blamed one (with rollback)
 // 2. the current one
-class Multi4(val program: Program, val whistle: Whistle)
+class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLWhistleAllGens
   with NoTricks[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
-class Multi5(val program: Program, val whistle: Whistle)
+class Multi5(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLWhistleBlamedGens2
   with NoTricks[Expr]
 
-class ClassicBlamedGen(val program: Program, val whistle: Whistle)
+class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLBlamedMsg
   with NoTricks[Expr]
 
-class ClassicCurrentGen(val program: Program, val whistle: Whistle)
+class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLCurentMsg
   with NoTricks[Expr]
 
-class ClassicMix(val program: Program, val whistle: Whistle)
+class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
   with Folding[Expr]
-  with SLLWhistle
+  with Termination[Expr]
   with SLLMixMsg
   with NoTricks[Expr]
 
 object Samples {
   type Machine1 = Machine[Expr, DriveInfo[Expr], Extra]
 
-  def multi1(w: Whistle)(p: Program) = new Multi1(p, w)
-  def multi2(w: Whistle)(p: Program) = new Multi2(p, w)
-  def multi3(w: Whistle)(p: Program) = new Multi3(p, w)
-  def multi4(w: Whistle)(p: Program) = new Multi4(p, w)
-  def multi5(w: Whistle)(p: Program) = new Multi5(p, w)
-  def classic1(w: Whistle)(p: Program) = new ClassicBlamedGen(p, w)
-  def classic2(w: Whistle)(p: Program) = new ClassicCurrentGen(p, w)
-  def classic3(w: Whistle)(p: Program) = new ClassicMix(p, w)
+  def multi1(w: PartialOrdering[Expr])(p: Program) = new Multi1(p, w)
+  def multi2(w: PartialOrdering[Expr])(p: Program) = new Multi2(p, w)
+  def multi3(w: PartialOrdering[Expr])(p: Program) = new Multi3(p, w)
+  def multi4(w: PartialOrdering[Expr])(p: Program) = new Multi4(p, w)
+  def multi5(w: PartialOrdering[Expr])(p: Program) = new Multi5(p, w)
+  def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicBlamedGen(p, w)
+  def classic2(w: PartialOrdering[Expr])(p: Program) = new ClassicCurrentGen(p, w)
+  def classic3(w: PartialOrdering[Expr])(p: Program) = new ClassicMix(p, w)
 
   // just tries classic variants of 
   // SLL supercompilation

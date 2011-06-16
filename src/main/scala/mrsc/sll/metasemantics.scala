@@ -4,13 +4,6 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
-trait SLLWhistle {
-  val whistle: Whistle
-
-  def blame(pState: PState[Expr, DriveInfo[Expr], Extra]): SLLSignal =
-    whistle.blame(pState)
-}
-
 trait SLLRebuildings {
   def msg(conf: Expr, wrt: Expr): Expr = {
     println("msg requested")

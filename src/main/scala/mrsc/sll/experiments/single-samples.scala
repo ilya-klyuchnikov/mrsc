@@ -32,6 +32,7 @@ object Sample1 extends App {
       }
     }
 
+  /*
   def classicBlamedGen(w: Whistle)(p: Program) = new ClassicBlamedGen(p, w)
   def classicCurrentGen(w: Whistle)(p: Program) = new ClassicCurrentGen(p, w)
 
@@ -46,4 +47,5 @@ object Sample1 extends App {
     ("classic, blamed, coupling + redex", classicCurrentGen(HEByCouplingWithRedexWhistle)_))
 
   runTasks(scs)
+  */
 }

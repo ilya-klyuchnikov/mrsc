@@ -48,18 +48,18 @@ object Sample2 extends App {
       }
     }
 
-  def multi1(w: Whistle)(p: Program) = new Multi1(p, w)
-  def multi2(w: Whistle)(p: Program) = new Multi2(p, w)
-  def multi3(w: Whistle)(p: Program) = new Multi3(p, w)
+  //def multi1(w: Whistle)(p: Program) = new Multi1(p, w)
+  //def multi2(w: Whistle)(p: Program) = new Multi2(p, w)
+  //def multi3(w: Whistle)(p: Program) = new Multi3(p, w)
 
-  val scs = List(
+  //val scs = List(
     //("classic, current, he", multi2(HEWhistle)_),
     //("classic, blamed, he", multi3(HEWhistle)_),
-    ("classic, all, he", multi1(HEWhistle)_))
+    //("classic, all, he", multi1(HEWhistle)_))
 
   //runTasks(scs)
 
   val t = SLLTasks.tasks(6)
   //runTask(t, multi1(Whistles.or(MaxGens(1), HEByCouplingWhistle))_)
-  runTask1(t, multi1(Whistles.or(MaxLetParts(3), MaxGens(2), HEByCouplingWhistle))_)
+  //runTask1(t, multi1(Whistles.or(MaxLetParts(3), MaxGens(2), HEByCouplingWhistle))_)
 }
