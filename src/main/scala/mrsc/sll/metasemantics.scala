@@ -4,16 +4,6 @@ import mrsc._
 import Decomposition._
 import SLLExpressions._
 
-// fold only into ancestors
-trait SLLFolding[D, E] {
-
-  def fold(ps: PState[Expr, DriveInfo[Expr], Extra]): Option[Path] =
-    ps.node.ancestors.find { renamingFilter(ps.node) } map { _.path }
-
-  private def renamingFilter(leaf: CoNode[Expr, _, _])(n: CoNode[Expr, _, _]) =
-    SLLExpressions.renaming(leaf.conf, n.conf)
-}
-
 trait SLLWhistle {
   val whistle: Whistle
 

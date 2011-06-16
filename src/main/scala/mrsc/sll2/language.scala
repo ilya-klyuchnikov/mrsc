@@ -4,7 +4,7 @@ import mrsc._
 import mrsc.sll.Decomposition._
 import mrsc.sll.SLLExpressions._
 
-object SLLSyntax extends Syntax[Expr] {
+trait SLLSyntax extends Syntax[Expr] {
 
   override val instance: PartialOrdering[Expr] = new SimplePartialOrdering[Expr] {
     override def lteq(x: Expr, y: Expr) = SLLExpressions.inst(x, y)

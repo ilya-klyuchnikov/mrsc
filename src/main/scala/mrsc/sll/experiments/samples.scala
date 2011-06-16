@@ -6,9 +6,10 @@ import mrsc.sll._
 // try all variants
 class Multi1(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLAlwaysCurrentGens
   with SLLNoTricks
@@ -16,9 +17,10 @@ class Multi1(val program: Program, val whistle: Whistle)
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLWhistleCurrentGens
   with SLLNoTricks
@@ -26,9 +28,10 @@ class Multi2(val program: Program, val whistle: Whistle)
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLWhistleBlamedGens
   with SLLNoTricks
@@ -38,9 +41,10 @@ class Multi3(val program: Program, val whistle: Whistle)
 // 2. the current one
 class Multi4(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLWhistleAllGens
   with SLLNoTricks
@@ -48,36 +52,40 @@ class Multi4(val program: Program, val whistle: Whistle)
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi5(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLWhistleBlamedGens2
   with SLLNoTricks
 
 class ClassicBlamedGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLBlamedMsg
   with SLLNoTricks
 
 class ClassicCurrentGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLCurentMsg
   with SLLNoTricks
 
 class ClassicMix(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
-  with SLLFolding[DriveInfo[Expr], Extra]
+  with Folding[Expr]
   with SLLWhistle
   with SLLMixMsg
   with SLLNoTricks
