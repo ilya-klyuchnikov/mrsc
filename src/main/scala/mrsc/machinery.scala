@@ -119,6 +119,12 @@ trait Folding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax
 }
 
 trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
-  override def tricks(w: W, pState: PState[C, DriveInfo[C], Extra]) = 
+  override def tricks(w: W, pState: PState[C, DriveInfo[C], Extra]) =
     Nil
+}
+
+trait Termination[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
+  val ordering: PartialOrdering[C]
+  def blame(pState: PState[C, DriveInfo[C], Extra]): W =
+    pState.node.ancestors find { n => ordering.lteq(n.conf, pState.node.conf) }
 }

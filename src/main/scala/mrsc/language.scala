@@ -20,10 +20,6 @@ trait Semantics[C] {
   def isDrivable(c: C): Boolean
 }
 
-trait Termination[C] {
-  def embedding: PartialOrdering[C]
-}
-
 trait Residuation[C, R] {
   def residuate(graph: Graph[R, DriveInfo[R], _]): R
 }

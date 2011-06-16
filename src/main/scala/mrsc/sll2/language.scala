@@ -36,6 +36,7 @@ trait SLLSyntax extends Syntax[Expr] {
 
 }
 
+/*
 object SLLTermination extends Termination[Expr] {
 
   override val embedding = new SimplePartialOrdering[Expr] {
@@ -43,6 +44,7 @@ object SLLTermination extends Termination[Expr] {
   }
 
 }
+*/
 
 trait SLLMetaEvaluator extends Semantics[Expr] {
   val program: Program
