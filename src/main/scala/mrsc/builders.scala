@@ -83,7 +83,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
                 consumer.consume(None)
               /*! or adding new cograph to the pending list otherwise */
               case s =>
-                partialCoGraphs = g.addStep(s) :: partialCoGraphs
+                partialCoGraphs = g.executeCommand(s) :: partialCoGraphs
             }
         }
         /*! and looping again. */
