@@ -206,8 +206,3 @@ trait SLLWhistleAllGens extends SLLRebuildings {
         rollbacks ++ current
     }
 }
-
-trait SLLNoTricks {
-  def tricks(whistle: SLLSignal, pState: SLLState) =
-    Nil
-}

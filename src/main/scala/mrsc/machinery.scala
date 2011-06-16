@@ -114,6 +114,11 @@ trait PruningDriving[C] extends Driving[C] {
 }
 
 trait Folding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
-  def fold(pState: PState[C, DriveInfo[C], Extra]): Option[Path] =
+  override def fold(pState: PState[C, DriveInfo[C], Extra]): Option[Path] =
     pState.node.ancestors.find { n => instance.equiv(pState.node.conf, n.conf) } map { _.path }
+}
+
+trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
+  override def tricks(w: W, pState: PState[C, DriveInfo[C], Extra]) = 
+    Nil
 }

@@ -12,7 +12,7 @@ class Multi1(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLAlwaysCurrentGens
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val whistle: Whistle)
@@ -23,7 +23,7 @@ class Multi2(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLWhistleCurrentGens
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val whistle: Whistle)
@@ -34,7 +34,7 @@ class Multi3(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLWhistleBlamedGens
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
 // 1. the blamed one (with rollback)
@@ -47,7 +47,7 @@ class Multi4(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLWhistleAllGens
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi5(val program: Program, val whistle: Whistle)
@@ -58,7 +58,7 @@ class Multi5(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLWhistleBlamedGens2
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 class ClassicBlamedGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
@@ -68,7 +68,7 @@ class ClassicBlamedGen(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLBlamedMsg
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 class ClassicCurrentGen(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
@@ -78,7 +78,7 @@ class ClassicCurrentGen(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLCurentMsg
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 class ClassicMix(val program: Program, val whistle: Whistle)
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
@@ -88,7 +88,7 @@ class ClassicMix(val program: Program, val whistle: Whistle)
   with Folding[Expr]
   with SLLWhistle
   with SLLMixMsg
-  with SLLNoTricks
+  with NoTricks[Expr]
 
 object Samples {
   type Machine1 = Machine[Expr, DriveInfo[Expr], Extra]
