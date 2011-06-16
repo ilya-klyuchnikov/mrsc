@@ -123,8 +123,27 @@ trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
     Nil
 }
 
+// Ordering-based termination
 trait Termination[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
   val ordering: PartialOrdering[C]
-  def blame(pState: PState[C, DriveInfo[C], Extra]): W =
+  override def blame(pState: PState[C, DriveInfo[C], Extra]): W =
     pState.node.ancestors find { n => ordering.lteq(n.conf, pState.node.conf) }
+}
+
+// NOW Generalization!
+trait AlwaysCurrentGens[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
+  override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    rebuildings(pState.node.conf) map rebuilding2Configuration map { ReplaceNode(_, NoExtra) }
+  }
+}
+
+trait CurrentGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
+  override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    whistle match {
+      case None =>
+        List()
+      case Some(blamed) =>
+        rebuildings(pState.node.conf) map rebuilding2Configuration map { ReplaceNode(_, NoExtra) }
+    }
+  }
 }

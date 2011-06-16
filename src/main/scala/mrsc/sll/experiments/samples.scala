@@ -11,7 +11,7 @@ class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
   with PruningDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with SLLAlwaysCurrentGens
+  with AlwaysCurrentGens[Expr]
   with NoTricks[Expr]
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
@@ -22,7 +22,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   with PruningDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with SLLWhistleCurrentGens
+  with CurrentGensOnWhistle[Expr]
   with NoTricks[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)

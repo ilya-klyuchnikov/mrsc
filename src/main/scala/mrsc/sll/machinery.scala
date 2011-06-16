@@ -118,24 +118,6 @@ trait SLLMix extends SLLRebuildings {
     }
 }
 
-trait SLLAlwaysCurrentGens extends SLLRebuildings {
-  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] = {
-    val expr = pState.node.conf
-    gens(expr) map { ReplaceNode(_, NoExtra) }
-  }
-}
-
-trait SLLWhistleCurrentGens extends SLLRebuildings {
-  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle match {
-      case None =>
-        List()
-      case Some(blamed) =>
-        val expr = pState.node.conf
-        gens(expr) map { ReplaceNode(_, NoExtra) }
-    }
-}
-
 trait SLLWhistleBlamedGens extends SLLRebuildings {
   def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
     whistle match {
