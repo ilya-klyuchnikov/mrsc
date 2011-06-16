@@ -33,18 +33,10 @@ trait SLLSyntax extends Syntax[Expr] {
       Some(sub)
     }
   }
+  
+  override def size(e: Expr) = e.size
 
 }
-
-/*
-object SLLTermination extends Termination[Expr] {
-
-  override val embedding = new SimplePartialOrdering[Expr] {
-    override def lteq(x: Expr, y: Expr) = HE.heByCoupling(x, y)
-  }
-
-}
-*/
 
 trait SLLMetaEvaluator extends Semantics[Expr] {
   val program: Program

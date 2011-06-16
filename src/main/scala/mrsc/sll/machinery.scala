@@ -41,7 +41,7 @@ trait SLLBlamedMsg extends SLLRebuildings {
         val currentConf = pState.node.conf
         val blamedConf = blamed.conf
         //println("msg")
-        //println(blamedConf + "<" + currentConf)
+        //println(blamedConf + " < " + currentConf)
         val g = MSG.msg(blamedConf, currentConf)
         if (g.t.isInstanceOf[Var] || renaming(g.t, blamedConf)) {
           val let = split(currentConf)

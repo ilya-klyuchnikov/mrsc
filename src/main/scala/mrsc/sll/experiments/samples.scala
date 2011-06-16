@@ -33,7 +33,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with PruningDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with SLLWhistleBlamedGens
+  with MSGofBlamed[Expr]
   with NoTricks[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
@@ -67,7 +67,8 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   with SimpleDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with SLLBlamedMsg
+  with MSGofBlamed[Expr]
+  //with SLLBlamedMsg
   with NoTricks[Expr]
 
 class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
@@ -126,7 +127,6 @@ object Samples {
     Checker.check(task, consumer2.residualTask)
      
     
-
     val h1 = expand(40, task.target.toString)
     //print(h1)
 
@@ -267,9 +267,11 @@ object Samples {
 
   def main(args: Array[String]): Unit = {
 
+    /*
     runTask(SLLTasks.namedTasks("NaiveReverse"), multi5(HEByCouplingWhistle)_)
     runTask(SLLTasks.namedTasks("FastReverse"), multi5(HEByCouplingWhistle)_)
     runTask(SLLTasks.namedTasks("NaiveFib"), multi5(HEByCouplingWhistle)_)
+    */
     
     // 85726 completed graphs here:
     //runTask(SLLTasks.namedTasks("FastFib"), multi5(HEWhistle)_)
