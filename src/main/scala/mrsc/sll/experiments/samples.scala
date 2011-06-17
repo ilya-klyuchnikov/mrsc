@@ -33,7 +33,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with PruningDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with MSGofBlamed[Expr]
+  with MSGBlamedOrSplitCurrent[Expr]
   with NoTricks[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
@@ -67,7 +67,7 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   with SimpleDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with MSGofBlamed[Expr]
+  with MSGBlamedOrSplitCurrent[Expr]
   //with SLLBlamedMsg
   with NoTricks[Expr]
 
@@ -78,7 +78,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
   with SimpleDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with SLLCurentMsg
+  with MSGCurrentOrSplitBlamed[Expr]
   with NoTricks[Expr]
 
 class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])

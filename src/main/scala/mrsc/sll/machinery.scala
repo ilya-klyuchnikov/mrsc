@@ -4,59 +4,6 @@ import mrsc._
 import SLLGeneralizations._
 import SLLExpressions._
 
-// Here we define 2 variants of driving + 6 variants of rebuilding
-// TODO Really this part can be generalized: it should not-be SLL-specific.
-
-trait SLLCurentMsg extends SLLRebuildings {
-  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle match {
-      case None =>
-        List()
-      case Some(blamed) =>
-        val currentConf = pState.node.conf
-        val blamedConf = blamed.conf
-        val g = MSG.msg(currentConf, blamedConf)
-        if (renaming(g.t, currentConf)) {
-          val topSplitted = split(blamedConf)
-          val rollback = RollbackSubGraph(blamed, topSplitted, NoExtra)
-          List(rollback)
-        } else if (g.t.isInstanceOf[Var]) {
-          val let = split(currentConf)
-          val replace = ReplaceNode(let, NoExtra)
-          List(replace)
-        } else {
-          val let = Let(g.t, g.m1.toList)
-          val replace = ReplaceNode(let, NoExtra)
-          List(replace)
-        }
-    }
-}
-
-trait SLLBlamedMsg extends SLLRebuildings {
-  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle match {
-      case None =>
-        List()
-      case Some(blamed) =>
-        val currentConf = pState.node.conf
-        val blamedConf = blamed.conf
-        //println("msg")
-        //println(blamedConf + " < " + currentConf)
-        val g = MSG.msg(blamedConf, currentConf)
-        if (g.t.isInstanceOf[Var] || renaming(g.t, blamedConf)) {
-          val let = split(currentConf)
-          val replace = ReplaceNode(let, NoExtra)
-          //println("replace: " + let)
-          List(replace)
-        } else {
-          val let = Let(g.t, g.m1.toList)
-          val rollback = RollbackSubGraph(blamed, let, NoExtra)
-          //println("rollback: " + let)
-          List(rollback)
-        }
-    }
-}
-
 // Currently it works only for coupling.
 // This Msg works as follows:
 // performs msg of the up expression wrt the down expression
@@ -98,23 +45,6 @@ trait SLLMixMsg extends SLLRebuildings {
 
         //println()
         List(topMsg, downMsg).filter(_ != null)
-    }
-}
-
-// tries all mutual superconfiguration for blamed
-// and current configurations
-trait SLLMix extends SLLRebuildings {
-  def rebuildings(whistle: SLLSignal, pState: SLLState): List[SLLStep] =
-    whistle match {
-      case None =>
-        List()
-      case Some(blamed) =>
-        val currentConf = pState.node.conf
-        val blamedConf = blamed.conf
-        
-        val mutualSupers1 = gens(currentConf)
-        
-        mutualSupers1 map { ReplaceNode(_, NoExtra) }
     }
 }
 
