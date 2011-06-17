@@ -39,7 +39,7 @@ trait SimplePartialOrdering[T] extends PartialOrdering[T] {
 }
 
 trait NaiveMSG[C] extends Syntax[C] {
-  
+
   def lt(e1: C, e2: C): Boolean =
     if (size(e1) < size(e2)) {
       true
@@ -48,16 +48,16 @@ trait NaiveMSG[C] extends Syntax[C] {
     } else {
       instance.lt(e1, e2)
     }
-  
+
   def msg(c: C, c2: C): Option[Rebuilding[C]] = {
 
-    val idRebuilding : Rebuilding[C] = (c, Map[Name, C]())
+    val idRebuilding: Rebuilding[C] = (c, Map[Name, C]())
     val allRebuildings: List[Rebuilding[C]] = idRebuilding :: rebuildings(c)
     val sharedRebuildings = allRebuildings filter { case (c1, _) => instance.lteq(c1, c2) }
 
     val msgs = sharedRebuildings filter {
       case rb @ (c1, _) => (sharedRebuildings.remove(_ == rb)) forall {
-        case (c2, _) => instance.lteq(c2, c1)
+        case (c3, _) => instance.lteq(c3, c1)
       }
     }
 
