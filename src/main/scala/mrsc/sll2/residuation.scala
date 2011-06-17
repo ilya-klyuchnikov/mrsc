@@ -77,12 +77,5 @@ class NaiveResiduator extends Residuation[Expr, Expr] {
     "f." + fCount
   }
 
-  /*
-  var vCount = 0
-  private def createVar(): Var = {
-    vCount = vCount + 1
-    Var("_." + vCount)
-  }*/
-
   private def toPat(p: Ctr): Pat = Pat(p.name, p.args map { case v: Var => v })
 }
