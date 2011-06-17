@@ -65,12 +65,12 @@ object SLLGeneralizations {
     // generalizations of subcomponents
     val xs = e match {
       case FCall(n, args) if !args.isEmpty =>
-        generalizeArgs(args) map { case (args1, sub1) => (FCall(n, args1), sub1 ++ sub) }
+        generalizeArgs(args, sub) map { case (args1, sub1) => (FCall(n, args1), sub1) }
       case GCall(n, args) if !args.isEmpty =>
-        generalizeArgs(args) map { case (args1, sub1) => (GCall(n, args1), sub1 ++ sub) }
+        generalizeArgs(args, sub) map { case (args1, sub1) => (GCall(n, args1), sub1) }
       case Ctr(n, args) if !args.isEmpty =>
-        generalizeArgs(args) map { case (args1, sub1) => (Ctr(n, args1), sub1 ++ sub) }
-      case t => List((t, sub))
+        generalizeArgs(args, sub) map { case (args1, sub1) => (Ctr(n, args1), sub1) }
+      case t => Nil
     }
 
     // a reference to an already defined binding, if any
@@ -84,14 +84,17 @@ object SLLGeneralizations {
       val fv = SLLExpressions.freshVar()
       List((fv, (fv, e) :: sub))
     }
+    
+    // no abstraction
+    val zs: List[(Expr, Sub)] = List((e, sub))
 
-    ys ++ ns ++ xs
+    zs ++ ys ++ ns ++ xs
   }
 
   // subtask: generalize elements and merge
-  private def generalizeArgs(args: List[Expr]): List[(List[Expr], Sub)] =
-    args.foldRight(List[(List[Expr], Sub)]((Nil, Nil))) { (arg, acc) =>
-      for ((terms, sub) <- acc; (t, sub1) <- generalize(arg, sub)) yield (t :: terms, sub1)
+  private def generalizeArgs(args: List[Expr], sub: Sub): List[(List[Expr], Sub)] =
+    args.foldRight(List[(List[Expr], Sub)]((Nil, sub))) { (arg, acc) =>
+      for ((terms, sub1) <- acc; (t, sub2) <- generalize(arg, sub1)) yield (t :: terms, sub2)
     }
 
 }
