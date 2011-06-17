@@ -143,7 +143,37 @@ trait CurrentGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra
       case None =>
         List()
       case Some(blamed) =>
-        rebuildings(pState.node.conf) map rebuilding2Configuration map { ReplaceNode(_, NoExtra) }
+        val replaces =
+          rebuildings(pState.node.conf) map rebuilding2Configuration map { ReplaceNode(_, NoExtra) }
+        replaces
+    }
+  }
+}
+
+trait BlamedGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
+  override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    whistle match {
+      case None =>
+        List()
+      case Some(blamed) =>
+        val rollbacks =
+          rebuildings(blamed.conf) map rebuilding2Configuration map { RollbackSubGraph(blamed, _, NoExtra) }
+        rollbacks
+    }
+  }
+}
+
+trait AllGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
+  override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    whistle match {
+      case None =>
+        List()
+      case Some(blamed) =>
+        val replaces =
+          rebuildings(pState.node.conf) map rebuilding2Configuration map { ReplaceNode(_, NoExtra) }
+        val rollbacks =
+          rebuildings(blamed.conf) map rebuilding2Configuration map { RollbackSubGraph(blamed, _, NoExtra) }
+        replaces ++ rollbacks
     }
   }
 }
@@ -167,7 +197,7 @@ trait MSGBlamedOrSplitCurrent[C] extends GenericMultiMachine[C, DriveInfo[C], Ex
           case None =>
             // splitting the down configuration
             val cands = rebuildings(currentConf)
-            val cands1 = cands filter {case (c1, _) => cands forall {case (c2, _) => instance.lteq(c1, c2)}}
+            val cands1 = cands filter { case (c1, _) => cands forall { case (c2, _) => instance.lteq(c1, c2) } }
             val let = rebuilding2Configuration(cands1(0))
             //println("replace " + let)
             val replace = ReplaceNode(let, NoExtra)
@@ -177,7 +207,6 @@ trait MSGBlamedOrSplitCurrent[C] extends GenericMultiMachine[C, DriveInfo[C], Ex
         List()
     }
   }
-
 }
 
 trait MSGCurrentOrSplitBlamed[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with NaiveMSG[C] {
@@ -199,7 +228,7 @@ trait MSGCurrentOrSplitBlamed[C] extends GenericMultiMachine[C, DriveInfo[C], Ex
           case None =>
             // splitting the down configuration
             val cands = rebuildings(blamedConf)
-            val cands1 = cands filter {case (c1, _) => cands forall {case (c2, _) => instance.lteq(c1, c2)}}
+            val cands1 = cands filter { case (c1, _) => cands forall { case (c2, _) => instance.lteq(c1, c2) } }
             val let = rebuilding2Configuration(cands1(0))
             //println("rollback " + let)
             val rollback = RollbackSubGraph(blamed, let, NoExtra)
@@ -209,5 +238,24 @@ trait MSGCurrentOrSplitBlamed[C] extends GenericMultiMachine[C, DriveInfo[C], Ex
         List()
     }
   }
+}
 
+trait MixMsg[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with NaiveMSG[C] {
+
+  def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    whistle match {
+      case Some(blamed) =>
+        val currentConf = pState.node.conf
+        val blamedConf = blamed.conf
+        val replace = msg(currentConf, blamedConf) map { msg1 =>
+          ReplaceNode(rebuilding2Configuration(msg1), NoExtra)
+        }
+        val rollback = msg(blamedConf, currentConf) map { msg1 =>
+          RollbackSubGraph(blamed, rebuilding2Configuration(msg1), NoExtra)
+        }    
+        rollback.toList ++ replace.toList 
+      case None =>
+        List()
+    }
+  }
 }

@@ -46,19 +46,9 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with PruningDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with SLLWhistleAllGens
+  with AllGensOnWhistle[Expr]
   with NoTricks[Expr]
 
-// generalize (in all possible ways) blamed configuration (when whistle blows)
-class Multi5(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
-  with SLLSyntax
-  with SLLMetaEvaluator
-  with PruningDriving[Expr]
-  with Folding[Expr]
-  with Termination[Expr]
-  with SLLWhistleBlamedGens2
-  with NoTricks[Expr]
 
 class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
@@ -68,7 +58,6 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   with Folding[Expr]
   with Termination[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
-  //with SLLBlamedMsg
   with NoTricks[Expr]
 
 class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
@@ -88,7 +77,8 @@ class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
   with SimpleDriving[Expr]
   with Folding[Expr]
   with Termination[Expr]
-  with SLLMixMsg
+  with MixMsg[Expr]
+  //with SLLMixMsg
   with NoTricks[Expr]
 
 object Samples {
@@ -98,7 +88,6 @@ object Samples {
   def multi2(w: PartialOrdering[Expr])(p: Program) = new Multi2(p, w)
   def multi3(w: PartialOrdering[Expr])(p: Program) = new Multi3(p, w)
   def multi4(w: PartialOrdering[Expr])(p: Program) = new Multi4(p, w)
-  def multi5(w: PartialOrdering[Expr])(p: Program) = new Multi5(p, w)
   def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicBlamedGen(p, w)
   def classic2(w: PartialOrdering[Expr])(p: Program) = new ClassicCurrentGen(p, w)
   def classic3(w: PartialOrdering[Expr])(p: Program) = new ClassicMix(p, w)
@@ -267,11 +256,10 @@ object Samples {
 
   def main(args: Array[String]): Unit = {
 
-    /*
-    runTask(SLLTasks.namedTasks("NaiveReverse"), multi5(HEByCouplingWhistle)_)
-    runTask(SLLTasks.namedTasks("FastReverse"), multi5(HEByCouplingWhistle)_)
-    runTask(SLLTasks.namedTasks("NaiveFib"), multi5(HEByCouplingWhistle)_)
-    */
+    
+    //runTask(SLLTasks.namedTasks("NaiveReverse"), multi5(HEByCouplingWhistle)_)
+    //runTask(SLLTasks.namedTasks("FastReverse"), multi5(HEByCouplingWhistle)_)
+    //runTask(SLLTasks.namedTasks("NaiveFib"), multi5(HEByCouplingWhistle)_)
     
     // 85726 completed graphs here:
     //runTask(SLLTasks.namedTasks("FastFib"), multi5(HEWhistle)_)
