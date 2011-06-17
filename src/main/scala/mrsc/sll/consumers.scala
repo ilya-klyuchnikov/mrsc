@@ -15,10 +15,13 @@ class CountGraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E, CountResult] 
       case None => pruned = pruned + 1
       case Some(cg) => completed = completed + 1
     }
+    /*
     if (pruned % 1000 == 0 || completed % 1000 == 0) {
       println((completed, pruned))
-    }
-    if (completed > 10000000 || pruned > 10000000) {
+    }*/
+    if (completed > 1000 || pruned > 1000) {
+      completed = -1
+      pruned = -1
       throw new ModelingError("too many results")
     }
   }
