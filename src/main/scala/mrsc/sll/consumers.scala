@@ -2,13 +2,15 @@ package mrsc.sll
 
 import mrsc._
 
-// it just counts completed and pruned graphs
-class CountGraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E] {
+case class CountResult(countCompleted: Int, countPruned: Int)
+
+class CountGraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E, CountResult] {
   val description = "counting completed and pruned graphs"
   var completed = 0
   var pruned = 0
+  lazy val result = CountResult(completed, pruned)
 
-  def consume(result: Option[CoGraph[C, D, E]]): Unit = {
+  override def consume(result: Option[CoGraph[C, D, E]]): Unit = {
     result match {
       case None => pruned = pruned + 1
       case Some(cg) => completed = completed + 1
@@ -20,23 +22,19 @@ class CountGraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E] {
       throw new ModelingError("too many results")
     }
   }
-
-  def showResults(): Unit = {
-    println(completed + " completed graphs")
-    println(pruned + " pruned graphs")
-  }
+  
+  override def buildResult() = result
 }
 
-class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra] {
+case class ResidualResult(nGraphsCompleted: Int, nGraphsPruned: Int, residuals: List[Expr])
+
+class ResiduatingConsumer extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra, ResidualResult] {
   val description = "counting completed and pruned graphs and showing residual programs"
 
   var completedCoGraphsCount = 0
   var prunedCoGraphsCount = 0
-
-  var coGraphs: List[CoGraph[Expr, DriveInfo[Expr], Extra]] = Nil
-  var programs: List[Expr] = Nil
-
-  var residualPrograms: List[NExpr] = Nil
+  var residuals = List[Expr]()
+  lazy val result = ResidualResult(completedCoGraphsCount, prunedCoGraphsCount, residuals)
 
   def consume(result: Option[CoGraph[Expr, DriveInfo[Expr], Extra]]): Unit = {
     result match {
@@ -44,49 +42,19 @@ class CountProgramConsumer2 extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
         prunedCoGraphsCount = prunedCoGraphsCount + 1
       case Some(cg) =>
         completedCoGraphsCount = completedCoGraphsCount + 1
-        coGraphs = cg :: coGraphs
+        val graph = Transformations.transpose(cg)
+        val residual = new NaiveResiduator().residuate(graph)
+        residuals = residual :: residuals
     }
-    //println((completedCoGraphsCount, prunedCoGraphsCount))
     if (completedCoGraphsCount > 1000) {
       throw new ModelingError("too many results")
     }
   }
 
-  var nProgs: List[Expr] = null
-  lazy val sllTasks = nProgs 
-  
-  def showResults(): Unit = {
-    
-    val allProgs = for (cg <- coGraphs; graph = Transformations.transpose(cg)) yield (new NaiveResiduator().residuate(graph), graph)
-    nProgs = allProgs map {_._1}
-    
-    val mapProg = Map(allProgs: _*)
-    programs = nProgs sortBy { _.size } distinct
-
-    println(programs.length + " programs")
-
-    val firsts = programs.take(40)
-    println("""showing first """ + firsts.length + """ "minimal" programs""")
-    for (p <- firsts) {
-      println(p)
-      
-      //val sll = NSLL.toSLL(p)
-      //println("<<>>")
-      //println(sll)
-      //println("----")
-      //println("============")
-      //println(mapProg(p))
-      //println()
-    }
-
-  }
-  
-  def result(): String = {
-    "" + programs.length
-  }
+   override def buildResult() = result 
 }
 
-class SingleProgramConsumer extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra] {
+class SingleProgramConsumer extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra, Expr] {
   val description = "I expect one result"
 
   var residualProgram: Expr = null
@@ -104,8 +72,5 @@ class SingleProgramConsumer extends CoGraphConsumer[Expr, DriveInfo[Expr], Extra
     }
   }
 
-  def showResults(): Unit = {
-    println(residualProgram)
-    println()
-  }
+  override def buildResult() = residualProgram 
 }

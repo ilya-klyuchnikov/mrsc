@@ -102,7 +102,7 @@ object Samples {
     val builder1 = new CoGraphBuilder(m1, consumer1)
     builder1.buildCoGraph(task.target, NoExtra)
     println("**classic up:**")
-    consumer1.showResults
+    println(consumer1.buildResult)
     
     Checker.check(task, consumer1.residualTask)
 
@@ -111,7 +111,7 @@ object Samples {
     val builder2 = new CoGraphBuilder(m2, consumer2)
     builder2.buildCoGraph(task.target, NoExtra)
     println("**classic down:**")
-    consumer2.showResults
+    println(consumer2.buildResult)
     
     Checker.check(task, consumer2.residualTask)
      
@@ -121,15 +121,16 @@ object Samples {
 
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      val consumer3 = new CountProgramConsumer2()
+      val consumer3 = new ResiduatingConsumer()
       val builder3 = new CoGraphBuilder(m3, consumer3)
       builder3.buildCoGraph(task.target, NoExtra)
-      consumer3.showResults
+      
+      val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
 
-      val r1 = expandRight(5, consumer3.result)
+      //val r1 = expandRight(5, consumer3.result)
       //print(r1)
       
-      for (sllTask2 <- consumer3.sllTasks) {
+      for (sllTask2 <- residuals) {
        println(sllTask2)
        //println(SLLExpressions.pretty(sllTask2))
        println("***")
@@ -143,15 +144,17 @@ object Samples {
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      val consumer3 = new CountProgramConsumer2()
+      val consumer3 = new ResiduatingConsumer()
       val builder3 = new CoGraphBuilder(m3, consumer3)
       builder3.buildCoGraph(task.target, NoExtra)
-      consumer3.showResults
+      
 
-      val r1 = expandRight(5, consumer3.result)
+      val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
+
+      //val r1 = expandRight(5, consumer3.result)
       //print(r1)
 
-      for (sllTask2 <- consumer3.sllTasks) {
+      for (sllTask2 <- residuals) {
        println(sllTask2)
        //println(SLLExpressions.pretty(sllTask2))
        println("***")
@@ -175,10 +178,10 @@ object Samples {
   def preRunTask(task: SLLTask, f: Program => Machine1) = {
     try {
       val machine = f(task.program)
-      val consumer = new CountProgramConsumer2()
+      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra]()
       val builder = new CoGraphBuilder(machine, consumer)
       builder.buildCoGraph(task.target, NoExtra)
-      consumer.showResults()
+      println(consumer.buildResult)
       println()
     } catch {
       case e: ModelingError =>
@@ -190,10 +193,10 @@ object Samples {
   def runTask(task: SLLTask, f: Program => Machine1) = {
     try {
       val machine = f(task.program)
-      val consumer = new CountProgramConsumer2()
+      val consumer = new ResiduatingConsumer()
       val builder = new CoGraphBuilder(machine, consumer)
       builder.buildCoGraph(task.target, NoExtra)
-      consumer.showResults()
+     println(consumer.buildResult)
       println()
     } catch {
       case e: ModelingError =>

@@ -36,9 +36,10 @@ case class PState[C, D, E](val node: CoNode[C, D, E], val completeNodes: CoNodes
   so `GraphConsumer` receives `Some(graph)` when graph is completed and receives `None` 
   if the graph was pruned. 
  */
-trait CoGraphConsumer[C, D, E] {
+trait CoGraphConsumer[C, D, E, R] {
   val description: String
   def consume(graph: Option[CoGraph[C, D, E]]): Unit
+  def buildResult(): R
 }
 
 /*!# Abstract machines
@@ -102,7 +103,7 @@ case class RollbackSubGraph[C, D, E](val subGraphRoot: CoNode[C, D, E],
 /*! `MultiCoGraphBuilder` considers all steps returned by `MultiResultMachine` and proceeds with
   all possible variants.
  */
-class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E]) {
+class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E, _]) {
 
   /*! It maintains a list of partial cographs ...
    */
