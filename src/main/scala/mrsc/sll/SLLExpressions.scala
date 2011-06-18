@@ -14,14 +14,16 @@ object SLLExpressions {
     case GCall(name, args) =>
       GCall(name, args map { subst(_, m) })
     case Where(e, defs) =>
-      Where(subst(e, m), defs map { subst1(_, m) })
+      Where(subst(e, m), defs map { subst(_, m) })
     case Let(e, bs) =>
       Let(subst(e, m), bs)
   }
 
-  def subst1(deff: Def, m: Map[Var, Expr]): Def = deff match {
-    case FFun(n, args, body) => FFun(n, args, subst(body, m -- args))
-    case GFun(n, Pat(pn, pargs), args, body) => GFun(n, Pat(pn, pargs), args, subst(body, m -- pargs -- args))
+  def subst(deff: Def, m: Map[Var, Expr]): Def = deff match {
+    case FFun(n, args, body) => 
+      FFun(n, args, subst(body, m -- args))
+    case GFun(n, Pat(pn, pargs), args, body) => 
+      GFun(n, Pat(pn, pargs), args, subst(body, m -- pargs -- args))
   }
 
   def renaming(t1: Expr, t2: Expr): Boolean = t1.size == t2.size && inst(t1, t2) && inst(t2, t1)

@@ -1,5 +1,7 @@
 package mrsc.sll
 
+import mrsc._
+
 import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input.{CharSequenceReader => Reader}
@@ -28,7 +30,7 @@ case class GCall(name: String, args: List[Expr]) extends Expr {
   lazy val size = 1 + (args map { _.size }).sum
   override def toString = name + args.mkString("(", ", ", ")")
 }
-case class Let(term: Expr, bindings: List[(Var, Expr)]) extends Expr {
+case class Let(term: Expr, bindings: List[(Name, Expr)]) extends Expr {
   lazy val size = 1 + (bindings map { _._2.size }).sum
   override def toString = "let " + (bindings map { case (x, y) => x + "=" + y } mkString (", ")) + " in " + term
 }

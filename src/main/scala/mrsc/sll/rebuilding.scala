@@ -5,7 +5,7 @@ import mrsc._
 object SLLRebuilding {
 
   def gens(e: Expr): List[Let] =
-    rebuildings(e) map { case (e1, sub) => Let(e1, sub map { case (k, v) => (Var(k), v) } toList) }
+    rebuildings(e) map { case (e1, sub) => Let(e1, sub toList) }
 
   def rebuildings(e: Expr): List[Rebuilding[Expr]] = e match {
     case Let(_, _) => Nil

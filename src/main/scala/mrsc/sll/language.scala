@@ -20,8 +20,7 @@ trait SLLSyntax extends Syntax[Expr] {
 
   override def rebuilding2Configuration(rebuilding: Rebuilding[Expr]): Expr = {
     val (e, sub) = rebuilding
-    val bindings = sub.toList map { case (n, e) => (Var(n), e) }
-    Let(e, bindings)
+    Let(e, sub toList)
   }
 
   override def findSubst(from: Expr, to: Expr): Option[Subst[Expr]] = {
@@ -56,7 +55,7 @@ trait SLLMetaEvaluator extends Semantics[Expr] {
       case DecLet(Let(term, bs)) =>
         val compose = { parts: List[Expr] =>
           val in :: binds = parts
-          val sub = (bs.map { p => Var(p._1.name) } zip binds).toMap
+          val sub = (bs.map { p => Var(p._1) } zip binds).toMap
           subst(in, sub)
         }
         val parts = term :: (bs map (_._2))
