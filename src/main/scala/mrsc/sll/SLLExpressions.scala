@@ -1,12 +1,14 @@
 package mrsc.sll
 
+import mrsc._
+
 // FIXME: Here we assume that in bodies of let expressions and
 // where expressions no free variables
 object SLLExpressions {
 
-  def subst(term: Expr, m: Map[Var, Expr]): Expr = term match {
-    case v: Var =>
-      m.getOrElse(v, v)
+  def subst(term: Expr, m: Subst[Expr]): Expr = term match {
+    case v@Var(n) =>
+      m.getOrElse(n, v)
     case Ctr(name, args) =>
       Ctr(name, args map { subst(_, m) })
     case FCall(name, args) =>
@@ -19,7 +21,7 @@ object SLLExpressions {
       Let(subst(e, m), bs)
   }
 
-  def subst(deff: Def, m: Map[Var, Expr]): Def = deff match {
+  private def subst(deff: Def, m: Subst[Expr]): Def = deff match {
     case FFun(n, args, body) => 
       FFun(n, args, subst(body, m -- args))
     case GFun(n, Pat(pn, pargs), args, body) => 
@@ -30,10 +32,10 @@ object SLLExpressions {
 
   def inst(t1: Expr, t2: Expr): Boolean = (t1.size <= t2.size) && (findSubst(t1, t2) != null)
 
-  def findSubst(t1: Expr, t2: Expr): Map[Var, Expr] = {
-    val map = scala.collection.mutable.Map[Var, Expr]()
+  def findSubst(t1: Expr, t2: Expr): Subst[Expr] = {
+    val map = scala.collection.mutable.Map[Name, Expr]()
     def walk(t1: Expr, t2: Expr): Boolean = (t1, t2) match {
-      case (v1: Var, _) => map.getOrElse(v1, t2) == (map += (v1 -> t2))(v1)
+      case (v1: Var, _) => map.getOrElse(v1.name, t2) == (map += (v1.name -> t2))(v1.name)
       case (Ctr(n1, args1), Ctr(n2, args2)) => n1 == n2 && (args1, args2).zipped.forall(walk)
       case (FCall(n1, args1), FCall(n2, args2)) => n1 == n2 && (args1, args2).zipped.forall(walk)
       case (GCall(n1, args1), GCall(n2, args2)) => n1 == n2 && (args1, args2).zipped.forall(walk)
@@ -60,14 +62,15 @@ object SLLExpressions {
   private var i: Long = 0;
   def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) };
 
+  
   def fixNames(e: Expr): Expr = {
     var fmap: Map[String, String] = Map()
     var v = 0
     var f = 0
     // fresh var name
-    def fv(x: Any = null): Var = {
+    def fv(x: Any = null): String = {
       v = v + 1
-      Var("v." + v)
+      "v." + v
     }
     // fresh function name
     def ff(x: Any = null): String = {
@@ -75,8 +78,9 @@ object SLLExpressions {
       "f." + f
     }
 
-    def fixBoundVars(e: Expr, m: Map[Var, Var]): Expr = e match {
-      case v: Var => m.getOrElse(v, v)
+    
+    def fixBoundVars(e: Expr, m: Map[Name, Name]): Expr = e match {
+      case Var(n) => Var(m.getOrElse(n, n))
       case Ctr(n, args) => Ctr(n, args map { fixBoundVars(_, m) })
       case FCall(n, args) => FCall(n, args map { fixBoundVars(_, m) })
       case GCall(n, args) => GCall(n, args map { fixBoundVars(_, m) })
@@ -87,7 +91,7 @@ object SLLExpressions {
       }
     }
 
-    def fixBoundVarsInDef(deff: Def, m: Map[Var, Var]): Def = deff match {
+    def fixBoundVarsInDef(deff: Def, m: Map[Name, Name]): Def = deff match {
       case FFun(name, args, body) => {
         val args1 = args map fv
         val m1 = m ++ (args zip args1)

@@ -11,8 +11,7 @@ trait SLLSyntax extends Syntax[Expr] {
   }
 
   override def subst(c: Expr, sub: Subst[Expr]): Expr = {
-    val sllSub = sub map { kv => ((Var(kv._1), kv._2)) }
-    SLLExpressions.subst(c, sllSub)
+    SLLExpressions.subst(c, sub)
   }
 
   override def rebuildings(e: Expr): List[Rebuilding[Expr]] =
@@ -28,8 +27,7 @@ trait SLLSyntax extends Syntax[Expr] {
     if (sllSub == null) {
       None
     } else {
-      val sub = sllSub map { case (k, v) => (k.name, v) }
-      Some(sub)
+      Some(sllSub)
     }
   }
   
@@ -55,7 +53,7 @@ trait SLLMetaEvaluator extends Semantics[Expr] {
       case DecLet(Let(term, bs)) =>
         val compose = { parts: List[Expr] =>
           val in :: binds = parts
-          val sub = (bs.map { p => Var(p._1) } zip binds).toMap
+          val sub = (bs.map { _._1 } zip binds).toMap
           subst(in, sub)
         }
         val parts = term :: (bs map (_._2))
@@ -77,7 +75,7 @@ trait SLLMetaEvaluator extends Semantics[Expr] {
           val fp = freshPat(g.p)
           val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (fp.args ::: args.tail): _*))
           val ctr : Expr = Ctr(fp.name, fp.args)
-          val info = Map(v -> ctr)
+          val info = Map(v.name -> ctr)
           val contraction = Contraction(v.name, ctr)
           val driven = subst(context.replaceRedex(gReduced), info)
           (contraction, driven)

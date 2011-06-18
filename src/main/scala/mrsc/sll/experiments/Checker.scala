@@ -54,8 +54,8 @@ object Checker {
     val vs = vars(t1.target)
     val ss = subs(vs)
     for (sub <- ss) {
-      val e1 = subst(t1.target, sub)
-      val e2 = subst(t2.target, sub)
+      val e1 = subst(t1.target, sub map {case (k, v) => (k.name, v)})
+      val e2 = subst(t2.target, sub map {case (k, v) => (k.name, v)})
       
       val task1 = SLLTask(e1, t1.program)
       val task2 = SLLTask(e2, t2.program)

@@ -6,9 +6,6 @@ import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input.{CharSequenceReader => Reader}
 
-// SLL = Simple Lazy Language, first-order with simple pattern matching.
-// The intended semantics is the usual normal order reduction of the lambda calculus.
-
 sealed trait Expr {
   def size(): Int
 }
@@ -38,7 +35,7 @@ case class Where(e: Expr, defs: List[Def]) extends Expr {
   lazy val size = 1 + (defs map { _.rhs.size }).sum
   override def toString = " let " + defs.mkString("{", " ", "}") + " in " + e 
 }
-case class Pat(name: String, args: List[Var]) {
+case class Pat(name: String, args: List[Name]) {
   override def toString = name + args.mkString("(", ", ", ")")
 }
 
@@ -48,12 +45,12 @@ sealed abstract class Def {
   def rhs: Expr
   override def toString = lhs + " = " + rhs + ";"
 }
-case class FFun(name: String, args: List[Var], term: Expr) extends Def {
-  override val lhs = FCall(name, args)
+case class FFun(name: String, args: List[Name], term: Expr) extends Def {
+  override val lhs = FCall(name, args map Var)
   override val rhs = term
 }
-case class GFun(name: String, p: Pat, args: List[Var], term: Expr) extends Def {
-  override val lhs = GCall(name, Ctr(p.name, p.args) :: args)
+case class GFun(name: String, p: Pat, args: List[Name], term: Expr) extends Def {
+  override val lhs = GCall(name, Ctr(p.name, p.args map Var) :: (args map Var))
   override val rhs = term
 }
 
@@ -78,10 +75,9 @@ object SLLParsers extends StandardTokenParsers with ImplicitConversions {
   def fid = ident ^? {case id if id.charAt(0) == 'f' => id}
   def gid = ident ^? {case id if id.charAt(0) == 'g' => id}
   def vrb = lid ^^ Var
-  def pat = uid ~ ("(" ~> repsep(vrb, ",") <~ ")") ^^ Pat
-  def fFun = fid ~ ("(" ~> repsep(vrb, ",") <~ ")") ~ ("=" ~> term <~ ";") ^^ FFun
-  def gFun = 
-    gid ~ ("(" ~> pat) ~ ((("," ~> vrb)*) <~ ")") ~ ("=" ~> term <~ ";") ^^ GFun
+  def pat = uid ~ ("(" ~> repsep(lid, ",") <~ ")") ^^ Pat
+  def fFun = fid ~ ("(" ~> repsep(lid, ",") <~ ")") ~ ("=" ~> term <~ ";") ^^ FFun
+  def gFun = gid ~ ("(" ~> pat) ~ ((("," ~> lid)*) <~ ")") ~ ("=" ~> term <~ ";") ^^ GFun
   def ctr = uid ~ ("(" ~> repsep(term, ",") <~ ")") ^^ Ctr
   def fcall = fid ~ ("(" ~> repsep(term, ",") <~ ")") ^^ FCall
   def gcall = gid ~ ("(" ~> repsep(term, ",") <~ ")") ^^ GCall

@@ -1,11 +1,13 @@
 package mrsc.sll
 
+import mrsc._
+
 import SLLExpressions._
-case class Gen(t: Expr, m1: Map[Var, Expr], m2: Map[Var, Expr])
+case class Gen(t: Expr, m1: Map[Name, Expr], m2: Map[Name, Expr])
 object MSG {
   def msg(t1: Expr, t2: Expr): Gen = {
     val v = freshVar()
-    var g = Gen(v, Map(v -> t1), Map(v -> t2))
+    var g = Gen(v, Map(v.name -> t1), Map(v.name -> t2))
     var exp = g.t
     do { exp = g.t; g = commonSubst(commonFun(g)) } while (exp != g.t)
     g
@@ -16,17 +18,17 @@ object MSG {
       case (Ctr(n1, args1), Ctr(n2, args2)) if n1 == n2 => {
         val vs = args1 map freshVar
         val t = subst(g.t, Map(v -> Ctr(n1, vs)))
-        return Gen(t, g.m1 - v ++ vs.zip(args1), g.m2 - v ++ vs.zip(args2))
+        return Gen(t, g.m1 - v ++ vs.map{_.name}.zip(args1), g.m2 - v ++ vs.map{_.name}.zip(args2))
       }
       case (FCall(n1, args1), FCall(n2, args2)) if n1 == n2 => {
         val vs = args1 map freshVar
         val t = subst(g.t, Map(v -> FCall(n1, vs)))
-        return Gen(t, g.m1 - v ++ vs.zip(args1), g.m2 - v ++ vs.zip(args2))
+        return Gen(t, g.m1 - v ++ vs.map{_.name}.zip(args1), g.m2 - v ++ vs.map{_.name}.zip(args2))
       }
       case (GCall(n1, args1), GCall(n2, args2)) if n1 == n2 => {
         val vs = args1 map freshVar
         val t = subst(g.t, Map(v -> GCall(n1, vs)))
-        return Gen(t, g.m1 - v ++ vs.zip(args1), g.m2 - v ++ vs.zip(args2))
+        return Gen(t, g.m1 - v ++ vs.map{_.name}.zip(args1), g.m2 - v ++ vs.map{_.name}.zip(args2))
       }
       case _ =>
     }

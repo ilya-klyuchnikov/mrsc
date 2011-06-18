@@ -45,19 +45,18 @@ object NSLL {
       case NCase(sel, bs) =>
         gs += nfun.name
         val sel1 = sel.asInstanceOf[NVar]
-        val sel2 = Var(sel1.n)
         // TODO: decide what to do with substitution
         for ((NPat(n, vars), e1) <- bs) {
-          val p1 = Pat(n, vars map { v => Var(v.n) })
+          val p1 = Pat(n, vars map { v => v.n })
           val c1 = Ctr(n, vars map { v => Var(v.n) })
           val body = traverse(e1)
-          val correctBody = SLLExpressions.subst(body, Map(sel2 -> c1))
-          val g = GFun(nfun.name, p1, nfun.args.tail map { v => Var(v.n) }, correctBody)
+          val correctBody = SLLExpressions.subst(body, Map(sel1.n -> c1))
+          val g = GFun(nfun.name, p1, nfun.args.tail map { v => v.n }, correctBody)
           defs += g
         }
 
       case e =>
-        val f = FFun(nfun.name, nfun.args map { v => Var(v.n) }, traverse(nfun.term))
+        val f = FFun(nfun.name, nfun.args map { v => v.n }, traverse(nfun.term))
         defs += f
     }
 

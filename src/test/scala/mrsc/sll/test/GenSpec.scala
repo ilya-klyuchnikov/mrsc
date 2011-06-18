@@ -24,7 +24,7 @@ object GenSpec extends Properties("Generalizaions") {
     println()
     val props1 = gens.map { g =>
       val Let(t, bindings) = g
-      val sub = Map(bindings map {case (k, v) => (Var(k), v)}: _*)
+      val sub = bindings.toMap
       ("t/sub == e, gen = " + g) |: (subst(t, sub) == e)
     }
 

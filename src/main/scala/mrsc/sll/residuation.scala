@@ -21,9 +21,9 @@ class NaiveResiduator extends Residuation[Expr, Expr] {
           val (f, vars) = createSignature(n)
           sigs(n.path) = (f, vars)
           val newVars = vars // map { p => createVar() }
-          val sub = (vars zip newVars).toMap
+          val sub = (vars.map(_.name) zip newVars).toMap
           val rhs = subst(traversed, sub)
-          val fun = FFun(f, newVars, rhs)
+          val fun = FFun(f, newVars map {_.name}, rhs)
           val recCall = FCall(f, vars)
           Where(recCall, List(fun))
         }
@@ -55,7 +55,7 @@ class NaiveResiduator extends Residuation[Expr, Expr] {
             val vars1 = vars remove {_ == Var(c.v)}
             val branches = children map { n2 =>
               val VariantsStepInfo(Contraction(v, pat)) = n2.driveInfo
-              GFun(fname, toPat(pat.asInstanceOf[Ctr]), vars1, fold(n2.node))
+              GFun(fname, toPat(pat.asInstanceOf[Ctr]), vars1 map {_.name}, fold(n2.node))
             }
             val sortedBranches = branches.sortBy(_.p.name)
             val call = GCall(fname, Var(c.v) :: vars1 )
@@ -77,5 +77,5 @@ class NaiveResiduator extends Residuation[Expr, Expr] {
     "f." + fCount
   }
 
-  private def toPat(p: Ctr): Pat = Pat(p.name, p.args map { case v: Var => v })
+  private def toPat(p: Ctr): Pat = Pat(p.name, p.args map { case v: Var => v.name })
 }
