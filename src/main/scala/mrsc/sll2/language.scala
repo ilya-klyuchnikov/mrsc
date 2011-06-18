@@ -16,7 +16,7 @@ trait SLLSyntax extends Syntax[Expr] {
   }
 
   override def rebuildings(e: Expr): List[Rebuilding[Expr]] =
-    SLLGeneralizations.gens2(e)
+    SLLRebuilding.rebuildings(e)
 
   override def rebuilding2Configuration(rebuilding: Rebuilding[Expr]): Expr = {
     val (e, sub) = rebuilding
