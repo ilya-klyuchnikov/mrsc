@@ -105,7 +105,7 @@ object Samples {
       val builder1 = new CoGraphBuilder(m1, consumer1)
       builder1.buildCoGraph(task.target, NoExtra)
       println("**classic up:**")
-      println(consumer1.buildResult)
+      println(PrettySLL.pretty(consumer1.buildResult))
 
       Checker.check(task, consumer1.residualTask)
     }
@@ -116,7 +116,7 @@ object Samples {
       val builder2 = new CoGraphBuilder(m2, consumer2)
       builder2.buildCoGraph(task.target, NoExtra)
       println("**classic down:**")
-      println(consumer2.buildResult)
+      println(PrettySLL.pretty(consumer2.buildResult))
 
       Checker.check(task, consumer2.residualTask)
     }
@@ -132,8 +132,7 @@ object Samples {
       val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
 
       for (sllTask2 <- residuals) {
-        println(sllTask2)
-        //println(SLLExpressions.pretty(sllTask2))
+        println(PrettySLL.pretty(sllTask2))
         println("***")
         val taskS = SLLExpressions.expr2Task(sllTask2)
         println(taskS)
@@ -152,8 +151,7 @@ object Samples {
       val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
 
       for (sllTask2 <- residuals) {
-        println(sllTask2)
-        //println(SLLExpressions.pretty(sllTask2))
+        println(PrettySLL.pretty(sllTask2))
         println("***")
         val taskS = SLLExpressions.expr2Task(sllTask2)
         println(taskS)
