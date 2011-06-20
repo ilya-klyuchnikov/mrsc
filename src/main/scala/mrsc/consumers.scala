@@ -26,7 +26,7 @@ class CountGraphConsumer[C, D, E]
 
 case class ResidualResult[C](nGraphsCompleted: Int, nGraphsPruned: Int, residuals: List[C])
 
-class ResiduatingConsumer[C](residuator: Residuation[C, C])
+class ResiduatingConsumer[C](residuator: Residuation[C])
   extends CoGraphConsumer[C, DriveInfo[C], Extra, ResidualResult[C]] {
   val description = "counting completed and pruned graphs and showing residual programs"
 
@@ -53,7 +53,7 @@ class ResiduatingConsumer[C](residuator: Residuation[C, C])
   override def buildResult() = result
 }
 
-class SingleProgramConsumer[C](residuator: Residuation[C, C])
+class SingleProgramConsumer[C](residuator: Residuation[C])
   extends CoGraphConsumer[C, DriveInfo[C], Extra, C] {
   val description = "I expect one result"
 

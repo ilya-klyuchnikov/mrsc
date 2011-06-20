@@ -21,8 +21,8 @@ trait Semantics[C] {
   def isDrivable(c: C): Boolean
 }
 
-trait Residuation[C, R] {
-  def residuate(graph: Graph[R, DriveInfo[R], _]): R
+trait Residuation[C] {
+  def residuate(graph: Graph[C, DriveInfo[C], _]): C
 }
 
 trait SimplePartialOrdering[T] extends PartialOrdering[T] {
