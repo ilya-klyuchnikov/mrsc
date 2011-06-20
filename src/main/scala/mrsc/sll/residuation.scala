@@ -8,6 +8,7 @@ class NaiveResiduator extends Residuation[Expr, Expr] {
   private val sigs = scala.collection.mutable.Map[Path, (String, List[Var])]()
 
   override def residuate(tree: Graph[Expr, DriveInfo[Expr], _]): Expr = {
+    fCount = 0
 
     def fold(n: Node[Expr, DriveInfo[Expr], _]): Expr = n.base match {
 

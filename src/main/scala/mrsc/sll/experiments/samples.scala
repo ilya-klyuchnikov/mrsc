@@ -101,31 +101,31 @@ object Samples {
     
     {
       val m1 = classic1(HEByCouplingWhistle)(task.program)
-      val consumer1 = new SingleProgramConsumer()
+      val consumer1 = new SingleProgramConsumer(new NaiveResiduator)
       val builder1 = new CoGraphBuilder(m1, consumer1)
       builder1.buildCoGraph(task.target, NoExtra)
       println("**classic up:**")
       println(PrettySLL.pretty(consumer1.buildResult))
 
-      Checker.check(task, consumer1.residualTask)
+      Checker.check(task, SLLExpressions.expr2Task(consumer1.residualProgram))
     }
 
     {
       val m2 = classic2(HEByCouplingWhistle)(task.program)
-      val consumer2 = new SingleProgramConsumer()
+      val consumer2 = new SingleProgramConsumer(new NaiveResiduator)
       val builder2 = new CoGraphBuilder(m2, consumer2)
       builder2.buildCoGraph(task.target, NoExtra)
       println("**classic down:**")
       println(PrettySLL.pretty(consumer2.buildResult))
 
-      Checker.check(task, consumer2.residualTask)
+      Checker.check(task, SLLExpressions.expr2Task(consumer2.residualProgram))
     }
 
      println("**others:**")
      
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer()
+      val consumer3 = new ResiduatingConsumer(new NaiveResiduator)
       val builder3 = new CoGraphBuilder(m3, consumer3)
       builder3.buildCoGraph(task.target, NoExtra)
 
@@ -144,7 +144,7 @@ object Samples {
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer()
+      val consumer3 = new ResiduatingConsumer(new NaiveResiduator)
       val builder3 = new CoGraphBuilder(m3, consumer3)
       builder3.buildCoGraph(task.target, NoExtra)
 
@@ -164,6 +164,8 @@ object Samples {
   }
 
   def preRunTasks(): Unit = {
+    println("Counting completed graphs")
+    println()
     val header = expand(40, """Task \ Supercompiler""") + expandRight(5, "1") +
       expandRight(5, "2") + expandRight(5, "3")
     println(header)
