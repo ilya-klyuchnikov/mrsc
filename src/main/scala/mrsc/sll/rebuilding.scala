@@ -8,8 +8,12 @@ object SLLRebuilding {
     rebuildings(e) map { case (e1, sub) => Let(e1, sub toList) }
 
   def rebuildings(e: Expr): List[Rebuilding[Expr]] = e match {
-    case Let(_, _) => Nil
-    case _ => rebuild(e, Map.empty) filter nonTrivial
+    case Let(_, _) => 
+      Nil
+    case _ =>
+      // There may be duplicates up to renaming when there are repeated variables.
+      // One may filter such duplicates further.
+      rebuild(e, Map.empty) filter nonTrivial
   }
 
   private def nonTrivial(rb: Rebuilding[Expr]): Boolean =
