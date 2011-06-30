@@ -1,7 +1,8 @@
 package mrsc
 
-case class Contraction[C](v: Name, pat: C) {
-  override def toString = v + " = " + pat
+case class Contraction[+C](v: Name, pat: C) {
+  override def toString =
+    if (v != null) v + " = " + pat else ""
 }
 
 abstract sealed trait DriveStep[+C]
@@ -130,6 +131,12 @@ trait Termination[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
     pState.node.ancestors find { n => ordering.lteq(n.conf, pState.node.conf) }
 }
 
+trait UnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
+  def isDangerous(c: C): Boolean
+  override def blame(pState: PState[C, DriveInfo[C], Extra]): W =
+    if (isDangerous(pState.node.conf)) Some(pState.node) else None
+}
+
 // NOW Generalization!
 trait AlwaysCurrentGens[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
   override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
@@ -252,8 +259,8 @@ trait MixMsg[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with NaiveMS
         }
         val rollback = msg(blamedConf, currentConf) map { msg1 =>
           RollbackSubGraph(blamed, rebuilding2Configuration(msg1), NoExtra)
-        }    
-        rollback.toList ++ replace.toList 
+        }
+        rollback.toList ++ replace.toList
       case None =>
         List()
     }
