@@ -29,19 +29,14 @@ case object Omega extends Component {
 trait CounterSyntax extends Syntax[Counter] {
   override val instance = CounterInstanceOrdering
   override def subst(c: Counter, sub: Subst[Counter]) = c
-  override def rebuildings(c: Counter) =
-    gens(c) map { (_, Map.empty[Name, Counter]) }
-  override def rebuilding2Configuration(rb: Rebuilding[Counter]) =
-    rb._1
+  override def rebuildings(c: Counter) = gens(c) map { (_, emptySubst) }
+  override def rebuilding2Configuration(rb: Rebuilding[Counter]) = rb._1
   override def findSubst(from: Counter, to: Counter) =
-    if (instance.lteq(from, to)) Some(Map()) else None
+    if (instance.lteq(from, to)) Some(emptySubst) else None
   override def size(c: Counter) = c.size
-  def gens(c: Counter) = {
-    //println(c)
-    val res = c.foldRight(List[Counter](Nil))((comp, r) =>
-      r flatMap { x: Counter => genComp(comp) map { _ :: x } })
-    //println(res)
-    res
+  def gens(c: Counter): List[Counter] = c match {
+    case Nil => List(Nil)
+    case e :: c1 => for (cg <- genComp(e); gs <- gens(c1)) yield cg :: gs
   }
   def genComp(c: Component): List[Component] = c match {
     case Omega => List(Omega)
@@ -59,16 +54,10 @@ trait MagicWhistle {
 
 trait MagicGen extends CounterSyntax {
   val l: Int
-  override def rebuildings(c: Counter) = {
-    val c1 = c map {
-      case Value(i) if i >= l => Omega
-      case comp => comp
-    }
-    List((c1, emptySubst[Counter]))
-  }
+  override def rebuildings(c: Counter) =
+    (c.map(e => if (e >= l) Omega else e), emptySubst) :: Nil
 }
 
-// Applicative Functor should be use here!
 trait CounterSemantics extends Semantics[Counter] {
   def rules: List[TransitionRule]
   def applyRules(c: Counter) =
@@ -82,14 +71,10 @@ trait CounterSemantics extends Semantics[Counter] {
 object ComponentOrdering extends SimplePartialOrdering[Component] {
   def lteq(x: Component, y: Component) = (x, y) match {
     case (Omega, _) => true
-    case (Value(i), Value(j)) => i == j
-    case (_, _) => false
+    case (_, _) => x == y
   }
 }
 
-// Whistle combinators!!
-object CounterInstanceOrdering
-  extends SimplePartialOrdering[Counter] {
-  def lteq(c1: Counter, c2: Counter) =
-    (c1, c2).zipped.forall(ComponentOrdering.lteq)
+object CounterInstanceOrdering extends SimplePartialOrdering[Counter] {
+  def lteq(c1: Counter, c2: Counter) = (c1, c2).zipped.forall(ComponentOrdering.lteq)
 }
