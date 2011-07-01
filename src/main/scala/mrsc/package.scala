@@ -6,8 +6,11 @@ package object mrsc {
   type Loopback = Option[Path]
   type Nodes[C, D, E] = List[Node[C, D, E]]
   type CoNodes[C, D, E] = List[CoNode[C, D, E]]
-  
+
   type Name = String
   type Subst[C] = Map[Name, C]
   type Rebuilding[C] = (C, Subst[C])
+
+  def emptyContraction[C] = Contraction[C](null, null.asInstanceOf[C])
+  def emptySubst[C] = Map[Name, C]()
 }
