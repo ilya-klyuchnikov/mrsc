@@ -119,6 +119,11 @@ trait Folding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax
     pState.node.ancestors.find { n => instance.equiv(pState.node.conf, n.conf) } map { _.path }
 }
 
+trait InstanceFolding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
+  override def fold(pState: PState[C, DriveInfo[C], Extra]): Option[Path] =
+    pState.node.ancestors.find { n => instance.lteq(n.conf, pState.node.conf) } map { _.path }
+}
+
 trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
   override def tricks(w: W, pState: PState[C, DriveInfo[C], Extra]) =
     Nil
@@ -153,6 +158,19 @@ trait CurrentGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra
         val replaces =
           rebuildings(pState.node.conf) map rebuilding2Configuration map { ReplaceNode(_, NoExtra) }
         replaces
+    }
+  }
+}
+
+trait CurrentGensOnUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] with UnaryWhistle[C]{
+  override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    whistle match {
+      case None =>
+        List()
+      case Some(blamed) =>
+        val rbs =
+          rebuildings(pState.node.conf) map rebuilding2Configuration filterNot {isDangerous}
+        rbs map { ReplaceNode(_, NoExtra) }
     }
   }
 }
