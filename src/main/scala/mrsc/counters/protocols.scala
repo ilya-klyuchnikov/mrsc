@@ -1,8 +1,13 @@
 package mrsc.counters
 
-object protocols {
+trait Protocol {
+  val rules: List[TransitionRule]
+  def safe(c: Counter): Boolean
+}
 
-  val MESI: List[TransitionRule] = List(
+object MESI extends Protocol {
+
+  val rules: List[TransitionRule] = List(
     {
       case List(invalid, exclusive, shared, modified) if invalid >= 1 =>
         List(invalid - 1, 0, shared + exclusive + modified + 1, 0)
@@ -14,7 +19,7 @@ object protocols {
         List(invalid + exclusive + shared + modified - 1, 1, 0, 0)
     })
 
-  def safeMESI(c: Counter) = c match {
+  def safe(c: Counter) = c match {
     case List(invalid, exclusive, shared, modified) if modified >= 2 => false
     case List(invalid, exclusive, shared, modified) if shared >= 1 && modified >= 1 => false
     case _ => true

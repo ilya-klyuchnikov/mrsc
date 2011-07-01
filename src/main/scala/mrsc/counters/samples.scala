@@ -26,8 +26,8 @@ case class CounterMultiSc(val rules: List[TransitionRule], val l: Int)
   with NoTricks[Counter]
 
 object CounterSamples extends App {
-  def scProtocol(rules: List[TransitionRule], safe: Counter => Boolean, l: Int, startCounter: Counter): Unit = {
-    val sc = CounterSc(rules, l)
+  def scProtocol(protocol: Protocol, l: Int, startCounter: Counter): Unit = {
+    val sc = CounterSc(protocol.rules, l)
     val consumer = new GraphConsumer[Counter]
     val builder = new CoGraphBuilder(sc, consumer)
     builder.buildCoGraph(startCounter, NoExtra)
@@ -37,13 +37,13 @@ object CounterSamples extends App {
       println()
       println(graph)
       println()
-      println(checkSubTree(safe)(graph.root))
+      println(checkSubTree(protocol.safe)(graph.root))
       println()
     }
   }
 
-  def multiScProtocol(rules: List[TransitionRule], safe: Counter => Boolean, l: Int, startCounter: Counter): Unit = {
-    val sc = CounterMultiSc(rules, l)
+  def multiScProtocol(protocol: Protocol, l: Int, startCounter: Counter): Unit = {
+    val sc = CounterMultiSc(protocol.rules, l)
     val consumer = new GraphConsumer[Counter]
     val builder = new CoGraphBuilder(sc, consumer)
     builder.buildCoGraph(startCounter, NoExtra)
@@ -53,7 +53,7 @@ object CounterSamples extends App {
       println()
       println(graph)
       println()
-      println(checkSubTree(safe)(graph.root))
+      println(checkSubTree(protocol.safe)(graph.root))
       println()
     }
   }
@@ -61,9 +61,9 @@ object CounterSamples extends App {
   def checkSubTree(safe: Counter => Boolean)(node: Node[Counter, _, _]): Boolean =
     safe(node.conf) && node.outs.map(_.node).forall(checkSubTree(safe))
 
-  scProtocol(protocols.MESI, protocols.safeMESI, 0, List(ϖ, 0, 0, 0))
-  scProtocol(protocols.MESI, protocols.safeMESI, 1, List(ϖ, 0, 0, 0))
-  scProtocol(protocols.MESI, protocols.safeMESI, 2, List(ϖ, 0, 0, 0))
+  scProtocol(MESI, 0, List(ϖ, 0, 0, 0))
+  scProtocol(MESI, 1, List(ϖ, 0, 0, 0))
+  scProtocol(MESI, 2, List(ϖ, 0, 0, 0))
 
-  //multiScProtocol(protocols.MESI, protocols.safeMESI, 2, List(ϖ, 0, 0, 0))
+  multiScProtocol(MESI, 2, List(ϖ, 0, 0, 0))
 }
