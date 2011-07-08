@@ -29,7 +29,7 @@ case object Omega extends Component {
 trait CounterSyntax extends Syntax[Counter] {
   override val instance = CounterInstanceOrdering
   override def subst(c: Counter, sub: Subst[Counter]) = c
-  override def rebuildings(c: Counter) = gens(c) map { (_, emptySubst) }
+  override def rebuildings(c: Counter) = (gens(c) - c) map { (_, emptySubst) }
   override def rebuilding2Configuration(rb: Rebuilding[Counter]) = rb._1
   override def findSubst(from: Counter, to: Counter) =
     if (instance.lteq(from, to)) Some(emptySubst) else None
@@ -59,13 +59,13 @@ trait MagicGen extends CounterSyntax {
 }
 
 trait CounterSemantics extends Semantics[Counter] {
-  def rules: List[TransitionRule]
+  val protocol: Protocol
   def applyRules(c: Counter) =
-    rules.filter(_.isDefinedAt(c)).map(_(c))
+    protocol.rules.filter(_.isDefinedAt(c)).map(_(c))
   override def drive(c: Counter) =
     VariantsDriveStep(applyRules(c) map { (emptyContraction, _) })
   override def isDrivable(c: Counter) =
-    rules.exists(_.isDefinedAt(c))
+    protocol.rules.exists(_.isDefinedAt(c))
 }
 
 object ComponentOrdering extends SimplePartialOrdering[Component] {
