@@ -2,7 +2,7 @@ package mrsc
 
 case class CountResult(countCompleted: Int, countPruned: Int)
 
-class CountGraphConsumer[C, D, E]
+class CountGraphConsumer[C, D, E](val maxCount: Int = 10000)
   extends CoGraphConsumer[C, D, E, CountResult] {
   val description = "counting completed and pruned graphs"
   var completed = 0
@@ -14,7 +14,7 @@ class CountGraphConsumer[C, D, E]
       case None => pruned = pruned + 1
       case Some(cg) => completed = completed + 1
     }
-    if (completed > 1000 || pruned > 1000) {
+    if (completed > maxCount || pruned > maxCount) {
       completed = -1
       pruned = -1
       throw new ModelingError("too many results")
