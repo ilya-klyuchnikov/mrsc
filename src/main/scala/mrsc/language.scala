@@ -21,6 +21,11 @@ trait Semantics[C] {
   def isDrivable(c: C): Boolean
 }
 
+// There are n rules. Variants should return a list of length n
+trait RuleSemantics[C] {
+  def drive(c: C): List[Option[C]]
+}
+
 trait Residuation[C] {
   def residuate(graph: Graph[C, DriveInfo[C], _]): C
 }
