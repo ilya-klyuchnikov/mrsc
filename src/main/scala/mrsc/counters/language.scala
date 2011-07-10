@@ -29,8 +29,8 @@ case object Omega extends Component {
 trait CounterSyntax extends Syntax[Counter] {
   override val instance = CounterInstanceOrdering
   override def subst(c: Counter, sub: Subst[Counter]) = c
-  override def rebuildings(c: Counter) = (gens(c) - c) map { (_, emptySubst) }
-  override def rebuilding2Configuration(rb: Rebuilding[Counter]) = rb._1
+  override def rawRebuildings(c: Counter) = (gens(c) - c) map { (_, emptySubst) }
+  override def translate(rb: Rebuilding[Counter]) = rb._1
   override def findSubst(from: Counter, to: Counter) =
     if (instance.lteq(from, to)) Some(emptySubst) else None
   override def size(c: Counter) = c.size
@@ -67,7 +67,7 @@ trait MagicWhistle {
 
 trait MagicGen extends CounterSyntax {
   val l: Int
-  override def rebuildings(c: Counter) =
+  override def rawRebuildings(c: Counter) =
     (c.map(e => if (e >= l) Omega else e), emptySubst) :: Nil
 }
 

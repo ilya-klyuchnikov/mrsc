@@ -6,8 +6,8 @@ package mrsc
 trait Syntax[C] {
   def instance: PartialOrdering[C]
   def subst(c: C, sub: Subst[C]): C
-  def rebuildings(c: C): List[Rebuilding[C]]
-  def rebuilding2Configuration(rebuilding: Rebuilding[C]): C
+  def rawRebuildings(c: C): List[Rebuilding[C]]
+  def translate(rebuilding: Rebuilding[C]): C
   def findSubst(from: C, to: C): Option[Subst[C]]
   def size(c: C): Int
 }
@@ -57,7 +57,7 @@ trait NaiveMSG[C] extends Syntax[C] {
   def msg(c: C, c2: C): Option[Rebuilding[C]] = {
 
     val idRebuilding: Rebuilding[C] = (c, Map[Name, C]())
-    val allRebuildings: List[Rebuilding[C]] = idRebuilding :: rebuildings(c)
+    val allRebuildings: List[Rebuilding[C]] = idRebuilding :: rawRebuildings(c)
     val sharedRebuildings = allRebuildings filter { case (c1, _) => instance.lteq(c1, c2) }
 
     val msgs = sharedRebuildings filter {

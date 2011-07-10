@@ -14,10 +14,10 @@ trait SLLSyntax extends Syntax[Expr] {
     SLLExpressions.subst(c, sub)
   }
 
-  override def rebuildings(e: Expr): List[Rebuilding[Expr]] =
+  override def rawRebuildings(e: Expr): List[Rebuilding[Expr]] =
     SLLRebuilding.rebuildings(e)
 
-  override def rebuilding2Configuration(rebuilding: Rebuilding[Expr]): Expr = {
+  override def translate(rebuilding: Rebuilding[Expr]): Expr = {
     val (e, sub) = rebuilding
     Let(e, sub toList)
   }
