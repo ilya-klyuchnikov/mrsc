@@ -3,11 +3,18 @@ package mrsc
 /*! # Means for specifying languages and ordering on language expressions.
  */
 
-trait Syntax[C] {
+trait PreSyntax[C] {
+  def instance: PartialOrdering[C]
+  def rebuildings(c: C): List[C]
+}
+
+trait Syntax[C] extends PreSyntax[C] {
   def instance: PartialOrdering[C]
   def subst(c: C, sub: Subst[C]): C
   def rawRebuildings(c: C): List[Rebuilding[C]]
   def translate(rebuilding: Rebuilding[C]): C
+  def rebuildings(c: C): List[C] = 
+    rawRebuildings(c) map translate
   def findSubst(from: C, to: C): Option[Subst[C]]
   def size(c: C): Int
 }
