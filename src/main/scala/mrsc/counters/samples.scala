@@ -33,11 +33,11 @@ case class CounterTrueMultiSc(val protocol: Protocol, val l: Int)
   with ProtocolSafetyAware
   with AlwaysCurrentGensWithUnaryWhistle[Counter]
 
-case class Counter1MultiSc(val protocol: Protocol, val l: Int)
+case class CounterMultiSc(val protocol: Protocol, val l: Int)
   extends GenericMultiMachine[Counter, Int, Extra]
   with CounterSyntax
   with MagicWhistle
-  with CounterRulesSemantics
+  with CounterRuleSemantics
   with RuleDriving[Counter]
   with SimpleInstanceFolding[Counter, Int]
   with SimpleUnaryWhistle[Counter, Int]
@@ -85,8 +85,8 @@ object CounterSamples extends App {
   }
   
   def multiScProtocol(protocol: Protocol, l: Int, startCounter: Counter): Unit = {
-    val sc = CounterTrueMultiSc(protocol, l)
-    val consumer = new GraphConsumer[Counter]
+    val sc = CounterMultiSc(protocol, l)
+    val consumer = new SimpleGraphConsumer[Counter, Int]
     //val consumer = new CountGraphConsumer[Counter, DriveInfo[Counter], Extra](100000000)
     val builder = new CoGraphBuilder(sc, consumer)
     builder.buildCoGraph(startCounter, NoExtra)

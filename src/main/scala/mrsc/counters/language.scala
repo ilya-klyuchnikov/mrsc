@@ -81,7 +81,7 @@ trait CounterSemantics extends Semantics[Counter] {
     protocol.rules.exists(_.isDefinedAt(c))
 }
 
-trait CounterRulesSemantics extends RuleSemantics[Counter] {
+trait CounterRuleSemantics extends RuleSemantics[Counter] {
   val protocol: Protocol
   override def drive(c: Counter) = protocol.rules.map{_.lift(c)}
 }
