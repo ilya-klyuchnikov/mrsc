@@ -32,7 +32,17 @@ case class CounterTrueMultiSc(val protocol: Protocol, val l: Int)
   with UnaryWhistle[Counter]
   with ProtocolSafetyAware
   with AlwaysCurrentGensWithUnaryWhistle[Counter]
-  with NoTricks[Counter]
+
+case class Counter1MultiSc(val protocol: Protocol, val l: Int)
+  extends GenericMultiMachine[Counter, Int, Extra]
+  with CounterSyntax
+  with MagicWhistle
+  with CounterRulesSemantics
+  with RuleDriving[Counter]
+  with SimpleInstanceFolding[Counter, Int]
+  with SimpleUnaryWhistle[Counter, Int]
+  with ProtocolSafetyAware
+  with SimpleGensWithUnaryWhistle[Counter, Int]
 
 trait ProtocolSafetyAware extends MagicWhistle {
   val protocol: Protocol

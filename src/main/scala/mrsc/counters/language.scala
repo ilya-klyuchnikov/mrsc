@@ -44,6 +44,19 @@ trait CounterSyntax extends Syntax[Counter] {
   }
 }
 
+trait CounterPreSyntax {
+  val instance = CounterInstanceOrdering
+  def rebuildings(c: Counter) = gens(c) - c
+  def gens(c: Counter): List[Counter] = c match {
+    case Nil => List(Nil)
+    case e :: c1 => for (cg <- genComp(e); gs <- gens(c1)) yield cg :: gs
+  }
+  def genComp(c: Component): List[Component] = c match {
+    case Omega => List(Omega)
+    case value => List(Omega, value)
+  }
+}
+
 trait MagicWhistle {
   val l: Int
   def isDangerous(counter: Counter) = counter exists {
@@ -66,6 +79,11 @@ trait CounterSemantics extends Semantics[Counter] {
     VariantsDriveStep(applyRules(c) map { (emptyContraction, _) })
   override def isDrivable(c: Counter) =
     protocol.rules.exists(_.isDefinedAt(c))
+}
+
+trait CounterRulesSemantics extends RuleSemantics[Counter] {
+  val protocol: Protocol
+  override def drive(c: Counter) = protocol.rules.map{_.lift(c)}
 }
 
 object ComponentOrdering extends SimplePartialOrdering[Component] {
