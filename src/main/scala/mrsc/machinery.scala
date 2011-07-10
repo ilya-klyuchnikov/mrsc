@@ -104,12 +104,15 @@ trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semant
 }
 
 trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra] with RuleSemantics[C] {
-  override def drive(whistle: W, pState: PState[C, Int, Extra]): List[Command[C, Int, Extra]] = {
-    val subSteps =
-      for ((next, i) <- drive(pState.node.conf).zipWithIndex if next.isDefined)
-        yield ChildNode(next.get, i, NoExtra)
-    List(AddChildNodes(subSteps))
-  }
+  override def drive(whistle: W, pState: PState[C, Int, Extra]): List[Command[C, Int, Extra]] =
+    whistle match {
+      case Some(blamed) => List(DiscardGraph)
+      case None =>
+        val subSteps =
+          for ((next, i) <- drive(pState.node.conf).zipWithIndex if next.isDefined)
+            yield ChildNode(next.get, i + 1, NoExtra)
+        List(AddChildNodes(subSteps))
+    }
 
   override def isLeaf(pState: PState[C, Int, Extra]) =
     false

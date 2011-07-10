@@ -68,6 +68,21 @@ class GraphConsumer[C] extends CoGraphConsumer[C, DriveInfo[C], Extra, List[Grap
   override def buildResult() = result
 }
 
+class SimpleGraphConsumer[C, D] extends CoGraphConsumer[C, D, Extra, List[Graph[C, D, Extra]]] {
+  val description = "counting completed and pruned graphs and showing residual programs"
+
+  var completedGraphs: List[Graph[C, D, Extra]] = List()
+  lazy val result = completedGraphs
+
+  def consume(result: Option[CoGraph[C, D, Extra]]): Unit = 
+    for (cg <- result) {
+      val graph = Transformations.transpose(cg)
+      completedGraphs = graph :: completedGraphs
+    }
+
+  override def buildResult() = result
+}
+
 class SingleProgramConsumer[C](residuator: Residuation[C])
   extends CoGraphConsumer[C, DriveInfo[C], Extra, C] {
   val description = "I expect one result"
