@@ -3,8 +3,7 @@ package mrsc.counters
 import mrsc._
 
 case class CounterSc(val protocol: Protocol, val l: Int)
-  extends GenericMultiMachine[Counter, DriveInfo[Counter], Extra]
-  with CounterSyntax
+  extends CounterSyntax
   with MagicGen
   with MagicWhistle
   with CounterSemantics
@@ -15,8 +14,7 @@ case class CounterSc(val protocol: Protocol, val l: Int)
   with NoTricks[Counter]
 
 case class CounterSimpleMultiSc(val protocol: Protocol, val l: Int)
-  extends GenericMultiMachine[Counter, DriveInfo[Counter], Extra]
-  with CounterSyntax
+  extends CounterSyntax
   with MagicWhistle
   with CounterSemantics
   with SimpleDriving[Counter]
@@ -26,8 +24,7 @@ case class CounterSimpleMultiSc(val protocol: Protocol, val l: Int)
   with NoTricks[Counter]
 
 case class CounterTrueMultiSc(val protocol: Protocol, val l: Int)
-  extends GenericMultiMachine[Counter, DriveInfo[Counter], Extra]
-  with CounterSyntax
+  extends CounterSyntax
   with MagicWhistle
   with CounterSemantics
   with PruningDriving[Counter]
