@@ -1,5 +1,6 @@
 package mrsc
 
+// This is for standard semantics
 case class Contraction[+C](v: Name, pat: C) {
   override def toString =
     if (v != null) v + " = " + pat else ""
@@ -10,6 +11,10 @@ case class TransientDriveStep[C](next: C) extends DriveStep[C]
 case object StopDriveStep extends DriveStep[Nothing]
 case class DecomposeDriveStep[C](compose: List[C] => C, parts: List[C]) extends DriveStep[C]
 case class VariantsDriveStep[C](cases: List[(Contraction[C], C)]) extends DriveStep[C]
+
+abstract sealed trait RuleStep[+C]
+case object StopRuleStep extends RuleStep[Nothing]
+case class VariantsRuleStep[C](cases: List[(Name, C)]) extends RuleStep[C]
 
 abstract sealed class DriveInfo[+C]
 case object TransientStepInfo extends DriveInfo[Nothing] {
@@ -51,7 +56,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
   def blame(pState: PState[C, D, E]): W
   def drive(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
   def rebuildings(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
-  def tricks(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
+  def tricks(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]] = List()
 
   /*! The logic of this machine is straightforward:
      
@@ -98,6 +103,18 @@ trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semant
     !isDrivable(pState.node.conf)
 }
 
+trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra] with RuleSemantics[C] {
+  override def drive(whistle: W, pState: PState[C, Int, Extra]): List[Command[C, Int, Extra]] = {
+    val subSteps =
+      for ((next, i) <- drive(pState.node.conf).zipWithIndex if next.isDefined)
+        yield ChildNode(next.get, i, NoExtra)
+    List(AddChildNodes(subSteps))
+  }
+
+  override def isLeaf(pState: PState[C, Int, Extra]) =
+    false
+}
+
 trait SimpleDriving[C] extends Driving[C] {
   override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
     whistle match {
@@ -124,6 +141,11 @@ trait InstanceFolding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] wit
     pState.node.ancestors.find { n => instance.lteq(n.conf, pState.node.conf) } map { _.path }
 }
 
+trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra] with Syntax[C] {
+  override def fold(pState: PState[C, D, Extra]): Option[Path] =
+    pState.node.ancestors.find { n => instance.lteq(n.conf, pState.node.conf) } map { _.path }
+}
+
 trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
   override def tricks(w: W, pState: PState[C, DriveInfo[C], Extra]) =
     Nil
@@ -139,6 +161,12 @@ trait Termination[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
 trait UnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
   def isDangerous(c: C): Boolean
   override def blame(pState: PState[C, DriveInfo[C], Extra]): W =
+    if (isDangerous(pState.node.conf)) Some(pState.node) else None
+}
+
+trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra] {
+  def isDangerous(c: C): Boolean
+  override def blame(pState: PState[C, D, Extra]): W =
     if (isDangerous(pState.node.conf)) Some(pState.node) else None
 }
 
@@ -162,7 +190,7 @@ trait CurrentGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra
   }
 }
 
-trait CurrentGensOnUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] with UnaryWhistle[C]{
+trait CurrentGensOnUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] with UnaryWhistle[C] {
   override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
     whistle match {
       case None =>
@@ -175,8 +203,15 @@ trait CurrentGensOnUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], 
   }
 }
 
-trait AlwaysCurrentGensWithUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] with UnaryWhistle[C]{
+trait AlwaysCurrentGensWithUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] with UnaryWhistle[C] {
   override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    val rbs = rebuildings(pState.node.conf) map rebuilding2Configuration filterNot isDangerous
+    rbs map { ReplaceNode(_, NoExtra) }
+  }
+}
+
+trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra] with Syntax[C] with SimpleUnaryWhistle[C, D] {
+  override def rebuildings(whistle: W, pState: PState[C, D, Extra]): List[Command[C, D, Extra]] = {
     val rbs = rebuildings(pState.node.conf) map rebuilding2Configuration filterNot isDangerous
     rbs map { ReplaceNode(_, NoExtra) }
   }
