@@ -41,17 +41,17 @@ trait CounterPreSyntax extends PreSyntax[Counter] {
   }
 }
 
+trait CounterRewriteSemantics extends RewriteSemantics[Counter] {
+  val protocol: Protocol
+  override def drive(c: Counter) = protocol.rules.map { _.lift(c) }
+}
+
 trait LWhistle {
   val l: Int
   def isDangerous(counter: Counter) = counter exists {
     case Value(i) => i >= l
     case Omega => false
   }
-}
-
-trait CounterRuleSemantics extends RuleSemantics[Counter] {
-  val protocol: Protocol
-  override def drive(c: Counter) = protocol.rules.map { _.lift(c) }
 }
 
 object CounterInstanceOrdering extends SimplePartialOrdering[Counter] {

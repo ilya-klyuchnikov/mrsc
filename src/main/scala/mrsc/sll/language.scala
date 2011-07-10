@@ -35,7 +35,7 @@ trait SLLSyntax extends Syntax[Expr] {
 
 }
 
-trait SLLMetaEvaluator extends Semantics[Expr] {
+trait SLLMetaEvaluator extends OperationalSemantics[Expr] {
   val program: Program
 
   override def drive(conf: Expr): DriveStep[Expr] =

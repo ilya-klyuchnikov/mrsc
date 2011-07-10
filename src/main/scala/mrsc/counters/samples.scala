@@ -21,7 +21,7 @@ trait CounterSyntax extends Syntax[Counter] {
   }
 }
 
-trait CounterSemantics extends Semantics[Counter] {
+trait CounterSemantics extends OperationalSemantics[Counter] {
   val protocol: Protocol
   def applyRules(c: Counter) =
     protocol.rules.filter(_.isDefinedAt(c)).map(_(c))
@@ -71,7 +71,7 @@ case class CounterTrueMultiSc(val protocol: Protocol, val l: Int)
 case class CounterMultiSc(val protocol: Protocol, val l: Int)
   extends CounterPreSyntax
   with LWhistle
-  with CounterRuleSemantics
+  with CounterRewriteSemantics
   with RuleDriving[Counter]
   with SimpleInstanceFolding[Counter, Int]
   with SimpleUnaryWhistle[Counter, Int]

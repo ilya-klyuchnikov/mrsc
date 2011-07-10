@@ -23,13 +23,13 @@ trait Syntax[C] extends PreSyntax[C] {
  operational semantics and denotational semantics.
  Also it is a mix of small-step semantics and big-step semantics.
  */
-trait Semantics[C] {
+trait OperationalSemantics[C] {
   def drive(c: C): DriveStep[C]
   def isDrivable(c: C): Boolean
 }
 
 // There are n rules. Variants should return a list of length n
-trait RuleSemantics[C] {
+trait RewriteSemantics[C] {
   def drive(c: C): List[Option[C]]
 }
 

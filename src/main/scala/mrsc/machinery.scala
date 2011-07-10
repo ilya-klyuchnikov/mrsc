@@ -82,7 +82,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 }
 
 // doesn't not care about whistle signals 
-trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semantics[C] {
+trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with OperationalSemantics[C] {
   override def drive(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] =
     drive(pState.current.conf) match {
       case StopDriveStep =>
@@ -103,7 +103,7 @@ trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Semant
     !isDrivable(pState.current.conf)
 }
 
-trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra] with RuleSemantics[C] {
+trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra] with RewriteSemantics[C] {
   override def drive(whistle: W, pState: PState[C, Int, Extra]): List[Command[C, Int, Extra]] =
     whistle match {
       case Some(blamed) => List(DiscardGraph)
