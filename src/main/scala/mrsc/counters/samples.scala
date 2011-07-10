@@ -2,10 +2,45 @@ package mrsc.counters
 
 import mrsc._
 
+// TO REMOVE:
+trait CounterSyntax extends Syntax[Counter] {
+  override val instance = CounterInstanceOrdering
+  override def subst(c: Counter, sub: Subst[Counter]) = c
+  override def rawRebuildings(c: Counter) = (gens(c) - c) map { (_, emptySubst) }
+  override def translate(rb: Rebuilding[Counter]) = rb._1
+  override def findSubst(from: Counter, to: Counter) =
+    if (instance.lteq(from, to)) Some(emptySubst) else None
+  override def size(c: Counter) = c.size
+  def gens(c: Counter): List[Counter] = c match {
+    case Nil => List(Nil)
+    case e :: c1 => for (cg <- genComp(e); gs <- gens(c1)) yield cg :: gs
+  }
+  def genComp(c: Component): List[Component] = c match {
+    case Omega => List(Omega)
+    case value => List(Omega, value)
+  }
+}
+
+trait CounterSemantics extends Semantics[Counter] {
+  val protocol: Protocol
+  def applyRules(c: Counter) =
+    protocol.rules.filter(_.isDefinedAt(c)).map(_(c))
+  override def drive(c: Counter) =
+    VariantsDriveStep(applyRules(c) map { (emptyContraction, _) })
+  override def isDrivable(c: Counter) =
+    protocol.rules.exists(_.isDefinedAt(c))
+}
+
+trait MagicGen extends CounterSyntax {
+  val l: Int
+  override def rawRebuildings(c: Counter) =
+    (c.map(e => if (e >= l) Omega else e), emptySubst) :: Nil
+}
+
 case class CounterSc(val protocol: Protocol, val l: Int)
   extends CounterSyntax
   with MagicGen
-  with MagicWhistle
+  with LWhistle
   with CounterSemantics
   with SimpleDriving[Counter]
   with Folding[Counter]
@@ -15,7 +50,7 @@ case class CounterSc(val protocol: Protocol, val l: Int)
 
 case class CounterSimpleMultiSc(val protocol: Protocol, val l: Int)
   extends CounterSyntax
-  with MagicWhistle
+  with LWhistle
   with CounterSemantics
   with SimpleDriving[Counter]
   with InstanceFolding[Counter]
@@ -25,7 +60,7 @@ case class CounterSimpleMultiSc(val protocol: Protocol, val l: Int)
 
 case class CounterTrueMultiSc(val protocol: Protocol, val l: Int)
   extends CounterSyntax
-  with MagicWhistle
+  with LWhistle
   with CounterSemantics
   with PruningDriving[Counter]
   with InstanceFolding[Counter]
@@ -34,9 +69,8 @@ case class CounterTrueMultiSc(val protocol: Protocol, val l: Int)
   with AlwaysCurrentGensWithUnaryWhistle[Counter]
 
 case class CounterMultiSc(val protocol: Protocol, val l: Int)
-  extends GenericMultiMachine[Counter, Int, Extra]
-  with CounterSyntax
-  with MagicWhistle
+  extends CounterPreSyntax
+  with LWhistle
   with CounterRuleSemantics
   with RuleDriving[Counter]
   with SimpleInstanceFolding[Counter, Int]
@@ -44,7 +78,7 @@ case class CounterMultiSc(val protocol: Protocol, val l: Int)
   with ProtocolSafetyAware
   with SimpleGensWithUnaryWhistle[Counter, Int]
 
-trait ProtocolSafetyAware extends MagicWhistle {
+trait ProtocolSafetyAware extends LWhistle {
   val protocol: Protocol
   override def isDangerous(counter: Counter): Boolean =
     super.isDangerous(counter) || !protocol.safe(counter)

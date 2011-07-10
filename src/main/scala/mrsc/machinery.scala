@@ -144,7 +144,7 @@ trait InstanceFolding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] wit
     pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.path }
 }
 
-trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra] with Syntax[C] {
+trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] {
   override def fold(pState: PState[C, D, Extra]): Option[Path] =
     pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.path }
 }
@@ -213,9 +213,9 @@ trait AlwaysCurrentGensWithUnaryWhistle[C] extends GenericMultiMachine[C, DriveI
   }
 }
 
-trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra] with Syntax[C] with SimpleUnaryWhistle[C, D] {
+trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
   override def rebuildings(whistle: W, pState: PState[C, D, Extra]): List[Command[C, D, Extra]] = {
-    val rbs = rawRebuildings(pState.current.conf) map translate filterNot isDangerous
+    val rbs = rebuildings(pState.current.conf) filterNot isDangerous
     rbs map { ReplaceNode(_, NoExtra) }
   }
 }
