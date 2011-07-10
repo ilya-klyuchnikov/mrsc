@@ -7,9 +7,9 @@ import scala.annotation.tailrec
  of incomplete part (`incompleteLeaves`).
  */
 case class PartialCoGraph[C, D, E](
-  completeLeaves: CoNodes[C, D, E],
-  incompleteLeaves: CoNodes[C, D, E],
-  completeNodes: CoNodes[C, D, E]) {
+  completeLeaves: List[CoNode[C, D, E]],
+  incompleteLeaves: List[CoNode[C, D, E]],
+  completeNodes: List[CoNode[C, D, E]]) {
 
   /*! `activeLeaf` is the vanguard of the incomplete part. It will be processed next.
    */
@@ -24,7 +24,7 @@ case class PartialCoGraph[C, D, E](
 /*! `PState` stands for partial state.
  Based on the current `PState`, SCP machine should decide what should be done next.
  */
-case class PState[C, D, E](val node: CoNode[C, D, E], val completeNodes: CoNodes[C, D, E])
+case class PState[C, D, E](current: CoNode[C, D, E], complete: List[CoNode[C, D, E]])
 
 /*!# Processing of complete graphs
  
@@ -37,7 +37,6 @@ case class PState[C, D, E](val node: CoNode[C, D, E], val completeNodes: CoNodes
   if the graph was pruned. 
  */
 trait CoGraphConsumer[C, D, E, R] {
-  val description: String
   def consume(graph: Option[CoGraph[C, D, E]]): Unit
   def buildResult(): R
 }
@@ -183,7 +182,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
             the incomplete part. Also the (co-)path is calculated for any child node.
          */
         case AddChildNodes(subSteps) =>
-          val deltaLeaves: CoNodes[C, D, E] = subSteps.zipWithIndex map {
+          val deltaLeaves: List[CoNode[C, D, E]] = subSteps.zipWithIndex map {
             case (ChildNode(conf, dInfo, eInfo), i) =>
               val in = CoEdge(active, dInfo)
               CoNode(conf, eInfo, in, None, i :: active.coPath)

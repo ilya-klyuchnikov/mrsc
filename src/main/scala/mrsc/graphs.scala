@@ -47,7 +47,7 @@ case class CoEdge[C, D, E](coNode: CoNode[C, D, E], driveInfo: D)
   `E` (extra information) is a type of extra label of a node (extra info). 
   Extra information may be seen as an additional "instrumentation" of SC graph.
  */
-case class Graph[C, D, E](root: Node[C, D, E], leaves: Nodes[C, D, E]) {
+case class Graph[C, D, E](root: Node[C, D, E], leaves: List[Node[C, D, E]]) {
   def get(path: Path): Node[C, D, E] = root.get(path)
   override def toString = root.toString
 }
@@ -58,7 +58,7 @@ case class Node[C, D, E](
   conf: C,
   extraInfo: E,
   outs: List[Edge[C, D, E]],
-  base: Loopback,
+  base: Option[Path],
   path: Path) {
 
   lazy val coPath = path.reverse
@@ -80,8 +80,8 @@ case class Node[C, D, E](
  */
 case class CoGraph[C, D, E](
   root: CoNode[C, D, E],
-  leaves: CoNodes[C, D, E],
-  nodes: CoNodes[C, D, E])
+  leaves: List[CoNode[C, D, E]],
+  nodes: List[CoNode[C, D, E]])
 
 /*! `CoNode[C, D, E]` is dual to `Node[C, D, E]`. 
  */
@@ -89,7 +89,7 @@ case class CoNode[C, D, E](
   conf: C,
   extraInfo: E,
   in: CoEdge[C, D, E],
-  base: Loopback,
+  base: Option[CoPath],
   coPath: CoPath) {
 
   lazy val path = coPath.reverse
@@ -121,7 +121,7 @@ object Transformations {
 
   // sub-transposes cogpaph into graph level-by-level
   private def subTranspose[C, D, E](
-    nodes: List[CoNodes[C, D, E]],
+    nodes: List[List[CoNode[C, D, E]]],
     leaves: List[Path]): (List[Tmp[C, D, E]], List[Tmp[C, D, E]]) =
     nodes match {
       case Nil =>
