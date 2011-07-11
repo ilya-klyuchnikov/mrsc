@@ -73,7 +73,7 @@ case class CounterMultiSc(val protocol: Protocol, val l: Int)
   with LWhistle
   with CounterRewriteSemantics
   with RuleDriving[Counter]
-  with SimpleInstanceFolding[Counter, Int]
+  with SimpleInstanceFoldingToAny[Counter, Int]
   with SimpleUnaryWhistle[Counter, Int]
   with ProtocolSafetyAware
   with SimpleGensWithUnaryWhistle[Counter, Int]
@@ -85,6 +85,12 @@ trait ProtocolSafetyAware extends LWhistle {
 }
 
 object CounterSamples extends App {
+  
+  def graphSize(g: Graph[_, _, _]): Int = 
+    size(g.root)
+  
+  def size(n: Node[_, _, _]): Int = 1 + n.outs.map( out => size(out.node)).sum
+  
   def scProtocol(protocol: Protocol, l: Int, startCounter: Counter): Unit = {
     val sc = CounterSc(protocol, l)
     val consumer = new GraphConsumer[Counter]
@@ -120,18 +126,14 @@ object CounterSamples extends App {
   def multiScProtocol(protocol: Protocol, l: Int, startCounter: Counter): Unit = {
     val sc = CounterMultiSc(protocol, l)
     val consumer = new SimpleGraphConsumer[Counter, Int]
-    //val consumer = new CountGraphConsumer[Counter, DriveInfo[Counter], Extra](100000000)
     val builder = new CoGraphBuilder(sc, consumer)
     builder.buildCoGraph(startCounter, NoExtra)
-    //println(consumer.result)
-
-    for (graph <- consumer.result) {
-      println("================================")
-      println()
-      println(graph)
-      println()
-      println(checkSubTree(protocol.safe)(graph.root))
-      println()
+    val graphs = consumer.result
+    
+    val succesGraphs = graphs.filter{g => checkSubTree(protocol.safe)(g.root)}
+    if (!succesGraphs.isEmpty) {
+      val minGraph = succesGraphs.minBy(graphSize)
+      println(minGraph)
     }
   }
 
@@ -139,6 +141,7 @@ object CounterSamples extends App {
     safe(node.conf) && node.outs.map(_.node).forall(checkSubTree(safe))
 
   def synapse(): Unit = {
+    /*
     println()
     println("Synapse - Direct 1")
     scProtocol(Synapse, 1, List(ϖ, 0, 0))
@@ -149,13 +152,14 @@ object CounterSamples extends App {
     println()
     println("Synapse - ALL 1")
     multiScProtocol(Synapse, 1, List(ϖ, 0, 0))
-
+	*/
     println()
     println("Synapse - ALL 2")
     multiScProtocol(Synapse, 2, List(ϖ, 0, 0))
   }
 
   def msi(): Unit = {
+    /*
     println()
     println("MSI - Direct 1")
     scProtocol(MSI, 1, List(ϖ, 0, 0))
@@ -167,13 +171,14 @@ object CounterSamples extends App {
     println()
     println("MSI - ALL 1")
     multiScProtocol(MSI, 1, List(ϖ, 0, 0))
-
+	*/
     println()
     println("MSI - ALL 2")
     multiScProtocol(MSI, 2, List(ϖ, 0, 0))
   }
   
   def mosi(): Unit = {
+    /*
     println()
     println("MOSI - Direct 1")
     scProtocol(MOSI, 1, List(ϖ, 0, 0, 0))
@@ -185,13 +190,14 @@ object CounterSamples extends App {
     println()
     println("MOSI - ALL 1")
     multiScProtocol(MOSI, 1, List(ϖ, 0, 0, 0))
-
+	*/
     println()
     println("MOSI - ALL 2")
     multiScProtocol(MOSI, 2, List(ϖ, 0, 0, 0))
   }
   
   def mesi(): Unit = {
+    /*
     println()
     println("MESI - Direct 1")
     scProtocol(MESI, 1, List(ϖ, 0, 0, 0))
@@ -203,7 +209,7 @@ object CounterSamples extends App {
     println()
     println("MESI - ALL 1")
     multiScProtocol(MESI, 1, List(ϖ, 0, 0, 0))
-
+	*/
     println()
     println("MESI - ALL 2")
     multiScProtocol(MESI, 2, List(ϖ, 0, 0, 0))

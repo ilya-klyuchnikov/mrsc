@@ -149,6 +149,11 @@ trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra] with 
     pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.path }
 }
 
+trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] {
+  override def fold(pState: PState[C, D, Extra]): Option[Path] =
+    pState.complete.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.path }
+}
+
 trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
   override def tricks(w: W, pState: PState[C, DriveInfo[C], Extra]) =
     Nil
