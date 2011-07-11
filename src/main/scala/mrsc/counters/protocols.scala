@@ -1,14 +1,13 @@
 package mrsc.counters
 
 trait Protocol {
+  val start: Counter
   val rules: List[TransitionRule]
   def safe(c: Counter): Boolean
 }
 
-object Synapse extends Protocol {
-  // i = invalid
-  // d = dirty
-  // v = valid
+case object Synapse extends Protocol { 
+  val start: Counter = List(Omega, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, d, v) if i >= 1 =>
@@ -29,7 +28,8 @@ object Synapse extends Protocol {
 }
 
 // invalid, modified, shared
-object MSI extends Protocol {
+case object MSI extends Protocol {
+  val start: Counter = List(Omega, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, m, s) if i >= 1 =>
@@ -50,7 +50,8 @@ object MSI extends Protocol {
 }
 
 // invalid, modified, shared, owned
-object MOSI extends Protocol {
+case object MOSI extends Protocol {
+  val start: Counter = List(Omega, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, o, s, m) if i >= 1 =>
@@ -88,8 +89,8 @@ object MOSI extends Protocol {
   }
 }
 
-object MESI extends Protocol {
-
+case object MESI extends Protocol {
+  val start: Counter = List(Omega, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, e, s, m) if i >= 1 =>

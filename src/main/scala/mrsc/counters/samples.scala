@@ -130,97 +130,24 @@ object CounterSamples extends App {
     builder.buildCoGraph(startCounter, NoExtra)
     val graphs = consumer.result
     
-    val succesGraphs = graphs.filter{g => checkSubTree(protocol.safe)(g.root)}
-    if (!succesGraphs.isEmpty) {
-      val minGraph = succesGraphs.minBy(graphSize)
+    val successGraphs = graphs.filter{g => checkSubTree(protocol.safe)(g.root)}
+    if (!successGraphs.isEmpty) {
+      val minGraph = successGraphs.minBy(graphSize)
       println(minGraph)
     }
   }
 
   def checkSubTree(safe: Counter => Boolean)(node: Node[Counter, _, _]): Boolean =
     safe(node.conf) && node.outs.map(_.node).forall(checkSubTree(safe))
-
-  def synapse(): Unit = {
-    /*
-    println()
-    println("Synapse - Direct 1")
-    scProtocol(Synapse, 1, List(ϖ, 0, 0))
-
-    println("Synapse - Direct 2")
-    scProtocol(Synapse, 2, List(ϖ, 0, 0))
-
-    println()
-    println("Synapse - ALL 1")
-    multiScProtocol(Synapse, 1, List(ϖ, 0, 0))
-	*/
-    println()
-    println("Synapse - ALL 2")
-    multiScProtocol(Synapse, 2, List(ϖ, 0, 0))
-  }
-
-  def msi(): Unit = {
-    /*
-    println()
-    println("MSI - Direct 1")
-    scProtocol(MSI, 1, List(ϖ, 0, 0))
-
-    println()
-    println("MSI - Direct 2")
-    scProtocol(MSI, 2, List(ϖ, 0, 0))
-
-    println()
-    println("MSI - ALL 1")
-    multiScProtocol(MSI, 1, List(ϖ, 0, 0))
-	*/
-    println()
-    println("MSI - ALL 2")
-    multiScProtocol(MSI, 2, List(ϖ, 0, 0))
-  }
   
-  def mosi(): Unit = {
-    /*
+  def verifyProtocol(protocol: Protocol): Unit = {
     println()
-    println("MOSI - Direct 1")
-    scProtocol(MOSI, 1, List(ϖ, 0, 0, 0))
-
-    println()
-    println("MOSI - Direct 2")
-    scProtocol(MOSI, 2, List(ϖ, 0, 0, 0))
-
-    println()
-    println("MOSI - ALL 1")
-    multiScProtocol(MOSI, 1, List(ϖ, 0, 0, 0))
-	*/
-    println()
-    println("MOSI - ALL 2")
-    multiScProtocol(MOSI, 2, List(ϖ, 0, 0, 0))
-  }
-  
-  def mesi(): Unit = {
-    /*
-    println()
-    println("MESI - Direct 1")
-    scProtocol(MESI, 1, List(ϖ, 0, 0, 0))
-
-    println()
-    println("MESI - Direct 2")
-    scProtocol(MESI, 2, List(ϖ, 0, 0, 0))
-
-    println()
-    println("MESI - ALL 1")
-    multiScProtocol(MESI, 1, List(ϖ, 0, 0, 0))
-	*/
-    println()
-    println("MESI - ALL 2")
-    multiScProtocol(MESI, 2, List(ϖ, 0, 0, 0))
+    println(protocol)
+    multiScProtocol(protocol, 2, protocol.start)
   }
 
-  //scProtocol(MESI, 0, List(ϖ, 0, 0, 0))
-  //scProtocol(MESI, 1, List(ϖ, 0, 0, 0))
-  //simpleMultiScProtocol(MESI, 2, List(ϖ, 0, 0, 0))
-
-  synapse()
-  msi()
-  mosi()
-  mesi()
+  verifyProtocol(Synapse)
+  verifyProtocol(MSI)
+  verifyProtocol(MOSI)
+  verifyProtocol(MESI)
 }
