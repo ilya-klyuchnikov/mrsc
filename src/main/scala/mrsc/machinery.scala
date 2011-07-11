@@ -198,6 +198,18 @@ trait CurrentGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra
   }
 }
 
+trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
+   override def rebuildings(whistle: W, pState: PState[C, D, Extra]): List[Command[C, D, Extra]] = {
+    whistle match {
+      case None =>
+        List()
+      case Some(blamed) =>
+        val rbs = rebuildings(pState.current.conf) filterNot isDangerous
+        rbs map { ReplaceNode(_, NoExtra) }
+    }
+  }
+}
+
 trait CurrentGensOnUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] with UnaryWhistle[C] {
   override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
     whistle match {

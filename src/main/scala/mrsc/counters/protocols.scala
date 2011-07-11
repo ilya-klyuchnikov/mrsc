@@ -6,7 +6,7 @@ trait Protocol {
   def safe(c: Counter): Boolean
 }
 
-case object Synapse extends Protocol { 
+case object Synapse extends Protocol {
   val start: Counter = List(Omega, 0, 0)
   val rules: List[TransitionRule] =
     List({
@@ -99,7 +99,10 @@ case object MESI extends Protocol {
       case List(i, e, s, m) if e >= 1 =>
         List(i, e - 1, s, m + 1)
     }, {
-      case List(i, e, s, m) if s + i >= 1 =>
+      case List(i, e, s, m) if s >= 1 =>
+        List(i + e + s + m - 1, 1, 0, 0)
+    }, {
+      case List(i, e, s, m) if i >= 1 =>
         List(i + e + s + m - 1, 1, 0, 0)
     })
 
