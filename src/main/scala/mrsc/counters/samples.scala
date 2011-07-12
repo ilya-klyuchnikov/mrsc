@@ -2,7 +2,7 @@ package mrsc.counters
 
 import mrsc._
 
-trait LGen extends CounterPreSyntax {
+trait LGen extends PreSyntax[Counter] {
   val l: Int
   override def rebuildings(c: Counter) = 
     List(c.map(e => if (e >= l) Omega else e))
