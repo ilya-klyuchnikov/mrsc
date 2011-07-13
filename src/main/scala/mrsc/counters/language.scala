@@ -6,6 +6,7 @@ sealed trait Component {
   def +(comp: Component): Component
   def -(comp: Component): Component
   def >=(i: Int): Boolean
+  def ===(i: Int): Boolean
 }
 
 case class Value(i: Int) extends Component {
@@ -17,6 +18,7 @@ case class Value(i: Int) extends Component {
     case Omega => Omega
     case Value(j) => Value(i - j)
   }
+  override def ===(j: Int) = i == j
   override def >=(j: Int) = i >= j
   override def toString = i.toString
 }
@@ -25,6 +27,7 @@ case object Omega extends Component {
   def +(comp: Component) = Omega
   def -(comp: Component) = Omega
   def >=(comp: Int) = true
+  override def ===(j: Int) = true
   override def toString = "ϖ"
 }
 

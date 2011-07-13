@@ -252,7 +252,7 @@ case object Futurebus extends Protocol {
       case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if i >= 1 & pW === 0 =>
         List(i + eU + sU + pSU + pR + pEMR - 1, 0, 0, 0, 0, 1, 0, pEMW + eM, 0)
     }, { // wm2
-      case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pEMW >=1 =>
+      case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pEMW >= 1 =>
         List(i + 1, sU, eU, eM + pW, pR, 0, pEMR, pEMW - 1, pSU)
     }, { // wm3
       case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pEMW === 0 =>
@@ -309,6 +309,98 @@ case object Xerox extends Protocol {
     case List(i, d, sc, sd, e) if e >= 1 && (sc + sd) >= 1 => false
     case List(i, d, sc, sd, e) if d >= 2 => false
     case List(i, d, sc, sd, e) if e >= 2 => false
+    case _ => true
+  }
+}
+
+case object Java extends Protocol {
+  // nb 1 = True, nb 0 = False
+  // race = 0 = H0, -1 = H1 ,,,
+  val start: Counter = List(1, 0, Omega, 0, 0, 0, 0, 0)
+  val rules: List[TransitionRule] =
+    List({ // (get fast)
+      case List(nb, race, i, b, o, in, out, w) if nb === 1 && i >= 1 =>
+        List(0, race, i - 1, 0, o + 1, in, out, w)
+    }, { // (put fast)
+      case List(nb, race, i, b, o, in, out, w) if nb === 0 && b === 0 && o >= 1 =>
+        List(1, race, i + 1, b, o - 1, in, out, w)
+    }, { // (get slow)
+      case List(nb, race, i, b, o, in, out, w) if nb === 0 && i >= 1 =>
+        List(nb, race, i - 1, b + 1, o, in + 1, out, w)
+    }, { // (put slow)
+      case List(nb, race, i, b, o, in, out, w) if nb === 0 && b >= 1 && o >= 1 =>
+        List(nb, race, i, b - 1, o - 1, in, out + 1, w)
+    }, { // (request)
+      case List(nb, race, i, b, o, in, out, w) if race === 0 && in >= 1 =>
+        List(nb, -1, i, b, o, in - 1, out, w + 1)
+    }, { // (request)
+      case List(nb, race, i, b, o, in, out, w) if race === -2 && in >= 1 =>
+        List(nb, -3, i, b, o, in - 1, out, w + 1)
+    }, { // (release)
+      case List(nb, race, i, b, o, in, out, w) if race === 0 && out >= 1 =>
+        List(nb, -2, i + 1, b, o, in, out - 1, w)
+    }, { // (release)
+      case List(nb, race, i, b, o, in, out, w) if race === -1 && out >= 1 =>
+        List(nb, -3, i + 1, b, o, in, out - 1, w)
+    }, { // (go)
+      case List(nb, race, i, b, o, in, out, w) if race === -3 && w >= 1 =>
+        List(nb, race, i, b, o + 1, in, out, w - 1)
+    })
+
+  def safe(c: Counter) = c match {
+    case List(nb, race, i, b, o, in, out, w) if o + out >= 2 => false
+    case _ => true
+  }
+}
+
+case object ReaderWriter extends Protocol {
+  val start: Counter = List(1, 0, 0, Omega, 0, 0)
+  val rules: List[TransitionRule] =
+    List({ // r1
+      case List(x2, x3, x4, x5, x6, x7) if x2 >= 1 && x4 === 0 && x7 >= 1 =>
+        List(x2 - 1, x3 + 1, 0, x5, x6, x7)
+    }, { // r2
+      case List(x2, x3, x4, x5, x6, x7) if x2 >= 1 && x6 >= 1 =>
+        List(x2, x3, x4 + 1, x5, x6 - 1, x7)
+    }, { // r3
+      case List(x2, x3, x4, x5, x6, x7) if x3 >= 1 =>
+        List(x2 + 1, x3 - 1, x4, x5 + 1, x6, x7)
+    }, { // r4
+      case List(x2, x3, x4, x5, x6, x7) if x4 >= 1 =>
+        List(x2, x3, x4 - 1, x5 + 1, x6, x7)
+    }, { // r5
+      case List(x2, x3, x4, x5, x6, x7) if x5 >= 1 =>
+        List(x2, x3, x4, x5 - 1, x6 + 1, x7)
+    }, { // r6
+      case List(x2, x3, x4, x5, x6, x7) if x5 >= 1 =>
+        List(x2, x3, x4, x5 - 1, x6, x7 + 1)
+    })
+
+  def safe(c: Counter) = c match {
+    case List(x2, x3, x4, x5, x6, x7) if x3 >= 1 && x4 >= 1 => false
+    case _ => true
+  }
+}
+
+case object DataRace extends Protocol {
+  val start: Counter = List(Omega, 0, 0)
+  val rules: List[TransitionRule] =
+    List({ // 1
+      case List(out, cs, scs) if out >= 1&& cs === 0 && scs===0 =>
+        List(out - 1, 1, 0)
+    }, { // 2
+      case List(out, cs, scs) if out >= 1&& cs === 0 =>
+        List(out - 1, 0, scs + 1)
+    },{ // 3
+      case List(out, cs, scs) if cs >= 1 =>
+        List(out + 1, cs - 1, scs)
+    },{ // 4
+      case List(out, cs, scs) if scs >= 1 =>
+        List(out + 1, cs, scs - 1)
+    })
+
+  def safe(c: Counter) = c match {
+    case List(out, cs, scs) if cs >= 1 && scs >= 1 => false
     case _ => true
   }
 }

@@ -4,12 +4,12 @@ import mrsc._
 
 trait LGen extends PreSyntax[Counter] {
   val l: Int
-  override def rebuildings(c: Counter) = 
-    List(c.map(e => if (e >= l) Omega else e))
+  override def rebuildings(c: Counter) =
+    List(c.map { e => if (e >= l) Omega else e })
 }
 
 case class CounterSc(val protocol: Protocol, val l: Int)
-  extends CounterPreSyntax 
+  extends CounterPreSyntax
   with LGen
   with LWhistle
   with CounterRewriteSemantics
@@ -35,12 +35,12 @@ trait ProtocolSafetyAware extends LWhistle {
 }
 
 object CounterSamples extends App {
-  
-  def graphSize(g: Graph[_, _, _]): Int = 
+
+  def graphSize(g: Graph[_, _, _]): Int =
     size(g.root)
-  
-  def size(n: Node[_, _, _]): Int = 1 + n.outs.map( out => size(out.node)).sum
-  
+
+  def size(n: Node[_, _, _]): Int = 1 + n.outs.map(out => size(out.node)).sum
+
   def scProtocol(protocol: Protocol, l: Int): Unit = {
     val sc = CounterSc(protocol, l)
     val consumer = new SimpleGraphConsumer[Counter, Int]
@@ -63,8 +63,8 @@ object CounterSamples extends App {
     val builder = new CoGraphBuilder(sc, consumer)
     builder.buildCoGraph(protocol.start, NoExtra)
     val graphs = consumer.result
-    
-    val successGraphs = graphs.filter{g => checkSubTree(protocol.safe)(g.root)}
+
+    val successGraphs = graphs.filter { g => checkSubTree(protocol.safe)(g.root) }
     if (!successGraphs.isEmpty) {
       val minGraph = successGraphs.minBy(graphSize)
       println(minGraph)
@@ -73,16 +73,29 @@ object CounterSamples extends App {
 
   def checkSubTree(safe: Counter => Boolean)(node: Node[Counter, _, _]): Boolean =
     safe(node.conf) && node.outs.map(_.node).forall(checkSubTree(safe))
-  
-  def verifyProtocol(protocol: Protocol): Unit = {
+
+  def verifyProtocol(protocol: Protocol, findMinimalProof: Boolean = true): Unit = {
     println()
     println(protocol)
     scProtocol(protocol, 2)
-    multiScProtocol(protocol, 2)
+    if (findMinimalProof) {
+      multiScProtocol(protocol, 2)
+    } else {
+      println("skipping quest for minimal proof")
+    }
   }
 
   verifyProtocol(Synapse)
   verifyProtocol(MSI)
   verifyProtocol(MOSI)
   verifyProtocol(MESI)
+  verifyProtocol(MOESI)
+  verifyProtocol(Illinois)
+  verifyProtocol(Berkley)
+  verifyProtocol(Firefly)
+  verifyProtocol(Futurebus, findMinimalProof = false) // too many variants here
+  verifyProtocol(Xerox)
+  verifyProtocol(Java, findMinimalProof = false) // too many variants here
+  verifyProtocol(ReaderWriter)
+  verifyProtocol(DataRace)
 }
