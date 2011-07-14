@@ -167,15 +167,15 @@ trait Termination[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
 }
 
 trait UnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
-  def isDangerous(c: C): Boolean
+  def unsafe(c: C): Boolean
   override def blame(pState: PState[C, DriveInfo[C], Extra]): W =
-    if (isDangerous(pState.current.conf)) Some(pState.current) else None
+    if (unsafe(pState.current.conf)) Some(pState.current) else None
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra] {
-  def isDangerous(c: C): Boolean
+  def unsafe(c: C): Boolean
   override def blame(pState: PState[C, D, Extra]): W =
-    if (isDangerous(pState.current.conf)) Some(pState.current) else None
+    if (unsafe(pState.current.conf)) Some(pState.current) else None
 }
 
 // NOW Generalization!
@@ -204,7 +204,7 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Extra] 
       case None =>
         List()
       case Some(blamed) =>
-        val rbs = rebuildings(pState.current.conf) filterNot isDangerous
+        val rbs = rebuildings(pState.current.conf) filterNot unsafe
         rbs map { ReplaceNode(_, NoExtra) }
     }
   }
@@ -217,7 +217,7 @@ trait CurrentGensOnUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], 
         List()
       case Some(blamed) =>
         val rbs =
-          rawRebuildings(pState.current.conf) map translate filterNot isDangerous
+          rawRebuildings(pState.current.conf) map translate filterNot unsafe
         rbs map { ReplaceNode(_, NoExtra) }
     }
   }
@@ -225,14 +225,14 @@ trait CurrentGensOnUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], 
 
 trait AlwaysCurrentGensWithUnaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] with UnaryWhistle[C] {
   override def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
-    val rbs = rawRebuildings(pState.current.conf) map translate filterNot isDangerous
+    val rbs = rawRebuildings(pState.current.conf) map translate filterNot unsafe
     rbs map { ReplaceNode(_, NoExtra) }
   }
 }
 
 trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
   override def rebuildings(whistle: W, pState: PState[C, D, Extra]): List[Command[C, D, Extra]] = {
-    val rbs = rebuildings(pState.current.conf) filterNot isDangerous
+    val rbs = rebuildings(pState.current.conf) filterNot unsafe
     rbs map { ReplaceNode(_, NoExtra) }
   }
 }

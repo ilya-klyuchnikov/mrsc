@@ -2,9 +2,9 @@ package mrsc.counters
 
 import mrsc._
 
-trait LGen extends PreSyntax[Counter] {
+trait LGen extends PreSyntax[OmegaConf] {
   val l: Int
-  override def rebuildings(c: Counter) =
+  override def rebuildings(c: OmegaConf) =
     List(c.map { e => if (e >= l) Omega else e })
 }
 
@@ -13,25 +13,25 @@ case class CounterSc(val protocol: Protocol, val l: Int)
   with LGen
   with LWhistle
   with CounterRewriteSemantics
-  with RuleDriving[Counter]
-  with SimpleInstanceFoldingToAny[Counter, Int]
-  with SimpleUnaryWhistle[Counter, Int]
-  with SimpleCurrentGensOnWhistle[Counter, Int]
+  with RuleDriving[OmegaConf]
+  with SimpleInstanceFoldingToAny[OmegaConf, Int]
+  with SimpleUnaryWhistle[OmegaConf, Int]
+  with SimpleCurrentGensOnWhistle[OmegaConf, Int]
 
 case class CounterMultiSc(val protocol: Protocol, val l: Int)
   extends CounterPreSyntax
   with LWhistle
   with CounterRewriteSemantics
-  with RuleDriving[Counter]
-  with SimpleInstanceFoldingToAny[Counter, Int]
-  with SimpleUnaryWhistle[Counter, Int]
+  with RuleDriving[OmegaConf]
+  with SimpleInstanceFoldingToAny[OmegaConf, Int]
+  with SimpleUnaryWhistle[OmegaConf, Int]
   with ProtocolSafetyAware
-  with SimpleGensWithUnaryWhistle[Counter, Int]
+  with SimpleGensWithUnaryWhistle[OmegaConf, Int]
 
 trait ProtocolSafetyAware extends LWhistle {
   val protocol: Protocol
-  override def isDangerous(counter: Counter): Boolean =
-    super.isDangerous(counter) || !protocol.safe(counter)
+  override def unsafe(counter: OmegaConf): Boolean =
+    super.unsafe(counter) || protocol.unsafe(counter)
 }
 
 object CounterSamples extends App {
@@ -43,7 +43,7 @@ object CounterSamples extends App {
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
     val sc = CounterSc(protocol, l)
-    val consumer = new SimpleGraphConsumer[Counter, Int]
+    val consumer = new SimpleGraphConsumer[OmegaConf, Int]
     val builder = new CoGraphBuilder(sc, consumer)
     builder.buildCoGraph(protocol.start, NoExtra)
 
@@ -52,27 +52,27 @@ object CounterSamples extends App {
       println()
       println(graph)
       println()
-      println(checkSubTree(protocol.safe)(graph.root))
+      println(checkSubTree(protocol.unsafe)(graph.root))
       println()
     }
   }
 
   def multiScProtocol(protocol: Protocol, l: Int): Unit = {
     val sc = CounterMultiSc(protocol, l)
-    val consumer = new SimpleGraphConsumer[Counter, Int]
+    val consumer = new SimpleGraphConsumer[OmegaConf, Int]
     val builder = new CoGraphBuilder(sc, consumer)
     builder.buildCoGraph(protocol.start, NoExtra)
     val graphs = consumer.result
 
-    val successGraphs = graphs.filter { g => checkSubTree(protocol.safe)(g.root) }
+    val successGraphs = graphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
     if (!successGraphs.isEmpty) {
       val minGraph = successGraphs.minBy(graphSize)
       println(minGraph)
     }
   }
 
-  def checkSubTree(safe: Counter => Boolean)(node: Node[Counter, _, _]): Boolean =
-    safe(node.conf) && node.outs.map(_.node).forall(checkSubTree(safe))
+  def checkSubTree(unsafe: OmegaConf => Boolean)(node: Node[OmegaConf, _, _]): Boolean =
+    !unsafe(node.conf) && node.outs.map(_.node).forall(checkSubTree(unsafe))
 
   def verifyProtocol(protocol: Protocol, findMinimalProof: Boolean = true): Unit = {
     println()

@@ -1,13 +1,13 @@
 package mrsc.counters
 
 trait Protocol {
-  val start: Counter
+  val start: OmegaConf
   val rules: List[TransitionRule]
-  def safe(c: Counter): Boolean
+  def unsafe(c: OmegaConf): Boolean
 }
 
 case object Synapse extends Protocol {
-  val start: Counter = List(Omega, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, d, v) if i >= 1 =>
@@ -20,16 +20,16 @@ case object Synapse extends Protocol {
         List(i + d + v - 1, 1, 0)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, d, v) if d >= 1 && v >= 1 => false
-    case List(i, d, v) if d >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, d, v) if d >= 1 && v >= 1 => true
+    case List(i, d, v) if d >= 2 => true
+    case _ => false
   }
 }
 
 // invalid, modified, shared
 case object MSI extends Protocol {
-  val start: Counter = List(Omega, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, m, s) if i >= 1 =>
@@ -42,16 +42,16 @@ case object MSI extends Protocol {
         List(i - 1, 0, m + s + 1)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, m, s) if m >= 1 && s >= 1 => false
-    case List(i, m, s) if m >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, m, s) if m >= 1 && s >= 1 => true
+    case List(i, m, s) if m >= 2 => true
+    case _ => false
   }
 }
 
 // invalid, modified, shared, owned
 case object MOSI extends Protocol {
-  val start: Counter = List(Omega, 0, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, o, s, m) if i >= 1 =>
@@ -59,38 +59,33 @@ case object MOSI extends Protocol {
     }, {
       case List(i, o, s, m) if o >= 1 =>
         List(i + o + s + m - 1, 0, 0, 1)
-    }, {
-      // wI
+    }, { // wI
       case List(i, o, s, m) if i >= 1 =>
         List(i + o + s + m - 1, 0, 0, 1)
-    }, {
-      // wS
+    }, { // wS
       case List(i, o, s, m) if s >= 1 =>
         List(i + o + s + m - 1, 0, 0, 1)
-    }, {
-      // se
+    }, { // se
       case List(i, o, s, m) if s >= 1 =>
         List(i + 1, o, s - 1, m)
-    }, {
-      // wbm
+    }, { // wbm
       case List(i, o, s, m) if m >= 1 =>
         List(i + 1, o, s, m - 1)
-    }, {
-      // wbo
+    }, { // wbo
       case List(i, o, s, m) if o >= 1 =>
         List(i + 1, o - 1, s, m)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, o, s, m) if o >= 2 => false
-    case List(i, o, s, m) if m >= 2 => false
-    case List(i, o, s, m) if s >= 1 && m >= 1 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, o, s, m) if o >= 2 => true
+    case List(i, o, s, m) if m >= 2 => true
+    case List(i, o, s, m) if s >= 1 && m >= 1 => true
+    case _ => false
   }
 }
 
 case object MESI extends Protocol {
-  val start: Counter = List(Omega, 0, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({
       case List(i, e, s, m) if i >= 1 =>
@@ -106,15 +101,15 @@ case object MESI extends Protocol {
         List(i + e + s + m - 1, 1, 0, 0)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, e, s, m) if m >= 2 => false
-    case List(i, e, s, m) if s >= 1 && m >= 1 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, e, s, m) if m >= 2 => true
+    case List(i, e, s, m) if s >= 1 && m >= 1 => true
+    case _ => false
   }
 }
 
 case object MOESI extends Protocol {
-  val start: Counter = List(Omega, 0, 0, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // rm
       case List(i, e, s, m, o) if i >= 1 =>
@@ -125,21 +120,21 @@ case object MOESI extends Protocol {
     }, { // wh3
       case List(i, e, s, m, o) if s + o >= 1 =>
         List(i + e + s + m + o - 1, 1, 0, 0, 0)
-    }, {
+    }, { // wm
       case List(i, e, s, m, o) if i >= 1 =>
         List(i + e + s + m + o - 1, 1, 0, 0, 0)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, e, s, m, o) if m >= 1 && (e + s + o) >= 1 => false
-    case List(i, e, s, m, o) if m >= 2 => false
-    case List(i, e, s, m, o) if e >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, e, s, m, o) if m >= 1 && (e + s + o) >= 1 => true
+    case List(i, e, s, m, o) if m >= 2 => true
+    case List(i, e, s, m, o) if e >= 2 => true
+    case _ => false
   }
 }
 
 case object Illinois extends Protocol {
-  val start: Counter = List(Omega, 0, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // r2
       case List(i, e, d, s) if i >= 1 && e === 0 && d === 0 && s === 0 =>
@@ -170,15 +165,15 @@ case object Illinois extends Protocol {
         List(i + 1, e - 1, d, s)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, e, d, s) if d >= 1 && s >= 1 => false
-    case List(i, e, d, s) if d >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, e, d, s) if d >= 1 && s >= 1 => true
+    case List(i, e, d, s) if d >= 2 => true
+    case _ => false
   }
 }
 
 case object Berkley extends Protocol {
-  val start: Counter = List(Omega, 0, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // rm
       case List(i, n, u, e) if i >= 1 =>
@@ -191,15 +186,15 @@ case object Berkley extends Protocol {
         List(i + n + u - 1, 0, 0, e + 1)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, n, u, e) if e >= 1 && u + n >= 1 => false
-    case List(i, n, u, e) if e >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, n, u, e) if e >= 1 && u + n >= 1 => true
+    case List(i, n, u, e) if e >= 2 => true
+    case _ => false
   }
 }
 
 case object Firefly extends Protocol {
-  val start: Counter = List(Omega, 0, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // rm1
       case List(i, e, s, d) if i >= 1 && d === 0 && s === 0 && e === 0 =>
@@ -221,17 +216,17 @@ case object Firefly extends Protocol {
         List(i + e + d + s - 1, 0, 0, 1)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, e, s, d) if d >= 1 && s + e >= 1 => false
-    case List(i, e, s, d) if e >= 2 => false
-    case List(i, e, s, d) if d >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, e, s, d) if d >= 1 && s + e >= 1 => true
+    case List(i, e, s, d) if e >= 2 => true
+    case List(i, e, s, d) if d >= 2 => true
+    case _ => false
   }
 }
 
 case object Futurebus extends Protocol {
-  //val start: Counter = List(Omega, 0, 0, 0, 0, 0, 0, 0, 0)
-  val start: Counter = List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)
+  val start: OmegaConf = List(Omega, 0, 0, 0, 0, 0, 0, 0, 0)
+  //val start: OmegaConf = List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)
   val rules: List[TransitionRule] =
     List({ // r2
       case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if i >= 1 && pW === 0 =>
@@ -265,58 +260,58 @@ case object Futurebus extends Protocol {
         List(i + sU - 1, 0, eU, eM + 1, pR, pW, pEMR, pEMW, pSU)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if sU >= 1 && eU + eM >= 1 => false
-    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if eU + eM >= 2 => false
-    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pR >= 1 && pW >= 1 => false
-    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pW >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if sU >= 1 && eU + eM >= 1 => true
+    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if eU + eM >= 2 => true
+    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pR >= 1 && pW >= 1 => true
+    case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pW >= 2 => true
+    case _ => false
   }
 }
 
 //invalid ≥ 1, dirty = 0, shared_clean = 0, shared_dirty = 0, exclusive = 0 —>
 case object Xerox extends Protocol {
-  val start: Counter = List(Omega, 0, 0, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0, 0, 0)
   val rules: List[TransitionRule] =
-    List({
+    List({ // (1) rm1
       case List(i, d, sc, sd, e) if i >= 1 && d === 0 && sc === 0 && sd === 0 && e === 0 =>
         List(i - 1, 0, 0, 0, 1)
-    }, { // rm2
+    }, { // (2) rm2
       case List(i, d, sc, sd, e) if i >= 1 && d + sc + e + sd >= 1 =>
         List(i - 1, 0, sc + e + 1, sd + d, 0)
-    }, { // wm1
+    }, { // (3) wm1
       case List(i, d, sc, sd, e) if i >= 1 && d === 0 && sc === 0 && sd === 0 && e === 0 =>
         List(i - 1, 1, 0, 0, 0)
-    }, { // wm2
+    }, { // (4) wm2
       case List(i, d, sc, sd, e) if i >= 1 && d + sc + e + sd >= 1 =>
         List(i - 1, 0, sc + e + 1 + sd + d, sd, 0)
-    }, { // wh1
+    }, { // (5) wh1
       case List(i, d, sc, sd, e) if d >= 1 =>
         List(i + 1, d - 1, sc, sd, e)
-    }, { // wh2
+    }, { // (6) wh2
       case List(i, d, sc, sd, e) if sc >= 1 =>
         List(i + 1, d, sc - 1, sd, e)
-    }, { // wh3
+    }, { // (7) wh3
       case List(i, d, sc, sd, e) if sd >= 1 =>
         List(i + 1, d, sc, sd - 1, e)
-    }, { // wh4
+    }, { // (8) wh4
       case List(i, d, sc, sd, e) if e >= 1 =>
         List(i + 1, d, sc, sd, e - 1)
     })
 
-  def safe(c: Counter) = c match {
-    case List(i, d, sc, sd, e) if d >= 1 && (e + sc + sd) >= 1 => false
-    case List(i, d, sc, sd, e) if e >= 1 && (sc + sd) >= 1 => false
-    case List(i, d, sc, sd, e) if d >= 2 => false
-    case List(i, d, sc, sd, e) if e >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(i, d, sc, sd, e) if d >= 1 && (e + sc + sd) >= 1 => true
+    case List(i, d, sc, sd, e) if e >= 1 && (sc + sd) >= 1 => true
+    case List(i, d, sc, sd, e) if d >= 2 => true
+    case List(i, d, sc, sd, e) if e >= 2 => true
+    case _ => false
   }
 }
 
 case object Java extends Protocol {
   // nb 1 = True, nb 0 = False
   // race = 0 = H0, -1 = H1 ,,,
-  val start: Counter = List(1, 0, Omega, 0, 0, 0, 0, 0)
+  val start: OmegaConf = List(1, 0, Omega, 0, 0, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // (get fast)
       case List(nb, race, i, b, o, in, out, w) if nb === 1 && i >= 1 =>
@@ -347,14 +342,14 @@ case object Java extends Protocol {
         List(nb, race, i, b, o + 1, in, out, w - 1)
     })
 
-  def safe(c: Counter) = c match {
-    case List(nb, race, i, b, o, in, out, w) if o + out >= 2 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(nb, race, i, b, o, in, out, w) if o + out >= 2 => true
+    case _ => false
   }
 }
 
 case object ReaderWriter extends Protocol {
-  val start: Counter = List(1, 0, 0, Omega, 0, 0)
+  val start: OmegaConf = List(1, 0, 0, Omega, 0, 0)
   val rules: List[TransitionRule] =
     List({ // r1
       case List(x2, x3, x4, x5, x6, x7) if x2 >= 1 && x4 === 0 && x7 >= 1 =>
@@ -376,31 +371,31 @@ case object ReaderWriter extends Protocol {
         List(x2, x3, x4, x5 - 1, x6, x7 + 1)
     })
 
-  def safe(c: Counter) = c match {
-    case List(x2, x3, x4, x5, x6, x7) if x3 >= 1 && x4 >= 1 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(x2, x3, x4, x5, x6, x7) if x3 >= 1 && x4 >= 1 => true
+    case _ => false
   }
 }
 
 case object DataRace extends Protocol {
-  val start: Counter = List(Omega, 0, 0)
+  val start: OmegaConf = List(Omega, 0, 0)
   val rules: List[TransitionRule] =
     List({ // 1
-      case List(out, cs, scs) if out >= 1&& cs === 0 && scs===0 =>
+      case List(out, cs, scs) if out >= 1 && cs === 0 && scs === 0 =>
         List(out - 1, 1, 0)
     }, { // 2
-      case List(out, cs, scs) if out >= 1&& cs === 0 =>
+      case List(out, cs, scs) if out >= 1 && cs === 0 =>
         List(out - 1, 0, scs + 1)
-    },{ // 3
+    }, { // 3
       case List(out, cs, scs) if cs >= 1 =>
         List(out + 1, cs - 1, scs)
-    },{ // 4
+    }, { // 4
       case List(out, cs, scs) if scs >= 1 =>
         List(out + 1, cs, scs - 1)
     })
 
-  def safe(c: Counter) = c match {
-    case List(out, cs, scs) if cs >= 1 && scs >= 1 => false
-    case _ => true
+  def unsafe(c: OmegaConf) = c match {
+    case List(out, cs, scs) if cs >= 1 && scs >= 1 => true
+    case _ => false
   }
 }
