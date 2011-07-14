@@ -31,8 +31,8 @@ case object Omega extends Component {
   override def toString = "ϖ"
 }
 
-trait CounterPreSyntax extends PreSyntax[OmegaConf] {
-  val instance = CounterInstanceOrdering
+trait CountersPreSyntax extends PreSyntax[OmegaConf] {
+  val instance = OmegaConfInstanceOrdering
   def rebuildings(c: OmegaConf) = gens(c) - c
   def gens(c: OmegaConf): List[OmegaConf] = c match {
     case Nil => List(Nil)
@@ -44,9 +44,9 @@ trait CounterPreSyntax extends PreSyntax[OmegaConf] {
   }
 }
 
-trait CounterRewriteSemantics extends RewriteSemantics[OmegaConf] {
+trait CountersSemantics extends RewriteSemantics[OmegaConf] {
   val protocol: Protocol
-  override def drive(c: OmegaConf) = protocol.rules.map { _.lift(c) }
+  def drive(c: OmegaConf) = protocol.rules.map { _.lift(c) }
 }
 
 trait LWhistle {
@@ -57,7 +57,7 @@ trait LWhistle {
   }
 }
 
-object CounterInstanceOrdering extends SimplePartialOrdering[OmegaConf] {
+object OmegaConfInstanceOrdering extends SimplePartialOrdering[OmegaConf] {
   def lteq(c1: OmegaConf, c2: OmegaConf) = (c1, c2).zipped.forall(lteq)
   def lteq(x: Component, y: Component) = (x, y) match {
     case (Omega, _) => true

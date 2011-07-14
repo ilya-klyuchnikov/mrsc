@@ -9,7 +9,6 @@ trait PreSyntax[C] {
 }
 
 trait Syntax[C] extends PreSyntax[C] {
-  def instance: PartialOrdering[C]
   def subst(c: C, sub: Subst[C]): C
   def rawRebuildings(c: C): List[Rebuilding[C]]
   def translate(rebuilding: Rebuilding[C]): C

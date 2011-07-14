@@ -9,19 +9,19 @@ trait LGen extends PreSyntax[OmegaConf] {
 }
 
 case class CounterSc(val protocol: Protocol, val l: Int)
-  extends CounterPreSyntax
+  extends CountersPreSyntax
   with LGen
   with LWhistle
-  with CounterRewriteSemantics
+  with CountersSemantics
   with RuleDriving[OmegaConf]
   with SimpleInstanceFoldingToAny[OmegaConf, Int]
   with SimpleUnaryWhistle[OmegaConf, Int]
   with SimpleCurrentGensOnWhistle[OmegaConf, Int]
 
 case class CounterMultiSc(val protocol: Protocol, val l: Int)
-  extends CounterPreSyntax
+  extends CountersPreSyntax
   with LWhistle
-  with CounterRewriteSemantics
+  with CountersSemantics
   with RuleDriving[OmegaConf]
   with SimpleInstanceFoldingToAny[OmegaConf, Int]
   with SimpleUnaryWhistle[OmegaConf, Int]
