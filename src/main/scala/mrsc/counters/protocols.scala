@@ -112,23 +112,23 @@ case object MOESI extends Protocol {
   val start: OmegaConf = List(Omega, 0, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // rm
-      case List(i, e, s, m, o) if i >= 1 =>
+      case List(i, m, s, e, o) if i >= 1 =>
         List(i - 1, 0, s + e + 1, 0, o + m)
     }, { //wh2
-      case List(i, e, s, m, o) if e >= 1 =>
-        List(i, e - 1, s, m + 1, o)
+      case List(i, m, s, e, o) if e >= 1 =>
+        List(i, m + 1, s, e - 1, o)
     }, { // wh3
-      case List(i, e, s, m, o) if s + o >= 1 =>
-        List(i + e + s + m + o - 1, 1, 0, 0, 0)
+      case List(i, m, s, e, o) if s + o >= 1 =>
+        List(i + m + s + e + o - 1, 0, 0, 1, 0)
     }, { // wm
-      case List(i, e, s, m, o) if i >= 1 =>
-        List(i + e + s + m + o - 1, 1, 0, 0, 0)
+      case List(i, m, s, e, o) if i >= 1 =>
+        List(i + m + s + e + o - 1, 0, 0, 1, 0)
     })
 
   def unsafe(c: OmegaConf) = c match {
-    case List(i, e, s, m, o) if m >= 1 && (e + s + o) >= 1 => true
-    case List(i, e, s, m, o) if m >= 2 => true
-    case List(i, e, s, m, o) if e >= 2 => true
+    case List(i, m, s, e, o) if m >= 1 && (e + s + o) >= 1 => true
+    case List(i, m, s, e, o) if m >= 2 => true
+    case List(i, m, s, e, o) if e >= 2 => true
     case _ => false
   }
 }
@@ -274,36 +274,36 @@ case object Xerox extends Protocol {
   val start: OmegaConf = List(Omega, 0, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // (1) rm1
-      case List(i, d, sc, sd, e) if i >= 1 && d === 0 && sc === 0 && sd === 0 && e === 0 =>
+      case List(i, sc, sd, d, e) if i >= 1 && d === 0 && sc === 0 && sd === 0 && e === 0 =>
         List(i - 1, 0, 0, 0, 1)
     }, { // (2) rm2
-      case List(i, d, sc, sd, e) if i >= 1 && d + sc + e + sd >= 1 =>
-        List(i - 1, 0, sc + e + 1, sd + d, 0)
+      case List(i, sc, sd, d, e) if i >= 1 && d + sc + e + sd >= 1 =>
+        List(i - 1, sc + e + 1, sd + d, 0, 0)
     }, { // (3) wm1
-      case List(i, d, sc, sd, e) if i >= 1 && d === 0 && sc === 0 && sd === 0 && e === 0 =>
-        List(i - 1, 1, 0, 0, 0)
+      case List(i, sc, sd, d, e) if i >= 1 && d === 0 && sc === 0 && sd === 0 && e === 0 =>
+        List(i - 1, 0, 0, 1, 0)
     }, { // (4) wm2
-      case List(i, d, sc, sd, e) if i >= 1 && d + sc + e + sd >= 1 =>
-        List(i - 1, 0, sc + e + 1 + sd + d, sd, 0)
+      case List(i, sc, sd, d, e) if i >= 1 && d + sc + e + sd >= 1 =>
+        List(i - 1, sc + e + 1 + sd + d, sd, 0, 0)
     }, { // (5) wh1
-      case List(i, d, sc, sd, e) if d >= 1 =>
-        List(i + 1, d - 1, sc, sd, e)
+      case List(i, sc, sd, d, e) if d >= 1 =>
+        List(i + 1, d - 1, sc, sd, d, e)
     }, { // (6) wh2
-      case List(i, d, sc, sd, e) if sc >= 1 =>
-        List(i + 1, d, sc - 1, sd, e)
+      case List(i, sc, sd, d, e) if sc >= 1 =>
+        List(i + 1, sc - 1, sd, d, e)
     }, { // (7) wh3
-      case List(i, d, sc, sd, e) if sd >= 1 =>
-        List(i + 1, d, sc, sd - 1, e)
+      case List(i, sc, sd, d, e) if sd >= 1 =>
+        List(i + 1, sc, sd - 1, d, e)
     }, { // (8) wh4
-      case List(i, d, sc, sd, e) if e >= 1 =>
-        List(i + 1, d, sc, sd, e - 1)
+      case List(i, sc, sd, d, e) if e >= 1 =>
+        List(i + 1, sc, sd, d, e - 1)
     })
 
   def unsafe(c: OmegaConf) = c match {
-    case List(i, d, sc, sd, e) if d >= 1 && (e + sc + sd) >= 1 => true
-    case List(i, d, sc, sd, e) if e >= 1 && (sc + sd) >= 1 => true
-    case List(i, d, sc, sd, e) if d >= 2 => true
-    case List(i, d, sc, sd, e) if e >= 2 => true
+    case List(i, sc, sd, d, e) if d >= 1 && (e + sc + sd) >= 1 => true
+    case List(i, sc, sd, d, e) if e >= 1 && (sc + sd) >= 1 => true
+    case List(i, sc, sd, d, e) if d >= 2 => true
+    case List(i, sc, sd, d, e) if e >= 2 => true
     case _ => false
   }
 }
