@@ -187,6 +187,9 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
               val in = CoEdge(active, dInfo)
               CoNode(conf, eInfo, in, None, i :: active.coPath)
           }
+          // Now it is depth-first traversal. If you change 
+          // deltaLeaves ++ ls -> ls ++ deltaLeaves,
+          // you will have breadth-first traversal
           PartialCoGraph(g.completeLeaves, deltaLeaves ++ ls, active :: g.complete)
         /*! When doing rollback, we also prune all successors of the dangerous node. 
          */
