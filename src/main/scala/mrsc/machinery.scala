@@ -134,7 +134,7 @@ trait PruningDriving[C] extends Driving[C] {
     }
 }
 
-trait Folding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
+trait RenamingFolding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
   override def fold(pState: PState[C, DriveInfo[C], Extra]): Option[Path] =
     pState.current.ancestors.find { n => instance.equiv(pState.current.conf, n.conf) } map { _.path }
 }

@@ -9,7 +9,7 @@ class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with Folding[Expr]
+  with RenamingFolding[Expr]
   with Termination[Expr]
   with AlwaysCurrentGens[Expr]
   with NoTricks[Expr]
@@ -20,7 +20,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with Folding[Expr]
+  with RenamingFolding[Expr]
   with Termination[Expr]
   with CurrentGensOnWhistle[Expr]
   with NoTricks[Expr]
@@ -31,7 +31,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with Folding[Expr]
+  with RenamingFolding[Expr]
   with Termination[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
   with NoTricks[Expr]
@@ -44,7 +44,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLMetaEvaluator
   with PruningDriving[Expr]
-  with Folding[Expr]
+  with RenamingFolding[Expr]
   with Termination[Expr]
   with AllGensOnWhistle[Expr]
   with NoTricks[Expr]
@@ -54,7 +54,7 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
-  with Folding[Expr]
+  with RenamingFolding[Expr]
   with Termination[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
   with NoTricks[Expr]
@@ -64,7 +64,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
   with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
-  with Folding[Expr]
+  with RenamingFolding[Expr]
   with Termination[Expr]
   with MSGCurrentOrSplitBlamed[Expr]
   with NoTricks[Expr]
@@ -74,7 +74,7 @@ class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
-  with Folding[Expr]
+  with RenamingFolding[Expr]
   with Termination[Expr]
   with MixMsg[Expr]
   with NoTricks[Expr]
