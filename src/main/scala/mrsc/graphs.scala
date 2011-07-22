@@ -113,7 +113,8 @@ object Transformations {
   def transpose[C, D, E](coGraph: CoGraph[C, D, E]): Graph[C, D, E] = {
     val leafPathes = coGraph.leaves.map(_.coPath)
     val levels = coGraph.nodes.groupBy(_.coPath.length).toList.sortBy(_._1).map(_._2)
-    val (tNodes, tLeaves) = subTranspose(levels, leafPathes)
+    val sortedLevels = levels.map(_.sortBy(_.path)(PathOrdering))
+    val (tNodes, tLeaves) = subTranspose(sortedLevels, leafPathes)
     val nodes = tNodes map { _.node }
     val leaves = tLeaves map { _.node }
     return Graph(nodes(0), leaves)
