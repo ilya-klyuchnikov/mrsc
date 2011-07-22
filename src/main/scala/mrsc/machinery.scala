@@ -160,7 +160,7 @@ trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
 }
 
 // Ordering-based termination
-trait Termination[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
+trait BinaryWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {
   val ordering: PartialOrdering[C]
   override def blame(pState: PState[C, DriveInfo[C], Extra]): W =
     pState.current.ancestors find { n => ordering.lteq(n.conf, pState.current.conf) }

@@ -10,7 +10,7 @@ class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
-  with Termination[Expr]
+  with BinaryWhistle[Expr]
   with AlwaysCurrentGens[Expr]
   with NoTricks[Expr]
 
@@ -21,7 +21,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
-  with Termination[Expr]
+  with BinaryWhistle[Expr]
   with CurrentGensOnWhistle[Expr]
   with NoTricks[Expr]
 
@@ -32,7 +32,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
-  with Termination[Expr]
+  with BinaryWhistle[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
   with NoTricks[Expr]
 
@@ -45,7 +45,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLMetaEvaluator
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
-  with Termination[Expr]
+  with BinaryWhistle[Expr]
   with AllGensOnWhistle[Expr]
   with NoTricks[Expr]
 
@@ -55,7 +55,7 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
-  with Termination[Expr]
+  with BinaryWhistle[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
   with NoTricks[Expr]
 
@@ -65,7 +65,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
-  with Termination[Expr]
+  with BinaryWhistle[Expr]
   with MSGCurrentOrSplitBlamed[Expr]
   with NoTricks[Expr]
 
@@ -75,7 +75,7 @@ class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLMetaEvaluator
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
-  with Termination[Expr]
+  with BinaryWhistle[Expr]
   with MixMsg[Expr]
   with NoTricks[Expr]
 
