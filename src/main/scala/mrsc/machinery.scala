@@ -52,7 +52,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
   type W = Option[CoNode[C, D, E]]
   def isLeaf(pState: PState[C, D, E]): Boolean
-  def fold(pState: PState[C, D, E]): Option[Path]
+  def fold(pState: PState[C, D, E]): Option[CoPath]
   def blame(pState: PState[C, D, E]): W
   def drive(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
   def rebuildings(whistle: W, pState: PState[C, D, E]): List[Command[C, D, E]]
@@ -135,23 +135,23 @@ trait PruningDriving[C] extends Driving[C] {
 }
 
 trait RenamingFolding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
-  override def fold(pState: PState[C, DriveInfo[C], Extra]): Option[Path] =
-    pState.current.ancestors.find { n => instance.equiv(pState.current.conf, n.conf) } map { _.path }
+  override def fold(pState: PState[C, DriveInfo[C], Extra]): Option[CoPath] =
+    pState.current.ancestors.find { n => instance.equiv(pState.current.conf, n.conf) } map { _.coPath }
 }
 
 trait InstanceFolding[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Syntax[C] {
-  override def fold(pState: PState[C, DriveInfo[C], Extra]): Option[Path] =
-    pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.path }
+  override def fold(pState: PState[C, DriveInfo[C], Extra]): Option[CoPath] =
+    pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.coPath }
 }
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] {
-  override def fold(pState: PState[C, D, Extra]): Option[Path] =
-    pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.path }
+  override def fold(pState: PState[C, D, Extra]): Option[CoPath] =
+    pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.coPath }
 }
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] {
-  override def fold(pState: PState[C, D, Extra]): Option[Path] =
-    pState.complete.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.path }
+  override def fold(pState: PState[C, D, Extra]): Option[CoPath] =
+    pState.complete.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.coPath }
 }
 
 trait NoTricks[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] {

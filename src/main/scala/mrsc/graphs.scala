@@ -130,7 +130,7 @@ object Transformations {
       // leaves only??
       case ns1 :: Nil =>
         val tmpNodes: List[Tmp[C, D, E]] = ns1 map { n =>
-          val node = Node[C, D, E](n.conf, n.extraInfo, Nil, n.base, n.path)
+          val node = Node[C, D, E](n.conf, n.extraInfo, Nil, n.base.map(_.reverse), n.path)
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp =>
@@ -144,7 +144,7 @@ object Transformations {
         val tmpNodes = ns1 map { n =>
           val children: List[Tmp[C, D, E]] = allchildren.getOrElse(n.coPath, Nil)
           val edges = children map { tmp => Edge(tmp.node, tmp.in.driveInfo) }
-          val node = new Node(n.conf, n.extraInfo, edges, n.base, n.path)
+          val node = new Node(n.conf, n.extraInfo, edges, n.base.map(_.reverse), n.path)
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp => leaves.contains(tmp.node.coPath) }
