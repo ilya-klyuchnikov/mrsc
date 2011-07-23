@@ -60,6 +60,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.specs2</groupId>
+			<artifactId>specs2_2.9.0-1</artifactId>
+			<version>1.5</version>
+		</dependency>
+		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_2.9.0</artifactId>
 			<version>1.4.1</version>
