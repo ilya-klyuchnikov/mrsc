@@ -7,7 +7,7 @@ import org.specs2.runner.JUnitRunner
 import mrsc._
 
 @RunWith(classOf[JUnitRunner])
-class BuilderSpec extends mutable.Specification {
+class BuilderCommandSpec extends mutable.Specification {
   args(sequential = true)
 
   var pg1, pg2: PartialCoGraph[Int, String, Extra] = _

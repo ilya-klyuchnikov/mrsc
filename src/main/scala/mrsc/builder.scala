@@ -75,7 +75,7 @@ case class ChildNode[+C, +D, +E](conf: C, driveInfo: D, extraInfo: E)
 /*! `MFold` signals that there is a path to something similar to the current state in the past
  of the current SC Graph.
  */
-case class MakeFold(val path: Path) extends Command[Nothing, Nothing, Nothing]
+case class MakeFold(val coPath: CoPath) extends Command[Nothing, Nothing, Nothing]
 
 /*! The step `MPrune` means that the current graph should be discarded. In the case of 
  the "single-result" supercompilation it means failure (= no good result). In the case of
@@ -103,6 +103,7 @@ case class RollbackSubGraph[C, D, E](val subGraphRoot: CoNode[C, D, E],
   all possible variants.
  */
 class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E, _]) {
+  import CoGraphBuilder._
 
   /*! It maintains a list of partial cographs ...
    */
@@ -111,8 +112,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
   /*! ... starts with a one-element list of partial cographs ... 
    */
   def buildCoGraph(conf: C, info: E): Unit = {
-    val startNode = CoNode[C, D, E](conf, info, null, None, Nil)
-    partialCoGraphs = List(new PartialCoGraph(List(), List(startNode), Nil))
+    partialCoGraphs = List(start(conf, info))
     loop()
   }
 
@@ -131,9 +131,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
           */
           case None =>
             // TODO: do we need to sort it??
-            val orderedNodes = g.complete.sortBy(_.coPath)(PathOrdering)
-            val rootNode = orderedNodes.head
-            val completed = CoGraph(rootNode, g.completeLeaves, orderedNodes)
+            val completed = complete(g)
             partialCoGraphs = gs
             consumer.consume(Some(completed))
 
@@ -154,11 +152,18 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
         /*! and looping again. */
         loop()
     }
+}
 
-  /*! The main logic of MRSC is here. 
-     Step created by SC machine is "applied" to the current active leaf.
-   */
-  def executeCommand(g: PartialCoGraph[C, D, E], command: Command[C, D, E]): PartialCoGraph[C, D, E] = g.incompleteLeaves match {
+/*! The main logic of MRSC is here. 
+   Step created by SC machine is "applied" to the current active leaf.
+*/
+object CoGraphBuilder {
+  def start[C, D, E](c: C, e: E): PartialCoGraph[C, D, E] = {
+    val startNode = CoNode[C, D, E](c, e, null, None, Nil)
+    new PartialCoGraph(List(), List(startNode), Nil)
+  }
+
+  def executeCommand[C, D, E](g: PartialCoGraph[C, D, E], command: Command[C, D, E]): PartialCoGraph[C, D, E] = g.incompleteLeaves match {
     case active :: ls =>
       command match {
         /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
@@ -207,5 +212,11 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
       }
     case _ =>
       throw new Error()
+  }
+
+  def complete[C, D, E](g: PartialCoGraph[C, D, E]): CoGraph[C, D, E] = {
+    val orderedNodes = g.complete.sortBy(_.coPath)(PathOrdering)
+    val rootNode = orderedNodes.head
+    CoGraph(rootNode, g.completeLeaves, orderedNodes)
   }
 }
