@@ -14,8 +14,8 @@ class BuilderCommandSpec extends mutable.Specification {
   var cg1, cg2: CoGraph[Int, String, Extra] = _
 
   val graph: Graph[Int, String, Extra] = {
-    val n1 = Node[Int, String, Extra](conf = 1, extraInfo = NoExtra, outs = List(), base = Some(List()), path = List(0))
-    val e1 = Edge[Int, String, Extra](n1, "-1 -> 1")
+    val n1 = Node[Int, String, Extra](conf = 11, extraInfo = NoExtra, outs = List(), base = Some(List()), path = List(0))
+    val e1 = Edge[Int, String, Extra](n1, "-1 -> 11")
     val n0 = Node[Int, String, Extra](conf = -1, extraInfo = NoExtra, outs = List(e1), base = None, path = List())
     Graph(root = n0, leaves = List(n1))
   }
@@ -67,9 +67,9 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes AddChildNodes command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1, AddChildNodes(List(ChildNode(1, "-1 -> 1", NoExtra))))
+      pg1 = CoGraphBuilder.executeCommand(pg1, AddChildNodes(List(ChildNode(11, "-1 -> 11", NoExtra))))
 
-      (pg1.activeLeaf.get.conf must_== 1) and
+      (pg1.activeLeaf.get.conf must_== 11) and
         (pg1.complete.size must_== 1) and
         (pg1.incompleteLeaves.size must_== 1)
     }
@@ -99,9 +99,9 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes AddChildNodes command" in {
-      pg2 = CoGraphBuilder.executeCommand(pg2, AddChildNodes(List(ChildNode(1, "-1 -> 1", NoExtra))))
+      pg2 = CoGraphBuilder.executeCommand(pg2, AddChildNodes(List(ChildNode(11, "-1 -> 11", NoExtra))))
 
-      (pg2.activeLeaf.get.conf must_== 1) and
+      (pg2.activeLeaf.get.conf must_== 11) and
         (pg2.complete.size must_== 1) and
         (pg2.incompleteLeaves.size must_== 1)
     }
