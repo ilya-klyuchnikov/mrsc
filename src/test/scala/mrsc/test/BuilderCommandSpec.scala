@@ -30,7 +30,8 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes AddChildNodes command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1, AddChildNodes(List(ChildNode(1, "0 -> 1", NoExtra), ChildNode(2, "0 -> 2", NoExtra))))
+      pg1 = CoGraphBuilder.executeCommand(pg1,
+        AddChildNodes(List(ChildNode(1, "0 -> 1", NoExtra), ChildNode(2, "0 -> 2", NoExtra))))
 
       (pg1.activeLeaf.get.conf must_== 1) and
         (pg1.complete.size must_== 1) and
