@@ -101,7 +101,7 @@ object Samples {
     
     {
       val m1 = classic1(HEByCouplingWhistle)(task.program)
-      val consumer1 = new SingleProgramConsumer(new SimpleSLLResiduator)
+      val consumer1 = new SingleProgramConsumer(new SLLResiduator)
       val builder1 = new CoGraphBuilder(m1, consumer1)
       builder1.buildCoGraph(task.target, NoExtra)
       println("**classic up:**")
@@ -112,7 +112,7 @@ object Samples {
 
     {
       val m2 = classic2(HEByCouplingWhistle)(task.program)
-      val consumer2 = new SingleProgramConsumer(new SimpleSLLResiduator)
+      val consumer2 = new SingleProgramConsumer(new SLLResiduator)
       val builder2 = new CoGraphBuilder(m2, consumer2)
       builder2.buildCoGraph(task.target, NoExtra)
       println("**classic down:**")
@@ -125,7 +125,7 @@ object Samples {
      
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer(new SimpleSLLResiduator)
+      val consumer3 = new ResiduatingConsumer(new SLLResiduator)
       val builder3 = new CoGraphBuilder(m3, consumer3)
       builder3.buildCoGraph(task.target, NoExtra)
 
@@ -144,7 +144,7 @@ object Samples {
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer(new SimpleSLLResiduator)
+      val consumer3 = new ResiduatingConsumer(new SLLResiduator)
       val builder3 = new CoGraphBuilder(m3, consumer3)
       builder3.buildCoGraph(task.target, NoExtra)
 

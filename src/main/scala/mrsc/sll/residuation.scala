@@ -3,7 +3,7 @@ package mrsc.sll
 import mrsc._
 import mrsc.sll.SLLExpressions._
 
-class SimpleSLLResiduator extends Residuation[Expr] {
+class SLLResiduator extends Residuation[Expr] {
 
   private val sigs = scala.collection.mutable.Map[Path, (String, List[Var])]()
 
