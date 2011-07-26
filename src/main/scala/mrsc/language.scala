@@ -18,10 +18,6 @@ trait Syntax[C] extends PreSyntax[C] {
   def size(c: C): Int
 }
 
-/*! # `MetaEvaluator` is an explosive mixture of 
- operational semantics and denotational semantics.
- Also it is a mix of small-step semantics and big-step semantics.
- */
 trait OperationalSemantics[C] {
   def drive(c: C): DriveStep[C]
   def isDrivable(c: C): Boolean
