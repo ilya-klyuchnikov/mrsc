@@ -10,12 +10,6 @@ import SLLGen._
 import SLLExpressions._
 
 object GenSpec extends Properties("Generalizaions") {
-  property("msg") = Prop.forAll { (e1: Expr, e2: Expr) =>
-    val g = MSG.msg(e1, e2)
-    ("evidence = " + g) |: all(
-      "t/sub1 = e1" |: (subst(g.t, g.m1) == e1),
-      "t/sub2 = e2" |: (subst(g.t, g.m2) == e2))
-  }
 
   property("generalizations") = Prop.forAll { (e: Expr) =>
     println(e)

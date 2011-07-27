@@ -2,8 +2,8 @@ package mrsc.sll
 
 import mrsc._
 
-// FIXME: Here we assume that in bodies of let expressions and
-// where expressions no free variables
+// FIXME: Here we assume that there are no free variables 
+// in bodies of let-expressions and where-expressions.
 object SLLExpressions {
 
   def subst(term: Expr, m: Subst[Expr]): Expr = term match {
@@ -63,6 +63,7 @@ object SLLExpressions {
   def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) };
 
   
+  // canonizes names of variables 
   def fixNames(e: Expr): Expr = {
     var fmap: Map[String, String] = Map()
     var v = 0
@@ -91,6 +92,8 @@ object SLLExpressions {
       }
     }
 
+    // gives ordered names to bound variables: v1, v2, ..
+    // so, it performs some kind of "canonization"
     def fixBoundVarsInDef(deff: Def, m: Map[Name, Name]): Def = deff match {
       case FFun(name, args, body) => {
         val args1 = args map fv
