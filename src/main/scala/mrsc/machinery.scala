@@ -4,6 +4,7 @@ package mrsc
 case class Contraction[+C](v: Name, pat: C) {
   override def toString =
     if (v != null) v + " = " + pat else ""
+  def subst() = Map[Name, C](v -> pat)
 }
 
 abstract sealed trait DriveStep[+C]
