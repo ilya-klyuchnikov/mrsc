@@ -3,80 +3,70 @@ package mrsc.sll
 import mrsc._
 import mrsc.sll.SLLExpressions._
 
-class SLLResiduator extends Residuation[Expr] {
+/*! `SLLResiduator` residuates a graph of configuration into 
+     a 'where'-expression. Where-expression is a bunch of embedded 
+     function definitions. This Residuator assumes that the base configuration
+     is an ancestor of repeated configurations. 
+     Also this residuator doesn't perform full lifting, but performs limited
+     lifting for g-functions (doesn't introduce repeated variables).
+     Also there is no recursive g-calls: so we duplicate code a bit here.
+     
+     BTW, it is easier to write residuator if output language is just RULES:
+     	lhs -> rhs
+     you do not need to invent patterns, ..., so it is possible to write a generic
+     component for residuation. 
+     
+     Note, that this code is purely functional: no vars, no var generation.
+ */
+object SLLResiduator extends Residuation[Expr] {
 
-  private val sigs = scala.collection.mutable.Map[Path, (String, List[Var])]()
+  override def residuate(graph: Graph[Expr, DriveInfo[Expr], _]): Expr =
+    fixNames(fold(graph, graph.root))
 
-  override def residuate(tree: Graph[Expr, DriveInfo[Expr], _]): Expr = {
-    fCount = 0
+  def fold(graph: Graph[Expr, DriveInfo[Expr], _], n: Node[Expr, DriveInfo[Expr], _]): Expr = n.base match {
+    // base node
+    case None if (graph.leaves.exists { _.base == Some(n.path) }) =>
+      val traversed = build(graph, n)
+      val (f, vars) = signature(n)
+      val call = FCall(f, vars)
+      val fdef = FFun(f, vars map { _.name }, traversed)
+      Where(call, List(fdef))
+    // repeat node
+    case Some(fpath) =>
+      val fnode = graph.get(fpath)
+      val (name, args) = signature(fnode)
+      val call = FCall(name, args)
+      subst(call, findSubst(fnode.conf, n.conf))
+    // other
+    case _ => build(graph, n)
+  }
 
-    def fold(n: Node[Expr, DriveInfo[Expr], _]): Expr = n.base match {
-
-      case None =>
-        lazy val traversed = build(n)
-        val repeatNodes = tree.leaves.filter { _.base == Some(n.path) }
-
-        if (repeatNodes.isEmpty) {
-          traversed
-        } else {
-          val (f, vars) = createSignature(n)
-          sigs(n.path) = (f, vars)
-          val newVars = vars // map { p => createVar() }
-          val sub = (vars.map(_.name) zip newVars).toMap
-          val rhs = subst(traversed, sub)
-          val fun = FFun(f, newVars map {_.name}, rhs)
-          val recCall = FCall(f, vars)
-          Where(recCall, List(fun))
-        }
-
-      case Some(fpath) =>
-        val (name, args) = sigs(fpath)
-        val fnode = tree.get(fpath)
-        val sub = findSubst(fnode.conf, n.conf)
-        val recCall = FCall(name, args map { subst(_, sub) })
-        recCall
+  def build(tree: Graph[Expr, DriveInfo[Expr], _], n: Node[Expr, DriveInfo[Expr], _]): Expr =
+    if (n.isLeaf) {
+      return n.conf
+    } else {
+      val children @ (n1 :: ns) = n.outs
+      n1.driveInfo match {
+        case TransientStepInfo =>
+          fold(tree, n1.node)
+        case DecomposeStepInfo(compose) =>
+          compose(children.map { out => fold(tree, out.node) })
+        case VariantsStepInfo(_) =>
+          val (fname, vs @ (v :: vars1)) = signature(n)
+          val branches = children map {
+            case Edge(n1, driveInfo) =>
+              val VariantsStepInfo(Contraction(v, c @ Ctr(cn, _))) = driveInfo
+              val pat = Pat(cn, vars(c) map { _.name })
+              GFun(fname, pat, vars1 map { _.name }, fold(tree, n1))
+          } sortBy (_.p.name)
+          val call = GCall(fname, vs)
+          Where(call, branches)
+      }
     }
 
-    def build(n: Node[Expr, DriveInfo[Expr], _]): Expr =
-      if (n.isLeaf) {
-        return n.conf
-      } else {
-        val children @ (n1 :: ns) = n.outs
-        n1.driveInfo match {
-          case TransientStepInfo =>
-            fold(n1.node)
-          case DecomposeStepInfo(compose) =>
-            val ch1 = children.map { out => fold(out.node) }
-            val e1 = compose(ch1)
-            e1
-            
-          case VariantsStepInfo(c) =>
-            val fname = createFName()
-            val vars = SLLExpressions.vars(n.conf)
-            val vars1 = vars remove {_ == Var(c.v)}
-            val branches = children map { n2 =>
-              val VariantsStepInfo(Contraction(v, pat)) = n2.driveInfo
-              GFun(fname, toPat(pat.asInstanceOf[Ctr]), vars1 map {_.name}, fold(n2.node))
-            }
-            val sortedBranches = branches.sortBy(_.p.name)
-            val call = GCall(fname, Var(c.v) :: vars1 )
-            Where(call, branches)
-        }
-      }
-
-    fixNames(fold(tree.root))
+  private def signature(node: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
+    val fname = "f/" + node.path.mkString("/")
+    (fname, vars(node.conf))
   }
 
-  private def createSignature(fNode: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
-    var fVars: List[Var] = vars(fNode.conf)
-    (createFName(), fVars)
-  }
-
-  var fCount = 0
-  private def createFName(): String = {
-    fCount = fCount + 1
-    "f." + fCount
-  }
-
-  private def toPat(p: Ctr): Pat = Pat(p.name, p.args map { case v: Var => v.name })
 }
