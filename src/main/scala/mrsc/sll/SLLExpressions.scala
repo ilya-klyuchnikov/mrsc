@@ -145,31 +145,6 @@ object SLLExpressions {
     fixFs(fixBoundVars(e, Map()))
   }
 
-  def pretty(e: Expr): String = {
-    val sb = new StringBuilder
-    pretty1(e, "", sb)
-    sb.toString
-  }
-
-  def pretty1(e: Expr, indent: String, sb: StringBuilder): Unit = e match {
-    case Where(e1, defs) =>
-      sb.append(e1.toString)
-      sb.append(" where\n")
-      for (deff <- defs) {
-        pretty2(deff, indent + "  ", sb)
-        sb.append("\n")
-      }
-    case e1 =>
-      sb.append(e1.toString)
-  }
-
-  private def pretty2(deff: Def, indent: String, sb: StringBuilder): Unit = {
-    sb.append(indent)
-    sb.append(deff.lhs.toString)
-    sb.append(" = ");
-    pretty1(deff.rhs, indent, sb)
-  }
-
   def expr2Task(e: Expr): SLLTask = {
     val (e1, defs) = lift(e)
 

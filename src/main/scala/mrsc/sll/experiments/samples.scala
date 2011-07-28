@@ -7,7 +7,7 @@ import mrsc.sll._
 class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
-  with SLLMetaEvaluator
+  with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
@@ -18,7 +18,7 @@ class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
 class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
-  with SLLMetaEvaluator
+  with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
@@ -29,7 +29,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
-  with SLLMetaEvaluator
+  with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
@@ -42,7 +42,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
 class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
-  with SLLMetaEvaluator
+  with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
@@ -52,7 +52,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
 class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
-  with SLLMetaEvaluator
+  with SLLSemantics
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
@@ -62,7 +62,7 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
 class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
-  with SLLMetaEvaluator
+  with SLLSemantics
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
@@ -72,7 +72,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
 class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
   extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
   with SLLSyntax
-  with SLLMetaEvaluator
+  with SLLSemantics
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
