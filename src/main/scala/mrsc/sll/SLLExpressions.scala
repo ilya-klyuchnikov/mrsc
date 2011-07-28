@@ -7,7 +7,7 @@ import mrsc._
 object SLLExpressions {
 
   def subst(term: Expr, m: Subst[Expr]): Expr = term match {
-    case v@Var(n) =>
+    case v @ Var(n) =>
       m.getOrElse(n, v)
     case Ctr(name, args) =>
       Ctr(name, args map { subst(_, m) })
@@ -22,13 +22,11 @@ object SLLExpressions {
   }
 
   private def subst(deff: Def, m: Subst[Expr]): Def = deff match {
-    case FFun(n, args, body) => 
+    case FFun(n, args, body) =>
       FFun(n, args, subst(body, m -- args))
-    case GFun(n, Pat(pn, pargs), args, body) => 
+    case GFun(n, Pat(pn, pargs), args, body) =>
       GFun(n, Pat(pn, pargs), args, subst(body, m -- pargs -- args))
   }
-
-  def renaming(t1: Expr, t2: Expr): Boolean = t1.size == t2.size && inst(t1, t2) && inst(t2, t1)
 
   def inst(t1: Expr, t2: Expr): Boolean = (t1.size <= t2.size) && (findSubst(t1, t2) != null)
 
@@ -45,24 +43,17 @@ object SLLExpressions {
   }
 
   def vars(t: Expr): List[Var] = t match {
-    case v: Var =>
-      List(v)
-    case Ctr(_, args) =>
-      (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
-    case FCall(_, args) =>
-      (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
-    case GCall(_, args) =>
-      (List[Var]() /: args) { (vs, exp) => vs ++ (vars(exp) filterNot (vs contains)) }
-    case Let(e, _) =>
-      vars(e)
-    case Where(e, _) =>
-      vars(e)
+    case v: Var => List(v)
+    case Ctr(_, args) => args.foldLeft(List[Var]())(_ ++ vars(_)).distinct
+    case FCall(_, args) => args.foldLeft(List[Var]())(_ ++ vars(_)).distinct
+    case GCall(_, args) => args.foldLeft(List[Var]())(_ ++ vars(_)).distinct
+    case Let(e, _) => vars(e)
+    case Where(e, _) => vars(e)
   }
 
   private var i: Long = 0;
   def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) };
 
-  
   // canonizes names of variables 
   def fixNames(e: Expr): Expr = {
     var fmap: Map[String, String] = Map()
@@ -79,7 +70,6 @@ object SLLExpressions {
       "f." + f
     }
 
-    
     def fixBoundVars(e: Expr, m: Map[Name, Name]): Expr = e match {
       case Var(n) => Var(m.getOrElse(n, n))
       case Ctr(n, args) => Ctr(n, args map { fixBoundVars(_, m) })
