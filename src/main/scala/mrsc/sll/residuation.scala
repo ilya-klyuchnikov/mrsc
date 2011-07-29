@@ -21,7 +21,7 @@ import mrsc.sll.SLLExpressions._
 object SLLResiduator extends Residuation[Expr] {
 
   override def residuate(graph: Graph[Expr, DriveInfo[Expr], _]): Expr =
-    fixNames(fold(graph, graph.root))
+    SyntaxNormalization.fixNames(fold(graph, graph.root))
 
   def fold(graph: Graph[Expr, DriveInfo[Expr], _], n: Node[Expr, DriveInfo[Expr], _]): Expr = n.base match {
     // base node
@@ -52,7 +52,7 @@ object SLLResiduator extends Residuation[Expr] {
         case DecomposeStepInfo(compose) =>
           compose(children.map { out => fold(tree, out.node) })
         case VariantsStepInfo(_) =>
-          val (fname, vs @ (v :: vars1)) = signature(n)
+          val (fname, vs @ (v :: vars1)) = gSignature(n)
           val branches = children map {
             case Edge(n1, driveInfo) =>
               val VariantsStepInfo(Contraction(v, c @ Ctr(cn, _))) = driveInfo
@@ -66,6 +66,10 @@ object SLLResiduator extends Residuation[Expr] {
 
   private def signature(node: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
     val fname = "f/" + node.path.mkString("/")
+    (fname, vars(node.conf))
+  }
+  private def gSignature(node: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
+    val fname = "g/" + node.path.mkString("/")
     (fname, vars(node.conf))
   }
 
