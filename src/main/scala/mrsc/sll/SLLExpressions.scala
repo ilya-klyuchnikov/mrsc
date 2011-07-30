@@ -33,20 +33,29 @@ object SLLExpressions {
 
   def vars(t: Expr): List[Var] = vs(t).distinct
 
-  def inst(t1: Expr, t2: Expr): Boolean = (t1.size <= t2.size) && (findSubst(t1, t2) != null)
-
-  def findSubst(t1: Expr, t2: Expr): Subst[Expr] = {
-    val map = scala.collection.mutable.Map[Name, Expr]()
-    val map1 = Map().withDefaultValue(null)
-    def walk(t1: Expr, t2: Expr): Boolean = (t1, t2) match {
-      case (v1: Var, _) => map.getOrElse(v1.name, t2) == (map += (v1.name -> t2))(v1.name)
-      case (Ctr(n1, args1), Ctr(n2, args2)) => n1 == n2 && (args1, args2).zipped.forall(walk)
-      case (FCall(n1, args1), FCall(n2, args2)) => n1 == n2 && (args1, args2).zipped.forall(walk)
-      case (GCall(n1, args1), GCall(n2, args2)) => n1 == n2 && (args1, args2).zipped.forall(walk)
-      case _ => false
+  def inst(t1: Expr, t2: Expr): Boolean = (t1.size <= t2.size) && (findSubst(t1, t2).isDefined)
+  
+  def findSubst(from: Expr, to: Expr): Option[Subst[Expr]] = 
+    walk((from, to), Map())
+    
+  private  def walk(p: (Expr, Expr), s: Subst[Expr]): Option[Subst[Expr]] = p match {
+    case (Var(n), to) => s.get(n) match {
+      case Some(to1) if to1 == to => Some(s)
+      case Some(to1) if to1 != to => None
+      case None => Some(s + (n -> to))
     }
-    if (walk(t1, t2)) Map(map.toList: _*).filter { case (k, v) => k != v } else null
+    case (Ctr(n1, args1), Ctr(n2, args2)) if n1 == n2 =>
+      walk1(args1 zip args2, s)
+    case (FCall(n1, args1), FCall(n2, args2)) if n1 == n2 =>
+      walk1(args1 zip args2, s)
+    case (GCall(n1, args1), GCall(n2, args2)) if n1 == n2 =>
+      walk1(args1 zip args2, s)
+    case _ => None
   }
+
+  private def walk1(ps: List[(Expr, Expr)], s: Subst[Expr]): Option[Subst[Expr]] =
+    ps.foldLeft[Option[Subst[Expr]]](Some(s)) { (s, p) => s.flatMap { walk(p, _) } }
+
 
   private var i: Long = 0;
   def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) };

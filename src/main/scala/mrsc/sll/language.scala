@@ -22,10 +22,8 @@ trait SLLSyntax extends Syntax[Expr] {
     Let(e, sub.toList)
   }
 
-  override def findSubst(from: Expr, to: Expr): Option[Subst[Expr]] = {
-    val sllSub = SLLExpressions.findSubst(from, to)
-    if (sllSub == null) None else Some(sllSub)
-  }
+  override def findSubst(from: Expr, to: Expr) =
+    SLLExpressions.findSubst(from, to)
 
   override def size(e: Expr) = e.size
 

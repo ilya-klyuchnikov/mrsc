@@ -18,7 +18,7 @@ import mrsc.sll.SLLExpressions._
      
      Note, that this code is purely functional: no vars, no var generation.
  */
-object SLLResiduator extends Residuation[Expr] {
+object SLLResiduator extends Residuation[Expr] with SLLSyntax {
 
   override def residuate(graph: Graph[Expr, DriveInfo[Expr], _]): Expr =
     SyntaxNormalization.fixNames(fold(graph, graph.root))
@@ -36,7 +36,7 @@ object SLLResiduator extends Residuation[Expr] {
       val fnode = graph.get(fpath)
       val (name, args) = signature(fnode)
       val call = FCall(name, args)
-      subst(call, findSubst(fnode.conf, n.conf))
+      subst(call, findSubst(fnode.conf, n.conf).get)
     // other
     case _ => build(graph, n)
   }
