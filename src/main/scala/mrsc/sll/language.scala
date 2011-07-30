@@ -65,9 +65,9 @@ trait SLLSemantics extends OperationalSemantics[Expr] {
       case context @ Context(RedexGCallVar(GCall(name, _ :: args), v)) =>
         val cases = program.gs(name) map {
           case GFun(_, p, gargs, body) =>
-            val cargs = p.args map freshVar
-            val gReduced = subst(body, ((p.args ++ gargs) zip (cargs ++ args)).toMap)
-            val contraction = Contraction(v.name, Ctr(p.name, cargs))
+            val ctr = instantiate(p, v)
+            val gReduced = subst(body, ((p.args ++ gargs) zip (ctr.args ++ args)).toMap)
+            val contraction = Contraction(v.name, Ctr(p.name, ctr.args))
             val driven = subst(context.replaceRedex(gReduced), contraction.subst)
             (contraction, driven)
         }
@@ -80,5 +80,9 @@ trait SLLSemantics extends OperationalSemantics[Expr] {
     case Ctr(_, Nil) => false
     case _ => true
   }
-
+    
+  def instantiate(p: Pat, v: Var): Ctr = {
+    val vars = p.args.indices.toList.map { i => Var("de_" + p.name + "_" + i + "/" + v.name) }
+    Ctr(p.name, vars)
+  }
 }
