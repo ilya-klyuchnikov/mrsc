@@ -18,7 +18,7 @@ import mrsc.sll.SLLExpressions._
      
      Note, that this code is purely functional: no vars, no var generation.
  */
-object SLLResiduator extends Residuation[Expr] with SLLSyntax {
+object SLLResiduator extends Residuation[Expr] {
 
   override def residuate(graph: Graph[Expr, DriveInfo[Expr], _]): Expr =
     SyntaxNormalization.fixNames(fold(graph, graph.root))
