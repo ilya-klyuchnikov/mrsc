@@ -94,6 +94,7 @@ class SingleProgramConsumer[C](residuator: Residuation[C])
     result match {
       case Some(cg) if residualProgram == null =>
         graph = Transformations.transpose(cg)
+        println(graph)
         residualProgram = residuator.residuate(graph)
       case _ =>
         throw new Error()

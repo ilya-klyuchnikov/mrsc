@@ -1,5 +1,7 @@
 package mrsc.sll
 
+import scala.annotation.tailrec
+
 import Decomposition._
 import SLLExpressions._
 
@@ -17,17 +19,15 @@ private class SLLInterpreter(program: Program) {
     case x => throw new Exception("Internal Error: lazy eval returns " + x)
   }
 
-  private def lazyEval(term: Expr): Expr = {
-    var t = term
-    while (decompose(t) match { case _: Context => true; case _ => false }) { t = baseLazyEval(t) }
-    t
+  @tailrec
+  private def lazyEval(e: Expr): Expr = baseLazyEval(e) match {
+    case e1@Ctr(_, _) => e1
+    case e1 => lazyEval(e1)
   }
 
   private def baseLazyEval(t: Expr): Expr = decompose(t) match {
     case ObservableCtr(ctr) =>
       ctr
-    case ObservableVar(v) =>
-      v
     case context @ Context(RedexFCall(FCall(name, args))) =>
       val fReduced = subst(program.f(name).term, Map(program.f(name).args.zip(args): _*))
       context.replaceRedex(fReduced)

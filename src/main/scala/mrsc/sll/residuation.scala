@@ -16,7 +16,7 @@ import mrsc.sll.SLLExpressions._
      you do not need to invent patterns, ..., so it is possible to write a generic
      component for residuation. 
      
-     Note, that this code is purely functional: no vars, no var generation.
+     Note, that this code is purely functional: no vars.
  */
 object SLLResiduator extends Residuation[Expr] {
 
