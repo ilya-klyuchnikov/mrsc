@@ -107,7 +107,7 @@ object Samples {
       println("**classic up:**")
       println(PrettySLL.pretty(consumer1.buildResult))
 
-      Checker.check(task, SLLExpressions.expr2Task(consumer1.residualProgram))
+      Checker.check(task, Lifting.expr2Task(consumer1.residualProgram))
     }
 
     {
@@ -118,7 +118,7 @@ object Samples {
       println("**classic down:**")
       println(PrettySLL.pretty(consumer2.buildResult))
 
-      Checker.check(task, SLLExpressions.expr2Task(consumer2.residualProgram))
+      Checker.check(task, Lifting.expr2Task(consumer2.residualProgram))
     }
 
      println("**others:**")
@@ -134,7 +134,7 @@ object Samples {
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
         println("***")
-        val taskS = SLLExpressions.expr2Task(sllTask2)
+        val taskS = Lifting.expr2Task(sllTask2)
         println(taskS)
         println("+++")
         Checker.check(task, taskS)
@@ -153,7 +153,7 @@ object Samples {
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
         println("***")
-        val taskS = SLLExpressions.expr2Task(sllTask2)
+        val taskS = Lifting.expr2Task(sllTask2)
         println(taskS)
         println("+++")
         Checker.check(task, taskS)
@@ -253,24 +253,24 @@ object Samples {
 
   def testRunTasks(): Unit = {
 
-    testRun(SLLTasks.namedTasks("NaiveFib"))
-    testRun(SLLTasks.namedTasks("FastFib"))
-    testRun(SLLTasks.namedTasks("EqPlus"))
-    testRun(SLLTasks.namedTasks("EqPlusa"))
-    testRun(SLLTasks.namedTasks("EqPlusb"))
-    testRun(SLLTasks.namedTasks("EqPlusc"))
-    testRun(SLLTasks.namedTasks("EqPlus1"))
-    testRun(SLLTasks.namedTasks("EqPlus1a"))
-    testRun(SLLTasks.namedTasks("EqPlus1b"))
-    testRun(SLLTasks.namedTasks("EqPlus1c"))
+    //testRun(SLLTasks.namedTasks("NaiveFib"))
+    //testRun(SLLTasks.namedTasks("FastFib"))
+    //testRun(SLLTasks.namedTasks("EqPlus"))
+    //testRun(SLLTasks.namedTasks("EqPlusa"))
+    //testRun(SLLTasks.namedTasks("EqPlusb"))
+    //testRun(SLLTasks.namedTasks("EqPlusc"))
+    //testRun(SLLTasks.namedTasks("EqPlus1"))
+    //testRun(SLLTasks.namedTasks("EqPlus1a"))
+    //testRun(SLLTasks.namedTasks("EqPlus1b"))
+    //testRun(SLLTasks.namedTasks("EqPlus1c"))
     testRun(SLLTasks.namedTasks("OddEven"))
-    testRun(SLLTasks.namedTasks("EvenMult"))
-    testRun(SLLTasks.namedTasks("EvenSqr"))
-    testRun(SLLTasks.namedTasks("NaiveReverse"))
-    testRun(SLLTasks.namedTasks("FastReverse"))
-    testRun(SLLTasks.namedTasks("LastDouble"))
-    testRun(SLLTasks.namedTasks("App"))
-    testRun(SLLTasks.namedTasks("Idle"))
+    //testRun(SLLTasks.namedTasks("EvenMult"))
+    //testRun(SLLTasks.namedTasks("EvenSqr"))
+    //testRun(SLLTasks.namedTasks("NaiveReverse"))
+    //testRun(SLLTasks.namedTasks("FastReverse"))
+    //testRun(SLLTasks.namedTasks("LastDouble"))
+    //testRun(SLLTasks.namedTasks("App"))
+    //testRun(SLLTasks.namedTasks("Idle"))
 
   }
 

@@ -51,8 +51,12 @@ object SLLExpressions {
   private var i: Long = 0;
   def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) };
 
+}
+
+object Lifting {
+
   def expr2Task(e: Expr): SLLTask = {
-    val (e1, defs) = lift(e)
+    val (e1, defs) = Lifting.lift(e)
 
     def compare(n1: String, n2: String): Boolean = {
       if (n1.length < n2.length) {
@@ -75,40 +79,30 @@ object SLLExpressions {
     SLLTask(e1, Program(defs1))
   }
 
-  private def lift(e: Expr): (Expr, List[Def]) = e match {
+  def liftArgs(args: List[Expr]): (List[Expr], List[Def]) = {
+    var args1 = List[Expr]()
+    var defs = List[Def]()
+    for (arg <- args) {
+      val (arg1, defs1) = lift(arg)
+      args1 = args1 ++ List(arg1)
+      defs = defs ++ defs1
+    }
+    (args1, defs)
+  }
+
+  // the only thing it does is collect definitions
+  def lift(e: Expr): (Expr, List[Def]) = e match {
     case v: Var =>
       (v, Nil)
-
     case Ctr(n, args) =>
-      var args1 = List[Expr]()
-      var defs = List[Def]()
-      for (arg <- args) {
-        val (arg1, defs1) = lift(arg)
-        args1 = args1 ++ List(arg1)
-        defs = defs ++ defs1
-      }
+      val (args1, defs) = liftArgs(args)
       (Ctr(n, args1), defs)
-
     case FCall(n, args) =>
-      var args1 = List[Expr]()
-      var defs = List[Def]()
-      for (arg <- args) {
-        val (arg1, defs1) = lift(arg)
-        args1 = args1 ++ List(arg1)
-        defs = defs ++ defs1
-      }
+      val (args1, defs) = liftArgs(args)
       (FCall(n, args1), defs)
-
     case GCall(n, args) =>
-      var args1 = List[Expr]()
-      var defs = List[Def]()
-      for (arg <- args) {
-        val (arg1, defs1) = lift(arg)
-        args1 = args1 ++ List(arg1)
-        defs = defs ++ defs1
-      }
+      val (args1, defs) = liftArgs(args)
       (GCall(n, args1), defs)
-
     case Where(e, defs) =>
       var newDefs = List[Def]()
       for (deff <- defs) deff match {
@@ -127,6 +121,7 @@ object SLLExpressions {
   }
 }
 
+// rename bound variables into v1, v2, v3 ..., f1, f2, f3...
 object SyntaxNormalization {
   import scala.collection.immutable.ListMap
 
