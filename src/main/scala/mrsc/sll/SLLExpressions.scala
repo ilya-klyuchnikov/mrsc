@@ -56,10 +56,6 @@ object SLLExpressions {
   private def walk1(ps: List[(Expr, Expr)], s: Subst[Expr]): Option[Subst[Expr]] =
     ps.foldLeft[Option[Subst[Expr]]](Some(s)) { (s, p) => s.flatMap { walk(p, _) } }
 
-
-  private var i: Long = 0;
-  def freshVar(x: AnyRef = null) = { i += 1; Var("v" + i) };
-
 }
 
 object Lifting {

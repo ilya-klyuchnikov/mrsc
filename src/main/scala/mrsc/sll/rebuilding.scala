@@ -33,7 +33,7 @@ object SLLRebuilding {
     val rbs1 = sub find { _._2 == e } map { case (v, _) => (Var(v), sub) } toList
     // new rebuilding 
     val rbs2 = {
-      val fn = SLLExpressions.freshVar().name
+      val fn = newName(e, rbs1.size)
       List((Var(fn), sub + (fn -> e)))
     }
     // rebuilding of arguments
@@ -43,7 +43,8 @@ object SLLRebuilding {
       case Ctr(n, xs) => rebuild1(xs, sub) map { case (ys, sub1) => (Ctr(n, ys), sub1) }
       case _ => List((e, sub))
     }
-    rbs1 ++ rbs2 ++ rbs3
+    rbs1 ++ 
+    rbs2 ++ rbs3
   }
 
   private def rebuild1(es: List[Expr], sub: Subst[Expr]): List[(List[Expr], Subst[Expr])] = {
@@ -51,5 +52,7 @@ object SLLRebuilding {
       for { (es1, sub) <- acc; (t, sub1) <- rebuild(e, sub) } yield (t :: es1, sub1)
     }
   }
-
+  
+  private def newName(e: Expr, seed: Int): Name =
+    "gen/" + (seed + 1) + "/" + e.toString()
 }
