@@ -21,7 +21,7 @@ object SLLRebuilding {
       case (Var(_), _) => false
       case (_, m) if m.isEmpty => false
       case (e, sub) =>
-        val bodyVars = SLLExpressions.vars(e)
+        val bodyVars = SLLSyntax.vars(e)
         sub forall {
           case (_, v @ Var(_)) => bodyVars contains v
           case _ => true

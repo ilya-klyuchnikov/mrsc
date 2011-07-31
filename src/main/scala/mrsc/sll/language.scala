@@ -2,30 +2,75 @@ package mrsc.sll
 
 import mrsc._
 import mrsc.sll.Decomposition._
-import mrsc.sll.SLLExpressions._
+import mrsc.sll.SLLSyntax._
 
 trait SLLSyntax extends Syntax[Expr] {
 
   override val instance: PartialOrdering[Expr] = new SimplePartialOrdering[Expr] {
-    override def lteq(x: Expr, y: Expr) = SLLExpressions.inst(x, y)
+    override def lteq(x: Expr, y: Expr) = SLLSyntax.instance(x, y)
   }
 
-  override def subst(c: Expr, sub: Subst[Expr]): Expr = {
-    SLLExpressions.subst(c, sub)
-  }
+  override def subst(c: Expr, sub: Subst[Expr]): Expr =
+    SLLSyntax.subst(c, sub)
 
   override def rawRebuildings(e: Expr): List[Rebuilding[Expr]] =
     SLLRebuilding.rebuildings(e)
 
-  override def translate(rebuilding: Rebuilding[Expr]): Expr = {
-    val (e, sub) = rebuilding
-    Let(e, sub.toList)
-  }
+  override def translate(rb: Rebuilding[Expr]): Expr = 
+    Let(rb._1, rb._2.toList)
 
   override def findSubst(from: Expr, to: Expr) =
-    SLLExpressions.findSubst(from, to)
+    SLLSyntax.findSubst(from, to)
 
   override def size(e: Expr) = e.size
+
+}
+
+object SLLSyntax {
+  def subst(term: Expr, m: Subst[Expr]): Expr = term match {
+    case v @ Var(n)        => m.getOrElse(n, v)
+    case Ctr(name, args)   => Ctr(name, args map { subst(_, m) })
+    case FCall(name, args) => FCall(name, args map { subst(_, m) })
+    case GCall(name, args) => GCall(name, args map { subst(_, m) })
+    case Where(e, defs)    => Where(subst(e, m), defs map { subst(_, m) })
+    case Let(e, bs)        => Let(subst(e, m), bs)
+  }
+
+  private def subst(deff: Def, m: Subst[Expr]): Def = deff match {
+    case FFun(n, xs, e)              => FFun(n, xs, subst(e, m -- xs))
+    case GFun(n, Pat(pn, xs), ys, e) => GFun(n, Pat(pn, xs), ys, subst(e, m -- xs -- ys))
+  }
+
+  private def vs(t: Expr): List[Var] = t match {
+    case v: Var         => List(v)
+    case Ctr(_, args)   => args.foldLeft(List[Var]())(_ ++ vs(_))
+    case FCall(_, args) => args.foldLeft(List[Var]())(_ ++ vs(_))
+    case GCall(_, args) => args.foldLeft(List[Var]())(_ ++ vs(_))
+    case Let(e, _)      => vs(e)
+    case Where(e, _)    => vs(e)
+  }
+
+  def vars(t: Expr): List[Var] = vs(t).distinct
+
+  def instance(t1: Expr, t2: Expr): Boolean = (t1.size <= t2.size) && (findSubst(t1, t2).isDefined)
+
+  def findSubst(from: Expr, to: Expr): Option[Subst[Expr]] =
+    walk((from, to), Map())
+
+  private def walk(p: (Expr, Expr), s: Subst[Expr]): Option[Subst[Expr]] = p match {
+    case (Var(n), to) => s.get(n) match {
+      case Some(to1) if to1 == to => Some(s)
+      case Some(to1) if to1 != to => None
+      case None                   => Some(s + (n -> to))
+    }
+    case (Ctr(n1, args1), Ctr(n2, args2)) if n1 == n2 => walk1(args1 zip args2, s)
+    case (FCall(n1, args1), FCall(n2, args2)) if n1 == n2 => walk1(args1 zip args2, s)
+    case (GCall(n1, args1), GCall(n2, args2)) if n1 == n2 => walk1(args1 zip args2, s)
+    case _ => None
+  }
+
+  private def walk1(ps: List[(Expr, Expr)], s: Subst[Expr]) =
+    ps.foldLeft[Option[Subst[Expr]]](Some(s)) { (s, p) => s.flatMap { walk(p, _) } }
 
 }
 
@@ -76,11 +121,11 @@ trait SLLSemantics extends OperationalSemantics[Expr] {
     }
 
   override def isDrivable(e: Expr): Boolean = e match {
-    case Var(_) => false
+    case Var(_)      => false
     case Ctr(_, Nil) => false
-    case _ => true
+    case _           => true
   }
-    
+
   def instantiate(p: Pat, v: Var): Ctr = {
     val vars = p.args.indices.toList.map { i => Var("de_" + p.name + "_" + i + "/" + v.name) }
     Ctr(p.name, vars)

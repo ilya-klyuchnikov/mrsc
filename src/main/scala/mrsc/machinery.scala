@@ -200,7 +200,7 @@ trait CurrentGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra
 }
 
 trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Extra] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
-   override def rebuildings(whistle: W, pState: PState[C, D, Extra]): List[Command[C, D, Extra]] = {
+  override def rebuildings(whistle: W, pState: PState[C, D, Extra]): List[Command[C, D, Extra]] = {
     whistle match {
       case None =>
         List()
@@ -273,12 +273,10 @@ trait MSGBlamedOrSplitCurrent[C] extends GenericMultiMachine[C, DriveInfo[C], Ex
       case Some(blamed) =>
         val currentConf = pState.current.conf
         val blamedConf = blamed.conf
-        //println(blamedConf + " < " + currentConf)
         msg(blamedConf, currentConf) match {
           // try MSG
           case Some(rb) =>
             val conf1 = translate(rb)
-            //println("rollback " + conf1)
             val rollback = RollbackSubGraph(blamed, conf1, NoExtra)
             List(rollback)
           // If there is no msg, then just split the down configuration
@@ -321,6 +319,27 @@ trait MSGCurrentOrSplitBlamed[C] extends GenericMultiMachine[C, DriveInfo[C], Ex
             //println("rollback " + let)
             val rollback = RollbackSubGraph(blamed, let, NoExtra)
             List(rollback)
+        }
+      case None =>
+        List()
+    }
+  }
+}
+
+trait MSGCurrentOrDriving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with NaiveMSG[C] {
+
+  def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra]): List[Command[C, DriveInfo[C], Extra]] = {
+    whistle match {
+      case Some(blamed) =>
+        val currentConf = pState.current.conf
+        val blamedConf = blamed.conf
+        msg(currentConf, blamedConf) match {
+          case Some(rb) =>
+            val conf1 = translate(rb)
+            val replace = ReplaceNode(conf1, NoExtra)
+            List(replace)
+          case None =>
+            drive(None, pState)
         }
       case None =>
         List()

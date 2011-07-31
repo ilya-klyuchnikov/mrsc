@@ -3,7 +3,7 @@ package mrsc.sll
 import scala.annotation.tailrec
 
 import Decomposition._
-import SLLExpressions._
+import SLLSyntax._
 
 object SLLInterpreter {
   def eval(task: SLLTask): Expr = {

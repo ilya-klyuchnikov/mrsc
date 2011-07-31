@@ -66,7 +66,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
-  with MSGCurrentOrSplitBlamed[Expr]
+  with MSGCurrentOrDriving[Expr]
   with NoTricks[Expr]
 
 class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
@@ -104,7 +104,7 @@ object Samples {
       val consumer1 = new SingleProgramConsumer(SLLResiduator)
       val builder1 = new CoGraphBuilder(m1, consumer1)
       builder1.buildCoGraph(task.target, NoExtra)
-      println("**classic up:**")
+      println("**classic+ up:**")
       println(PrettySLL.pretty(consumer1.buildResult))
 
       Checker.check(task, Lifting.expr2Task(consumer1.residualProgram))
@@ -115,7 +115,7 @@ object Samples {
       val consumer2 = new SingleProgramConsumer(SLLResiduator)
       val builder2 = new CoGraphBuilder(m2, consumer2)
       builder2.buildCoGraph(task.target, NoExtra)
-      println("**classic down:**")
+      println("**classic+ down:**")
       println(PrettySLL.pretty(consumer2.buildResult))
 
       Checker.check(task, Lifting.expr2Task(consumer2.residualProgram))

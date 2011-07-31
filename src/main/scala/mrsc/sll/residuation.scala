@@ -1,7 +1,7 @@
 package mrsc.sll
 
 import mrsc._
-import mrsc.sll.SLLExpressions._
+import mrsc.sll.SLLSyntax._
 
 /*! `SLLResiduator` residuates a graph of configuration into 
      a 'where'-expression. Where-expression is a bunch of embedded 

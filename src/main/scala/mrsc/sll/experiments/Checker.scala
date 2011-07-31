@@ -1,7 +1,7 @@
 package mrsc.sll.experiments
 
 import mrsc.sll._
-import SLLExpressions._
+import SLLSyntax._
 
 object Checker {
 

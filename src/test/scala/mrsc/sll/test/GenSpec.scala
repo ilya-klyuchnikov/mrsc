@@ -7,7 +7,7 @@ import G._
 import org.scalacheck.Prop._
 
 import SLLGen._
-import SLLExpressions._
+import SLLSyntax._
 
 object GenSpec extends Properties("Generalizaions") {
 
