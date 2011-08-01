@@ -166,8 +166,8 @@ object Samples {
   def preRunTasks(): Unit = {
     println("Counting completed graphs")
     println()
-    val header = expand(40, """Task \ Supercompiler""") + expandRight(5, "1") +
-      expandRight(5, "2") + expandRight(5, "3")
+    val header = expand(40, """Task \ Supercompiler""") + expandRight(8, "1") +
+      expandRight(8, "2") + expandRight(8, "3")
     println(header)
     println()
     
@@ -214,7 +214,7 @@ object Samples {
       }
       val result = consumer.buildResult
 
-      val res = expandRight(5, result.countCompleted + "")
+      val res = expandRight(8, result.countCompleted + "")
       print(res)
     }
     
@@ -229,7 +229,7 @@ object Samples {
       }
       val result = consumer.buildResult
 
-      val res = expandRight(5, result.countCompleted + "")
+      val res = expandRight(8, result.countCompleted + "")
       print(res)
     }
     
@@ -244,7 +244,7 @@ object Samples {
       }
       val result = consumer.buildResult
 
-      val res = expandRight(5, result.countCompleted + "")
+      val res = expandRight(8, result.countCompleted + "")
       print(res)
     }
 
@@ -289,12 +289,12 @@ object Samples {
   def main(args: Array[String]): Unit = {
 
     // 85726 completed graphs here:
-    //runTask(SLLTasks.namedTasks("FastFib"), multi5(HEWhistle)_)
+    //preRun(SLLTasks.namedTasks("FastFib"))
 
     // 0 results here (because only UP generalization is allowed)
     // runTask(SLLTasks.namedTasks("FastFib"), multi3(HEByCouplingWhistle)_)
     
-    //preRunTasks()
+    preRunTasks()
     
     testRunTasks()
 
