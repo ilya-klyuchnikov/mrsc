@@ -43,7 +43,7 @@ object SLLRebuilding {
       case Ctr(n, xs) => rebuild1(xs, sub) map { case (ys, sub1) => (Ctr(n, ys), sub1) }
       case _ => List((e, sub))
     }
-    rbs1 ++ rbs2 ++ rbs3
+    rbs3 ++ rbs1 ++ rbs2
   }
 
   private def rebuild1(es: List[Expr], sub: Subst[Expr]): List[(List[Expr], Subst[Expr])] = {
