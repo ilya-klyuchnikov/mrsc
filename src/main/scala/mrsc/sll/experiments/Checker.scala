@@ -68,7 +68,7 @@ object Checker {
       //println(task2)
       //println("***")
       
-      require(res1 == res2)
+      require(res1 == res2, "goal: " + task1.target + " expected: " + res1 + ", but was: " + res2)
     }
   }
 }
