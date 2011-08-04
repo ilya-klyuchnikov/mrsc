@@ -9,7 +9,7 @@ import mrsc._
 object TinyMachine extends Machine[Int, String, Extra] {
   def steps(pState: PState[Int, String, Extra]): List[Command[Int, String, Extra]] = pState.current.conf match {
     case 0 =>
-      List(AddChildNodes(List(ChildNode(1, "0 -> 1", NoExtra), ChildNode(2, "0 -> 2", NoExtra))))
+      List(AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
     case 1 =>
       List(ConvertToLeaf)
     case 2 =>
@@ -17,7 +17,7 @@ object TinyMachine extends Machine[Int, String, Extra] {
     case 21 =>
       List(Rollback(pState.current.in.coNode, -1, NoExtra))
     case -1 =>
-      List(AddChildNodes(List(ChildNode(11, "-1 -> 11", NoExtra))))
+      List(AddChildNodes(List((11, "-1 -> 11", NoExtra))))
     case 11 =>
       List(Fold(List()))
   }

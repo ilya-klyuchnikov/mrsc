@@ -51,7 +51,6 @@ trait Machine[C, D, E] {
   def steps(pState: PState[C, D, E]): List[Command[C, D, E]]
 }
 
-case class ChildNode[+C, +D, +E](conf: C, driveInfo: D, extraInfo: E)
 /*!# Abstract steps
   
  Under the hood an abstract machine deals with some kind of semantics of the language.
@@ -68,7 +67,7 @@ case object ConvertToLeaf extends Command[Nothing, Nothing, Nothing]
 /*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
  Development is divided into several `subSteps`.
  */
-case class AddChildNodes[C, D, E](childNodes: List[ChildNode[C, D, E]]) extends Command[C, D, E]
+case class AddChildNodes[C, D, E](ns: List[(C, D, E)]) extends Command[C, D, E]
 
 /*! `MFold` signals that there is a path to something similar to the current state in the past
  of the current SC Graph.
@@ -184,9 +183,9 @@ object CoGraphBuilder {
             current node is moved to the complete part and new children are moved into 
             the incomplete part. Also the (co-)path is calculated for any child node.
          */
-        case AddChildNodes(subSteps) =>
-          val deltaLeaves: List[CoNode[C, D, E]] = subSteps.zipWithIndex map {
-            case (ChildNode(conf, dInfo, eInfo), i) =>
+        case AddChildNodes(ns) =>
+          val deltaLeaves: List[CoNode[C, D, E]] = ns.zipWithIndex map {
+            case ((conf, dInfo, eInfo), i) =>
               val in = CoEdge(active, dInfo)
               CoNode(conf, eInfo, in, None, i :: active.coPath)
           }

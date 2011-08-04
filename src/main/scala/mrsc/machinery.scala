@@ -90,13 +90,13 @@ trait Driving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra] with Operat
         List()
       case DecomposeDriveStep(compose, args) =>
         val stepInfo = DecomposeStepInfo(compose)
-        val subSteps = args map { a => ChildNode(a, stepInfo, NoExtra) }
+        val subSteps = args map { a => (a, stepInfo, NoExtra) }
         List(AddChildNodes(subSteps))
       case TransientDriveStep(next) =>
-        val subSteps = List(ChildNode(next, TransientStepInfo, NoExtra))
+        val subSteps = List((next, TransientStepInfo, NoExtra))
         List(AddChildNodes(subSteps))
       case VariantsDriveStep(cases) =>
-        val subSteps = cases map { case (contr, next) => ChildNode(next, VariantsStepInfo(contr), NoExtra) }
+        val subSteps = cases map { case (contr, next) => (next, VariantsStepInfo(contr), NoExtra) }
         List(AddChildNodes(subSteps))
     }
 
@@ -111,7 +111,7 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra] with RewriteSema
       case None =>
         val subSteps =
           for ((next, i) <- drive(pState.current.conf).zipWithIndex if next.isDefined)
-            yield ChildNode(next.get, i + 1, NoExtra)
+            yield (next.get, i + 1, NoExtra)
         List(AddChildNodes(subSteps))
     }
 

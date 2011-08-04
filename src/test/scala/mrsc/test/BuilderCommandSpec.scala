@@ -31,7 +31,7 @@ class BuilderCommandSpec extends mutable.Specification {
 
     "executes AddChildNodes command" in {
       pg1 = CoGraphBuilder.executeCommand(pg1,
-        AddChildNodes(List(ChildNode(1, "0 -> 1", NoExtra), ChildNode(2, "0 -> 2", NoExtra))))
+        AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
 
       (pg1.activeLeaf.get.conf must_== 1) and
         (pg1.complete.size must_== 1) and
@@ -67,7 +67,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes AddChildNodes command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1, AddChildNodes(List(ChildNode(11, "-1 -> 11", NoExtra))))
+      pg1 = CoGraphBuilder.executeCommand(pg1, AddChildNodes(List((11, "-1 -> 11", NoExtra))))
 
       (pg1.activeLeaf.get.conf must_== 11) and
         (pg1.complete.size must_== 1) and
@@ -99,7 +99,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes AddChildNodes command" in {
-      pg2 = CoGraphBuilder.executeCommand(pg2, AddChildNodes(List(ChildNode(11, "-1 -> 11", NoExtra))))
+      pg2 = CoGraphBuilder.executeCommand(pg2, AddChildNodes(List((11, "-1 -> 11", NoExtra))))
 
       (pg2.activeLeaf.get.conf must_== 11) and
         (pg2.complete.size must_== 1) and
