@@ -13,13 +13,13 @@ object TinyMachine extends Machine[Int, String, Extra] {
     case 1 =>
       List(ConvertToLeaf)
     case 2 =>
-      List(ReplaceNode(21, NoExtra))
+      List(Rebuild(21, NoExtra))
     case 21 =>
-      List(RollbackSubGraph(pState.current.in.coNode, -1, NoExtra))
+      List(Rollback(pState.current.in.coNode, -1, NoExtra))
     case -1 =>
       List(AddChildNodes(List(ChildNode(11, "-1 -> 11", NoExtra))))
     case 11 =>
-      List(MakeFold(List()))
+      List(Fold(List()))
   }
 }
 

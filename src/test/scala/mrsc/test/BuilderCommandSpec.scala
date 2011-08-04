@@ -48,7 +48,7 @@ class BuilderCommandSpec extends mutable.Specification {
 
     "executes ReplaceNode command" in {
       val oldActive = pg1.activeLeaf.get
-      pg1 = CoGraphBuilder.executeCommand(pg1, ReplaceNode(21, NoExtra))
+      pg1 = CoGraphBuilder.executeCommand(pg1, Rebuild(21, NoExtra))
       val newActive = pg1.activeLeaf.get
 
       (newActive.conf must_== 21) and
@@ -59,7 +59,7 @@ class BuilderCommandSpec extends mutable.Specification {
 
     "executes RollbackSubGraph command" in {
       val root = pg1.activeLeaf.get.in.coNode
-      pg1 = CoGraphBuilder.executeCommand(pg1, RollbackSubGraph(root, -1, NoExtra))
+      pg1 = CoGraphBuilder.executeCommand(pg1, Rollback(root, -1, NoExtra))
 
       (pg1.activeLeaf.get.conf must_== -1) and
         (pg1.complete.size must_== 0) and
@@ -75,7 +75,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes Fold command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1, MakeFold(List()))
+      pg1 = CoGraphBuilder.executeCommand(pg1, Fold(List()))
 
       (pg1.activeLeaf must beNone) and
         (pg1.complete.size must_== 2) and
@@ -107,7 +107,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes Fold command" in {
-      pg2 = CoGraphBuilder.executeCommand(pg2, MakeFold(List()))
+      pg2 = CoGraphBuilder.executeCommand(pg2, Fold(List()))
 
       (pg1.activeLeaf must beNone) and
         (pg1.complete.size must_== 2) and

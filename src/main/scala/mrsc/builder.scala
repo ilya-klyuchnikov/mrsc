@@ -51,6 +51,7 @@ trait Machine[C, D, E] {
   def steps(pState: PState[C, D, E]): List[Command[C, D, E]]
 }
 
+case class ChildNode[+C, +D, +E](conf: C, driveInfo: D, extraInfo: E)
 /*!# Abstract steps
   
  Under the hood an abstract machine deals with some kind of semantics of the language.
@@ -67,29 +68,26 @@ case object ConvertToLeaf extends Command[Nothing, Nothing, Nothing]
 /*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
  Development is divided into several `subSteps`.
  */
-case class AddChildNodes[+C, +D, +E](val childNodes: List[ChildNode[C, D, E]]) extends Command[C, D, E]
-
-/* Usually `SubStep` hides internals of driving.  */
-case class ChildNode[+C, +D, +E](conf: C, driveInfo: D, extraInfo: E)
+case class AddChildNodes[C, D, E](childNodes: List[ChildNode[C, D, E]]) extends Command[C, D, E]
 
 /*! `MFold` signals that there is a path to something similar to the current state in the past
  of the current SC Graph.
  */
-case class MakeFold(val coPath: CoPath) extends Command[Nothing, Nothing, Nothing]
+case class Fold(coPath: CoPath) extends Command[Nothing, Nothing, Nothing]
 
 /*! The step `MPrune` means that the current graph should be discarded. In the case of 
  the "single-result" supercompilation it means failure (= no good result). In the case of
  multi-result supercompilation it means that we should continue with the next variant.   
  */
-case object DiscardGraph extends Command[Nothing, Nothing, Nothing]
+case object Discard extends Command[Nothing, Nothing, Nothing]
 
 /*! `MReplace` is fixing the current state of the branch.
  */
-case class ReplaceNode[C, D, E](val conf: C, val extraInfo: E) extends Command[C, D, E]
+case class Rebuild[C, D, E](conf: C, extraInfo: E) extends Command[C, D, E]
 
 /*! `MRollback` is fixing the past `dangerous` state of the current branch.
  */
-case class RollbackSubGraph[C, D, E](val subGraphRoot: CoNode[C, D, E],
+case class Rollback[C, D, E](to: CoNode[C, D, E],
   val conf: C, val extraInfo: E) extends Command[C, D, E]
 
 /*!# SC cographs builders
@@ -142,7 +140,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
             partialCoGraphs = gs
             for (step <- machine.steps(g.pState)) step match {
               /*! informing `consumer` about pruning, if any */
-              case DiscardGraph =>
+              case Discard =>
                 consumer.consume(None)
               /*! or adding new cograph to the pending list otherwise */
               case s =>
@@ -173,13 +171,13 @@ object CoGraphBuilder {
         /*! Replacing the configuration of the current node. 
            The main use case is the rebuilding (generalization) of the active node.
          */
-        case ReplaceNode(conf, extra) =>
+        case Rebuild(conf, extra) =>
           val node = active.copy(conf = conf, extraInfo = extra)
           PartialCoGraph(g.completeLeaves, node :: ls, g.complete)
         /*! Just folding: creating a loopback and moving the node into the complete part 
             of the SC graph.  
          */
-        case MakeFold(basePath) =>
+        case Fold(basePath) =>
           val node = active.copy(base = Some(basePath))
           PartialCoGraph(node :: g.completeLeaves, ls, node :: g.complete)
         /*! This step corresponds (mainly) to driving: adds children to the current node. Then
@@ -198,7 +196,7 @@ object CoGraphBuilder {
           PartialCoGraph(g.completeLeaves, deltaLeaves ++ ls, active :: g.complete)
         /*! When doing rollback, we also prune all successors of the dangerous node. 
          */
-        case RollbackSubGraph(dangNode, c, eInfo) =>
+        case Rollback(dangNode, c, eInfo) =>
           def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
           val node = dangNode.copy(conf = c, extraInfo = eInfo)
           val completeNodes1 = g.complete.remove(prune_?)
@@ -207,7 +205,7 @@ object CoGraphBuilder {
           PartialCoGraph(completeLeaves1, node :: incompleteLeaves1, completeNodes1)
         /*! A graph cannot prune itself - it should be performed by a builder.
          */
-        case DiscardGraph =>
+        case Discard =>
           throw new Error()
       }
     case _ =>
