@@ -32,7 +32,7 @@ object SLLResiduator extends Residuation[Expr] {
       Where(call, List(fdef))
     // repeat node
     case Some(fpath) =>
-      val (f, vars) = signature(n)
+      val (f, vars) = signature(graph.get(fpath))
       val call = FCall(f, vars)
       val fnode = graph.get(fpath)
       subst(call, findSubst(fnode.conf, n.conf).get)
