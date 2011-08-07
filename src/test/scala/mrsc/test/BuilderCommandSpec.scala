@@ -10,13 +10,13 @@ import mrsc._
 class BuilderCommandSpec extends mutable.Specification {
   args(sequential = true)
 
-  var pg1, pg2: PartialCoGraph[Int, String, Extra] = _
-  var cg1, cg2: CoGraph[Int, String, Extra] = _
+  var pg1, pg2: PartialCoGraph[Int, String, Extra[String]] = _
+  var cg1, cg2: CoGraph[Int, String, Extra[String]] = _
 
-  val graph: Graph[Int, String, Extra] = {
-    val n1 = Node[Int, String, Extra](conf = 11, extraInfo = NoExtra, outs = List(), base = Some(List()), path = List(0))
-    val e1 = Edge[Int, String, Extra](n1, "-1 -> 11")
-    val n0 = Node[Int, String, Extra](conf = -1, extraInfo = NoExtra, outs = List(e1), base = None, path = List())
+  val graph: Graph[Int, String, Extra[String]] = {
+    val n1 = Node[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), base = Some(List()), path = List(0))
+    val e1 = Edge[Int, String, Extra[String]](n1, "-1 -> 11")
+    val n0 = Node[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), base = None, path = List())
     Graph(root = n0, leaves = List(n1))
   }
 

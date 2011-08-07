@@ -27,7 +27,7 @@ class CountGraphConsumer[C, D, E](val maxCount: Int = 10000)
 case class ResidualResult[C](nGraphsCompleted: Int, nGraphsPruned: Int, residuals: List[C])
 
 class ResiduatingConsumer[C](residuator: Residuation[C])
-  extends CoGraphConsumer[C, DriveInfo[C], Extra, ResidualResult[C]] {
+  extends CoGraphConsumer[C, DriveInfo[C], Extra[C], ResidualResult[C]] {
   val description = "counting completed and pruned graphs and showing residual programs"
 
   var completedCoGraphsCount = 0
@@ -35,7 +35,7 @@ class ResiduatingConsumer[C](residuator: Residuation[C])
   var residuals = List[C]()
   lazy val result = ResidualResult(completedCoGraphsCount, prunedCoGraphsCount, residuals)
 
-  def consume(result: Option[CoGraph[C, DriveInfo[C], Extra]]): Unit = {
+  def consume(result: Option[CoGraph[C, DriveInfo[C], Extra[C]]]): Unit = {
     result match {
       case None =>
         prunedCoGraphsCount = prunedCoGraphsCount + 1
@@ -68,13 +68,13 @@ class GraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E, List[Graph[C, D, E
   override def buildResult() = result
 }
 
-class SimpleGraphConsumer[C, D] extends CoGraphConsumer[C, D, Extra, List[Graph[C, D, Extra]]] {
+class SimpleGraphConsumer[C, D] extends CoGraphConsumer[C, D, Extra[C], List[Graph[C, D, Extra[C]]]] {
   val description = "counting completed and pruned graphs and showing residual programs"
 
-  var completedGraphs: List[Graph[C, D, Extra]] = List()
+  var completedGraphs: List[Graph[C, D, Extra[C]]] = List()
   lazy val result = completedGraphs
 
-  def consume(result: Option[CoGraph[C, D, Extra]]): Unit = 
+  def consume(result: Option[CoGraph[C, D, Extra[C]]]): Unit = 
     for (cg <- result) {
       val graph = Transformations.transpose(cg)
       completedGraphs = graph :: completedGraphs
@@ -84,13 +84,13 @@ class SimpleGraphConsumer[C, D] extends CoGraphConsumer[C, D, Extra, List[Graph[
 }
 
 class SingleProgramConsumer[C](residuator: Residuation[C])
-  extends CoGraphConsumer[C, DriveInfo[C], Extra, C] {
+  extends CoGraphConsumer[C, DriveInfo[C], Extra[C], C] {
   val description = "I expect one result"
 
   var residualProgram: C = null.asInstanceOf[C]
-  var graph: Graph[C, DriveInfo[C], Extra] = null
+  var graph: Graph[C, DriveInfo[C], Extra[C]] = null
 
-  def consume(result: Option[CoGraph[C, DriveInfo[C], Extra]]): Unit = {
+  def consume(result: Option[CoGraph[C, DriveInfo[C], Extra[C]]]): Unit = {
     result match {
       case Some(cg) if residualProgram == null =>
         graph = Transformations.transpose(cg)

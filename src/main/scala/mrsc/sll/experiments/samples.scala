@@ -5,82 +5,75 @@ import mrsc.sll._
 
 // try all variants
 class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
   with SLLSyntax
   with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with AlwaysCurrentGens[Expr]
-  with NoTricks[Expr]
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
   with SLLSyntax
   with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with CurrentGensOnWhistle[Expr]
-  with NoTricks[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
   with SLLSyntax
   with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
-  with NoTricks[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
 // 1. the blamed one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
   with SLLSyntax
   with SLLSemantics
   with PruningDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with AllGensOnWhistle[Expr]
-  with NoTricks[Expr]
 
 class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
   with SLLSyntax
   with SLLSemantics
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
-  with NoTricks[Expr]
 
 class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
   with SLLSyntax
   with SLLSemantics
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MSGCurrentOrDriving[Expr]
-  with NoTricks[Expr]
 
 class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra]
+  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
   with SLLSyntax
   with SLLSemantics
   with SimpleDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MixMsg[Expr]
-  with NoTricks[Expr]
 
 object Samples {
-  type Machine1 = Machine[Expr, DriveInfo[Expr], Extra]
+  type Machine1 = Machine[Expr, DriveInfo[Expr], Extra[Expr]]
 
   def multi1(w: PartialOrdering[Expr])(p: Program) = new Multi1(p, w)
   def multi2(w: PartialOrdering[Expr])(p: Program) = new Multi2(p, w)
@@ -205,7 +198,7 @@ object Samples {
 
     {
       val machine = new ClassicMix(task.program, HEByCouplingWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra]()
+      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
       val builder = new CoGraphBuilder(machine, consumer)
       try {
         builder.buildCoGraph(task.target, NoExtra)
@@ -220,7 +213,7 @@ object Samples {
     
     {
       val machine = new Multi4(task.program, HEWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra]()
+      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
       val builder = new CoGraphBuilder(machine, consumer)
       try {
         builder.buildCoGraph(task.target, NoExtra)
@@ -235,7 +228,7 @@ object Samples {
     
     {
       val machine = new Multi1(task.program, HEWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra]()
+      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
       val builder = new CoGraphBuilder(machine, consumer)
       try {
         builder.buildCoGraph(task.target, NoExtra)
@@ -294,7 +287,7 @@ object Samples {
     // 0 results here (because only UP generalization is allowed)
     // runTask(SLLTasks.namedTasks("FastFib"), multi3(HEByCouplingWhistle)_)
     
-    preRunTasks()
+    //preRunTasks()
     
     testRunTasks()
 

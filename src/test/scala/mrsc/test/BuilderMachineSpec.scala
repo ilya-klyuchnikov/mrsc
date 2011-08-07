@@ -6,8 +6,8 @@ import org.specs2.runner.JUnitRunner
 
 import mrsc._
 
-object TinyMachine extends Machine[Int, String, Extra] {
-  def steps(pState: PState[Int, String, Extra]): List[Command[Int, String, Extra]] = pState.current.conf match {
+object TinyMachine extends Machine[Int, String, Extra[String]] {
+  def steps(pState: PState[Int, String, Extra[String]]): List[Command[Int, String, Extra[String]]] = pState.current.conf match {
     case 0 =>
       List(AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
     case 1 =>
@@ -27,15 +27,15 @@ object TinyMachine extends Machine[Int, String, Extra] {
 class BuilderMachineSpec extends mutable.Specification {
   args(sequential = true)
 
-  val graph: Graph[Int, String, Extra] = {
-    val n1 = Node[Int, String, Extra](conf = 11, extraInfo = NoExtra, outs = List(), base = Some(List()), path = List(0))
-    val e1 = Edge[Int, String, Extra](n1, "-1 -> 11")
-    val n0 = Node[Int, String, Extra](conf = -1, extraInfo = NoExtra, outs = List(e1), base = None, path = List())
+  val graph: Graph[Int, String, Extra[String]] = {
+    val n1 = Node[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), base = Some(List()), path = List(0))
+    val e1 = Edge[Int, String, Extra[String]](n1, "-1 -> 11")
+    val n0 = Node[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), base = None, path = List())
     Graph(root = n0, leaves = List(n1))
   }
 
   "CoGraphBuilder with deterministic machine" should {
-    val consumer = new GraphConsumer[Int, String, Extra]()
+    val consumer = new GraphConsumer[Int, String, Extra[String]]()
     val builder = new CoGraphBuilder(TinyMachine, consumer)
     builder.buildCoGraph(0, NoExtra)
     val graphs = consumer.result
