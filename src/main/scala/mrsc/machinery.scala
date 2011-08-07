@@ -30,6 +30,7 @@ case class VariantsStepInfo[C](contr: Contraction[C]) extends DriveInfo[C] {
 
 sealed trait Extra[+C]
 case object NoExtra extends Extra[Nothing]
+case class RebuildingInfo[C](from: C) extends Extra[C]
 
 
 /*!# Modeling expectations
