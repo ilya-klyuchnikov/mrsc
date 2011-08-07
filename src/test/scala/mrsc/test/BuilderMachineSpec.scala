@@ -4,7 +4,8 @@ import org.specs2._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
-import mrsc._
+import mrsc.core._
+import mrsc.pfp._
 
 object TinyMachine extends Machine[Int, String, Extra[String]] {
   def steps(pState: PState[Int, String, Extra[String]]): List[Command[Int, String, Extra[String]]] = pState.current.conf match {

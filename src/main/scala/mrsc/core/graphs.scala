@@ -1,4 +1,4 @@
-package mrsc
+package mrsc.core
 
 import scala.annotation.tailrec
 /*! # SC Graph Abstraction

@@ -1,6 +1,8 @@
 package mrsc.sll
 
-import mrsc._
+import mrsc.core._
+import mrsc.pfp._
+
 import mrsc.sll.Decomposition._
 import mrsc.sll.SLLSyntax._
 

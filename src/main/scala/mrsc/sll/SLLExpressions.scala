@@ -1,6 +1,6 @@
 package mrsc.sll
 
-import mrsc.Name
+import mrsc.pfp.Name
 
 object Lifting {
 

@@ -1,6 +1,7 @@
 package mrsc.sll.experiments
 
-import mrsc._
+import mrsc.core._
+import mrsc.pfp._
 import mrsc.sll._
 
 // try all variants

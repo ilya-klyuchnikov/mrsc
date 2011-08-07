@@ -1,4 +1,6 @@
-package mrsc
+package mrsc.pfp
+
+import mrsc.core._
 
 /*! # Means for specifying languages and ordering on language expressions.
  */

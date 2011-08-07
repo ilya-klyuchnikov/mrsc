@@ -1,6 +1,6 @@
 package mrsc.sll
 
-import mrsc._
+import mrsc.pfp._
 
 object SLLRebuilding {
 

@@ -1,4 +1,6 @@
-package mrsc
+package mrsc.pfp
+
+import mrsc.core._
 
 // This is for standard semantics
 case class Contraction[+C](v: Name, pat: C) {
@@ -32,14 +34,6 @@ sealed trait Extra[+C]
 case object NoExtra extends Extra[Nothing]
 case class RebuildingInfo[C](from: C) extends Extra[C]
 
-
-/*!# Modeling expectations
- */
-
-/*! The following exception usually means that some modeling expectation (or hypothesis) 
- was not met during actual modeling.  
- */
-class ModelingError(val message: String) extends Exception(message: String)
 
 /*!# Whistle and tricks
   

@@ -1,6 +1,7 @@
 package mrsc.counters
 
-import mrsc._
+import mrsc.core._
+import mrsc.pfp._
 
 trait LGen extends PreSyntax[OmegaConf] {
   val l: Int

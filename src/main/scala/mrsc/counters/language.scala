@@ -1,6 +1,7 @@
 package mrsc.counters
 
-import mrsc._
+import mrsc.core._
+import mrsc.pfp._
 
 sealed trait Component {
   def +(comp: Component): Component

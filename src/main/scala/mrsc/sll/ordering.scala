@@ -1,6 +1,6 @@
 package mrsc.sll
 
-import mrsc._
+import mrsc.pfp._
 
 object HE {
   def he_*(t1: Expr, t2: Expr): Boolean = he(t1, t2) && b(t1) == b(t2)

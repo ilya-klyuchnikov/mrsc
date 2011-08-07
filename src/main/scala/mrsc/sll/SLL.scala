@@ -1,6 +1,6 @@
 package mrsc.sll
 
-import mrsc._
+import mrsc.pfp._
 
 import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
