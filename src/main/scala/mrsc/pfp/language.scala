@@ -5,11 +5,6 @@ import mrsc.core._
 /*! # Means for specifying languages and ordering on language expressions.
  */
 
-trait PreSyntax[C] {
-  def instance: PartialOrdering[C]
-  def rebuildings(c: C): List[C]
-}
-
 trait Syntax[C] {
   def instance: PartialOrdering[C]
   def subst(c: C, sub: Subst[C]): C
@@ -25,26 +20,8 @@ trait OperationalSemantics[C] {
   def isDrivable(c: C): Boolean
 }
 
-// There are n rules. Variants should return a list of length n
-trait RewriteSemantics[C] {
-  def drive(c: C): List[Option[C]]
-}
-
 trait Residuation[C] {
   def residuate(graph: Graph[C, DriveInfo[C], _]): C
-}
-
-trait SimplePartialOrdering[T] extends PartialOrdering[T] {
-  override def tryCompare(x: T, y: T): Option[Int] = (lteq(x, y), lteq(y, x)) match {
-    case (false, false) =>
-      None
-    case (false, true) =>
-      Some(1)
-    case (true, false) =>
-      Some(-1)
-    case (true, true) =>
-      Some(0)
-  }
 }
 
 trait NaiveMSG[C] extends Syntax[C] {

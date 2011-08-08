@@ -1,7 +1,7 @@
-package mrsc.counters
+package mrsc.trs.counters
 
 import mrsc.core._
-import mrsc.pfp._
+import mrsc.trs._
 
 trait LGen extends PreSyntax[OmegaConf] {
   val l: Int
@@ -36,6 +36,8 @@ trait ProtocolSafetyAware extends LWhistle {
 }
 
 object CounterSamples extends App {
+  
+  import mrsc.pfp.NoExtra
 
   def graphSize(g: Graph[_, _, _]): Int =
     size(g.root)

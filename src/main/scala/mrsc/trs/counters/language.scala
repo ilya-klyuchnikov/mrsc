@@ -1,7 +1,7 @@
-package mrsc.counters
+package mrsc.trs.counters
 
-import mrsc.core._
-import mrsc.pfp._
+import mrsc.core.SimplePartialOrdering
+import mrsc.trs._
 
 sealed trait Component {
   def +(comp: Component): Component

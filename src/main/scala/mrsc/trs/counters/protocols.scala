@@ -1,4 +1,4 @@
-package mrsc.counters
+package mrsc.trs.counters
 
 trait Protocol {
   val start: OmegaConf
