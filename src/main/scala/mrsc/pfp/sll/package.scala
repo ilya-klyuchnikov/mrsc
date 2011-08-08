@@ -1,4 +1,4 @@
-package mrsc
+package mrsc.pfp
 
 package object sll {
   implicit def text2Program(s: String) = SLLParsers parseProg s

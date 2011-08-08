@@ -1,10 +1,10 @@
-package mrsc.sll
+package mrsc.pfp.sll
 
 import mrsc.core._
 import mrsc.pfp._
 
-import mrsc.sll.Decomposition._
-import mrsc.sll.SLLSyntax._
+import Decomposition._
+import SLLSyntax._
 
 trait SLLSyntax extends Syntax[Expr] {
 

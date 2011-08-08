@@ -1,4 +1,4 @@
-package mrsc.sll
+package mrsc.pfp.sll
 
 import mrsc.pfp._
 

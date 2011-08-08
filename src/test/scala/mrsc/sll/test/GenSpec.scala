@@ -1,6 +1,6 @@
 package mrsc.sll.test
 
-import mrsc.sll._
+import mrsc.pfp.sll._
 
 import org.scalacheck.{ Gen => G, _ }
 import G._

@@ -1,4 +1,4 @@
-package mrsc.charity
+package mrsc.pfp.charity
 
 // really this is a term logic
 // for Charity

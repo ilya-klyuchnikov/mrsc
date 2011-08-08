@@ -1,4 +1,4 @@
-package mrsc.sll
+package mrsc.pfp.sll
 
 object PrettySLL extends org.kiama.util.PrettyPrinter {
   def pretty(t: Expr) = super.pretty(show(t), 12)

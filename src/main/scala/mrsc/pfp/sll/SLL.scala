@@ -1,10 +1,10 @@
-package mrsc.sll
-
-import mrsc.pfp._
+package mrsc.pfp.sll
 
 import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input.{CharSequenceReader => Reader}
+
+import mrsc.pfp._
 
 sealed trait Expr {
   def size(): Int

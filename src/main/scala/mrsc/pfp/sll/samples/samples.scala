@@ -1,8 +1,8 @@
-package mrsc.sll.experiments
+package mrsc.pfp.sll.samples
 
 import mrsc.core._
 import mrsc.pfp._
-import mrsc.sll._
+import mrsc.pfp.sll._
 
 // try all variants
 class Multi1(val program: Program, val ordering: PartialOrdering[Expr])

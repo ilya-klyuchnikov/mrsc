@@ -1,6 +1,6 @@
-package mrsc.sll.experiments
+package mrsc.pfp.sll.samples
 
-import mrsc.sll._
+import mrsc.pfp.sll._
 import SLLSyntax._
 
 object Checker {

@@ -1,4 +1,4 @@
-package mrsc.sll
+package mrsc.pfp.sll
 
 object Decomposition {
   abstract sealed class Dec

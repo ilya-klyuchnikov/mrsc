@@ -2,7 +2,7 @@ package mrsc.sll.test
 
 import org.scalacheck.{ Gen => G, _ }
 
-import mrsc.sll._
+import mrsc.pfp.sll._
 
 /* naive generator of SLL expressions */
 object SLLGen {

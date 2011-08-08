@@ -1,7 +1,6 @@
-package mrsc.sll.experiments
+package mrsc.pfp.sll.samples
 
-import mrsc._
-import mrsc.sll._
+import mrsc.pfp.sll._
 
 object SLLTasks {
 

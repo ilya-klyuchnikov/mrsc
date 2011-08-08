@@ -1,4 +1,4 @@
-package mrsc.sll
+package mrsc.pfp.sll
 
 import scala.annotation.tailrec
 
