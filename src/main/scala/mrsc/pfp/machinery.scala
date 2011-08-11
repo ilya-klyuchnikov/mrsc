@@ -208,7 +208,7 @@ trait AllGensOnWhistle[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]]
   }
 }
 
-trait MSGBlamedOrSplitCurrent[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with NaiveMSG[C] {
+trait MSGBlamedOrSplitCurrent[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with MSG[C] {
 
   def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra[C]]): List[Command[C, DriveInfo[C], Extra[C]]] = {
     whistle match {
@@ -238,7 +238,7 @@ trait MSGBlamedOrSplitCurrent[C] extends GenericMultiMachine[C, DriveInfo[C], Ex
 }
 
 // funny: most specific down or most general up
-trait BinaryMSGDownOrUnaryMGGUp[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with NaiveMSG[C] {
+trait BinaryMSGDownOrUnaryMGGUp[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with MSG[C] {
 
   def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra[C]]): List[Command[C, DriveInfo[C], Extra[C]]] = {
     whistle match {
@@ -263,7 +263,7 @@ trait BinaryMSGDownOrUnaryMGGUp[C] extends GenericMultiMachine[C, DriveInfo[C], 
   }
 }
 
-trait MSGCurrentOrDriving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with NaiveMSG[C] {
+trait MSGCurrentOrDriving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with MSG[C] {
 
   def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra[C]]): List[Command[C, DriveInfo[C], Extra[C]]] = {
     whistle match {
@@ -284,7 +284,7 @@ trait MSGCurrentOrDriving[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[
   }
 }
 
-trait MixMsg[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with NaiveMSG[C] {
+trait MixMsg[C] extends GenericMultiMachine[C, DriveInfo[C], Extra[C]] with MSG[C] {
 
   def rebuildings(whistle: W, pState: PState[C, DriveInfo[C], Extra[C]]): List[Command[C, DriveInfo[C], Extra[C]]] = {
     whistle match {
