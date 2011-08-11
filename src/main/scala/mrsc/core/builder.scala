@@ -48,7 +48,9 @@ trait CoGraphConsumer[C, D, E, R] {
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 trait Machine[C, D, E] {
-  def steps(pState: PState[C, D, E]): List[Command[C, D, E]]
+  type PS = PState[C, D, E]
+  type CMD = Command[C, D, E]
+  def steps(pState: PS): List[CMD]
 }
 
 /*!# Abstract steps

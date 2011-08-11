@@ -13,7 +13,7 @@ class CountGraphConsumer[C, D, E](val maxCount: Int = 10000)
       case None     => pruned = pruned + 1
       case Some(cg) => completed = completed + 1
     }
-    if (completed > maxCount || pruned > maxCount) {
+    if (completed > maxCount) {
       completed = -1
       pruned = -1
       throw new ModelingError("too many results")

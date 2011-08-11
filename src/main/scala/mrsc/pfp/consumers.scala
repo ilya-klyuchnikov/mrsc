@@ -44,6 +44,7 @@ class SingleProgramConsumer[C](residuator: Residuation[C])
         graph = Transformations.transpose(cg)
         println(graph)
         residualProgram = residuator.residuate(graph)
+      case None =>
       case _ =>
         throw new Error()
     }

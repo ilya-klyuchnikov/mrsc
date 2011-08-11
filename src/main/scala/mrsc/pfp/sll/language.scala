@@ -116,7 +116,7 @@ trait SLLSemantics extends OperationalSemantics[Expr] {
             val gReduced = subst(body, ((p.args ++ gargs) zip (ctr.args ++ args)).toMap)
             val contraction = Contraction(v.name, Ctr(p.name, ctr.args))
             val driven = subst(context.replaceRedex(gReduced), contraction.subst)
-            (contraction, driven)
+            (driven, contraction)
         }
         VariantsDriveStep(cases)
 

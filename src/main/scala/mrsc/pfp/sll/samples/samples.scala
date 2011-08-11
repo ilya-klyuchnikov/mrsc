@@ -6,30 +6,30 @@ import mrsc.pfp.sll._
 
 // try all variants
 class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
+  extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with PruningDriving[Expr]
+  with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with AlwaysCurrentGens[Expr]
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
+  extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with PruningDriving[Expr]
+  with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with CurrentGensOnWhistle[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
+  extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with PruningDriving[Expr]
+  with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
@@ -38,37 +38,37 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
 // 1. the blamed one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
+  extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with PruningDriving[Expr]
+  with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with AllGensOnWhistle[Expr]
 
 class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
+  extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SimpleDriving[Expr]
+  with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MSGBlamedOrSplitCurrent[Expr]
 
 class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
+  extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SimpleDriving[Expr]
+  with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MSGCurrentOrDriving[Expr]
 
 class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
-  extends GenericMultiMachine[Expr, DriveInfo[Expr], Extra[Expr]]
+  extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SimpleDriving[Expr]
+  with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MixMsg[Expr]
@@ -288,7 +288,7 @@ object Samples {
     // 0 results here (because only UP generalization is allowed)
     // runTask(SLLTasks.namedTasks("FastFib"), multi3(HEByCouplingWhistle)_)
     
-    //preRunTasks()
+    preRunTasks()
     
     testRunTasks()
 
