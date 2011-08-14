@@ -12,7 +12,7 @@ class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
   with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
-  with AlwaysCurrentGens[Expr]
+  with AllRebuildings[Expr]
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
@@ -22,7 +22,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
-  with CurrentGensOnWhistle[Expr]
+  with LowerRebuildingsOnBinaryWhistle[Expr]
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
@@ -32,7 +32,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
-  with MSGBlamedOrSplitCurrent[Expr]
+  with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
 // 1. the blamed one (with rollback)
@@ -44,7 +44,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
-  with AllGensOnWhistle[Expr]
+  with DoubleRebuildingsOnBinaryWhistle[Expr]
 
 class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMultiMachine[Expr]
@@ -53,7 +53,7 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
-  with MSGBlamedOrSplitCurrent[Expr]
+  with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 
 class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMultiMachine[Expr]
@@ -71,7 +71,7 @@ class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
   with SafeDriving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
-  with MixMsg[Expr]
+  with DoubleMsgOnBinaryWhistle[Expr]
 
 object Samples {
   type Machine1 = Machine[Expr, DriveInfo[Expr], Extra[Expr]]

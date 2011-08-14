@@ -7,7 +7,7 @@ object SLLRebuilding {
   def gens(e: Expr): List[Let] =
     rebuildings(e) map { case (e1, sub) => Let(e1, sub toList) }
 
-  def rebuildings(e: Expr): List[Rebuilding[Expr]] = e match {
+  def rebuildings(e: Expr): List[RawRebuilding[Expr]] = e match {
     case Let(_, _) =>
       Nil
     case _ =>
@@ -16,7 +16,7 @@ object SLLRebuilding {
       rebuild(e, e, Map.empty) filter nonTrivial
   }
 
-  private def nonTrivial(rb: Rebuilding[Expr]): Boolean =
+  private def nonTrivial(rb: RawRebuilding[Expr]): Boolean =
     rb match {
       case (Var(_), _)         => false
       case (_, m) if m.isEmpty => false
@@ -28,7 +28,7 @@ object SLLRebuilding {
         }
     }
 
-  private def rebuild(top: Expr, e: Expr, sub: Subst[Expr]): List[Rebuilding[Expr]] = {
+  private def rebuild(top: Expr, e: Expr, sub: Subst[Expr]): List[RawRebuilding[Expr]] = {
     // rebuilding of arguments
     val rbs1 = e match {
       case FCall(n, xs) => rebuild1(top, xs, sub) map { case (ys, sub1) => (FCall(n, ys), sub1) }

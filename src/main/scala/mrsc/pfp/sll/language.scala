@@ -15,10 +15,10 @@ trait SLLSyntax extends Syntax[Expr] {
   override def subst(c: Expr, sub: Subst[Expr]): Expr =
     SLLSyntax.subst(c, sub)
 
-  override def rawRebuildings(e: Expr): List[Rebuilding[Expr]] =
+  override def rawRebuildings(e: Expr): List[RawRebuilding[Expr]] =
     SLLRebuilding.rebuildings(e)
 
-  override def translate(rb: Rebuilding[Expr]): Expr =
+  override def translate(rb: RawRebuilding[Expr]): Expr =
     Let(rb._1, rb._2.toList)
 
   override def findSubst(from: Expr, to: Expr) =
@@ -119,14 +119,7 @@ trait SLLSemantics extends OperationalSemantics[Expr] {
             (driven, contraction)
         }
         VariantsDriveStep(cases)
-
     }
-
-  override def isDrivable(e: Expr): Boolean = e match {
-    case Var(_)      => false
-    case Ctr(_, Nil) => false
-    case _           => true
-  }
 
   def instantiate(p: Pat, v: Var): Ctr = {
     val vars = p.args.indices.toList.map { i => Var("de_" + p.name + "_" + i + "/" + v.name) }
