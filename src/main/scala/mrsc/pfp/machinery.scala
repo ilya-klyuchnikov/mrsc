@@ -36,24 +36,26 @@ case class RebuildingInfo[C](from: C) extends Extra[C]
 trait PFPMultiMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
   type WS
   def fold(pState: PS): Option[CoPath]
-  def drive(whistle: Option[WS], pState: PS): List[CMD]
+  def drive(pState: PS): List[CMD]
   def rebuildings(whistle: Option[WS], pState: PS): List[CMD]
   def inspect(pState: PS): Option[WS]
 
-  override def steps(pState: PS): List[CMD] = fold(pState) match {
-    case Some(path) =>
-      List(Fold(path))
-    case _ =>
-      val signal = inspect(pState)
-      val driveSteps = drive(signal, pState)
-      val rebuildSteps = rebuildings(signal, pState)
-      driveSteps ++ rebuildSteps
-  }
+  override def steps(pState: PS): List[CMD] =
+    fold(pState) match {
+      case Some(path) =>
+        List(Fold(path))
+      case _ =>
+        val signal = inspect(pState)
+        val driveSteps = 
+          if (signal.isEmpty) drive(pState) else List(Discard)
+        val rebuildSteps = rebuildings(signal, pState)
+        driveSteps ++ rebuildSteps
+    }
 }
 
 trait Driving[C] extends PFPMultiMachine[C] with OperationalSemantics[C] {
-  override def drive(whistle: Option[WS], pState: PS): List[CMD] =
-    drive(pState.current.conf) match {
+  override def drive(pState: PS): List[CMD] =
+    driveStep(pState.current.conf) match {
       case StopDriveStep =>
         List(ConvertToLeaf)
       case DecomposeDriveStep(compose, args) =>
@@ -66,14 +68,6 @@ trait Driving[C] extends PFPMultiMachine[C] with OperationalSemantics[C] {
       case VariantsDriveStep(vs) =>
         val ns = vs map { v => (v._1, VariantsStepInfo(v._2), NoExtra) }
         List(AddChildNodes(ns))
-    }
-}
-
-trait SafeDriving[C] extends Driving[C] {
-  override def drive(whistle: Option[WS], pState: PS): List[CMD] =
-    whistle match {
-      case Some(_) => List(Discard)
-      case None    => super.drive(whistle, pState)
     }
 }
 
@@ -106,7 +100,7 @@ trait AllRebuildings[C] extends PFPMultiMachine[C] with Syntax[C] {
 trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMultiMachine[C] with Syntax[C] with BinaryWhistle[C] {
   override def rebuildings(whistle: Option[WS], pState: PS): List[CMD] =
     whistle match {
-      case None         => List()
+      case None    => List()
       case Some(_) => rebuildings(pState.current.conf) map { Rebuild(_, NoExtra) }
     }
 }
@@ -114,7 +108,7 @@ trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMultiMachine[C] with Syntax[
 trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMultiMachine[C] with Syntax[C] with BinaryWhistle[C] {
   override def rebuildings(whistle: Option[WS], pState: PS): List[CMD] =
     whistle match {
-      case None         => List()
+      case None        => List()
       case Some(upper) => rebuildings(upper.conf) map { Rollback(upper, _, NoExtra) }
     }
 }
@@ -180,7 +174,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMultiMachine[C] with MSG[C
   }
 }
 
-trait MSGCurrentOrDriving[C] extends PFPMultiMachine[C] with MSG[C] with BinaryWhistle[C]{
+trait MSGCurrentOrDriving[C] extends PFPMultiMachine[C] with MSG[C] with BinaryWhistle[C] {
 
   def rebuildings(whistle: Option[WS], pState: PS): List[CMD] = {
     whistle match {
@@ -193,7 +187,7 @@ trait MSGCurrentOrDriving[C] extends PFPMultiMachine[C] with MSG[C] with BinaryW
             val replace = Rebuild(conf1, NoExtra)
             List(replace)
           case None =>
-            drive(None, pState)
+            drive(pState)
         }
       case None =>
         List()
@@ -206,10 +200,9 @@ trait DoubleMsgOnBinaryWhistle[C] extends PFPMultiMachine[C] with MSG[C] with Bi
   def rebuildings(whistle: Option[WS], pState: PS): List[CMD] = {
     whistle match {
       case Some(upper) =>
-        val currentConf = pState.current.conf
-        val upperConf = upper.conf
-        val replace = msg(currentConf, upperConf) map { rb => Rebuild(translate(rb), NoExtra) }
-        val rollback = msg(upperConf, currentConf) map { rb => Rollback(upper, translate(rb), NoExtra) }
+        val current = pState.current
+        val replace = msg(current.conf, upper.conf) map { rb => Rebuild(translate(rb), NoExtra) }
+        val rollback = msg(upper.conf, current.conf) map { rb => Rollback(upper, translate(rb), NoExtra) }
         rollback.toList ++ replace.toList
       case None =>
         List()

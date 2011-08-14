@@ -16,7 +16,7 @@ trait Syntax[C] {
 }
 
 trait OperationalSemantics[C] {
-  def drive(c: C): DriveStep[C]
+  def driveStep(c: C): DriveStep[C]
 }
 
 trait Residuation[C] {

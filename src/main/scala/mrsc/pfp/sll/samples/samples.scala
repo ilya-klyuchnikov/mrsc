@@ -9,7 +9,7 @@ class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SafeDriving[Expr]
+  with Driving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with AllRebuildings[Expr]
@@ -19,7 +19,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SafeDriving[Expr]
+  with Driving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with LowerRebuildingsOnBinaryWhistle[Expr]
@@ -29,7 +29,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SafeDriving[Expr]
+  with Driving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
@@ -41,7 +41,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SafeDriving[Expr]
+  with Driving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with DoubleRebuildingsOnBinaryWhistle[Expr]
@@ -50,7 +50,7 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SafeDriving[Expr]
+  with Driving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
@@ -59,7 +59,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
   extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SafeDriving[Expr]
+  with Driving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with MSGCurrentOrDriving[Expr]
@@ -68,7 +68,7 @@ class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMultiMachine[Expr]
   with SLLSyntax
   with SLLSemantics
-  with SafeDriving[Expr]
+  with Driving[Expr]
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with DoubleMsgOnBinaryWhistle[Expr]

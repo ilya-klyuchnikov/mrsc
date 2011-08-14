@@ -79,7 +79,7 @@ object SLLSyntax {
 trait SLLSemantics extends OperationalSemantics[Expr] {
   val program: Program
 
-  override def drive(conf: Expr): DriveStep[Expr] =
+  override def driveStep(conf: Expr): DriveStep[Expr] =
     decompose(conf) match {
 
       case ObservableVar(v) =>
