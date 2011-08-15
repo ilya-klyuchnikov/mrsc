@@ -6,7 +6,7 @@ import mrsc.pfp.sll._
 
 // try all variants
 class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMultiMachine[Expr]
+  extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -16,7 +16,7 @@ class Multi1(val program: Program, val ordering: PartialOrdering[Expr])
 
 // generalize (in all possible ways) current configuration (when whistle blows) 
 class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMultiMachine[Expr]
+  extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -26,7 +26,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
 
 // generalize (in all possible ways) blamed configuration (when whistle blows)
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMultiMachine[Expr]
+  extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -38,7 +38,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
 // 1. the blamed one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMultiMachine[Expr]
+  extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -47,7 +47,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with DoubleRebuildingsOnBinaryWhistle[Expr]
 
 class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMultiMachine[Expr]
+  extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -56,7 +56,7 @@ class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr]
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 
 class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMultiMachine[Expr]
+  extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -65,7 +65,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
   with MSGCurrentOrDriving[Expr]
 
 class ClassicMix(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMultiMachine[Expr]
+  extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
