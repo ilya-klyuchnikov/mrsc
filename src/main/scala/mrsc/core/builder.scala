@@ -14,17 +14,8 @@ case class PartialCoGraph[C, D, E](
   /*! `activeLeaf` is the vanguard of the incomplete part. It will be processed next.
    */
   val activeLeaf: Option[CoNode[C, D, E]] = incompleteLeaves.headOption
-
-  /*! Partial state is exposed to SC machines. SC machine decides what step should be done next 
-      based on `pState`.
-   */
-  val pState = PState(activeLeaf.getOrElse(null), complete)
+  val current = activeLeaf.getOrElse(null)
 }
-
-/*! `PState` stands for partial state.
- Based on the current `PState`, SCP machine should decide what should be done next.
- */
-case class PState[C, D, E](current: CoNode[C, D, E], complete: List[CoNode[C, D, E]])
 
 /*!# Processing of complete graphs
  
@@ -48,9 +39,9 @@ trait CoGraphConsumer[C, D, E, R] {
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 trait Machine[C, D, E] {
-  type PS = PState[C, D, E]
+  type CG = PartialCoGraph[C, D, E]
   type CMD = Command[C, D, E]
-  def steps(pState: PS): List[CMD]
+  def steps(coGraph: CG): List[CMD]
 }
 
 /*!# Abstract steps
@@ -139,7 +130,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
            */
           case Some(leaf) =>
             partialCoGraphs = gs
-            for (step <- machine.steps(g.pState)) step match {
+            for (step <- machine.steps(g)) step match {
               /*! informing `consumer` about pruning, if any */
               case Discard =>
                 consumer.consume(None)
