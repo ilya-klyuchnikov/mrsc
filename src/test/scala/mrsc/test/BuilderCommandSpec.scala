@@ -21,10 +21,17 @@ class BuilderCommandSpec extends mutable.Specification {
     Graph(root = n0, leaves = List(n1))
   }
 
+  def start(c: Int): PartialCoGraph[Int,String,Extra[String]] = {
+    val startNode = CoNode[Int, String, Extra[String]](c, NoExtra, null, None, Nil)
+    new PartialCoGraph(List(startNode), Nil, Nil)
+  }
+
+  
   "The builder of the 1st cograph" in {
     "starts with a single-node cograph" in {
-      pg1 = CoGraphBuilder.start(0, NoExtra)
+      pg1 = start(0)
 
+      
       (pg1.current.conf must_== 0) and
         (pg1.complete.size must_== 0) and
         (pg1.incompleteLeaves.size must_== 1)
@@ -83,7 +90,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "produces final cograph" in {
-      cg1 = CoGraphBuilder.complete(pg1)
+      cg1 = pg1.toCoGraph()
       (cg1.leaves.size must_== 1) and
         (cg1.root.conf must_== -1)
     }
@@ -91,7 +98,7 @@ class BuilderCommandSpec extends mutable.Specification {
 
   "The builder of the 2nd cograph" in {
     "starts with a single-node cograph" in {
-      pg2 = CoGraphBuilder.start(-1, NoExtra)
+      pg2 = start(-1)
 
       (pg2.current.conf must_== -1) and
         (pg2.complete.size must_== 0) and
@@ -115,7 +122,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "produces final cograph" in {
-      cg2 = CoGraphBuilder.complete(pg2)
+      cg2 = pg2.toCoGraph()
       (cg2.leaves.size must_== 1) and
         (cg2.root.conf must_== -1)
     }

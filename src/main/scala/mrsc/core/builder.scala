@@ -70,6 +70,12 @@ case class PartialCoGraph[C, D, E](
     val incompleteLeaves1 = incompleteLeaves.tail.remove(prune_?)
     PartialCoGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
   }
+
+  def toCoGraph(): CoGraph[C, D, E] = {
+    val orderedNodes = complete.sortBy(_.coPath)(PathOrdering)
+    val rootNode = orderedNodes.head
+    CoGraph(rootNode, completeLeaves, orderedNodes)
+  }
 }
 
 /*!# Processing of complete graphs
@@ -98,77 +104,61 @@ trait Machine[C, D, E] {
   def steps(g: CG): List[CG]
 }
 
-/*!# SC cographs builders
- 
- SC cographs builders implement the logic of constructing SC cographs step-by-step by invoking
- provided abstract machines. They build cographs - it is up to `CoGraphConsumer` how to use this 
- cograph further.
- */
+/*! This class is essentially an iterator producing cographs by demand. */
 
-/*! `MultiCoGraphBuilder` considers all steps returned by `MultiResultMachine` and proceeds with
-  all possible variants.
- */
-class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E, _]) {
-  import CoGraphBuilder._
+case class CoGraphProducer[C, D, E](conf: C, info: E, machine: Machine[C, D, E]) {
 
-  /*! It maintains a list of partial cographs ...
+  /*! It maintains a list of partial cographs
+   * and starts with a one-element list of partial cographs. 
    */
-  var partialCoGraphs: List[PartialCoGraph[C, D, E]] = null
 
-  /*! ... starts with a one-element list of partial cographs ... 
-   */
-  def buildCoGraph(conf: C, info: E): Unit = {
-    partialCoGraphs = List(start(conf, info))
-    loop()
-  }
+  private var gs: List[PartialCoGraph[C, D, E]] = List(start(conf, info))
 
-  /*! ... and loops
-   */
-  @tailrec
-  private def loop(): Unit =
-    partialCoGraphs match {
-      /*! If `partialCoGraphs` is empty, then it just stops, */
-      case Nil =>
-      /*! otherwise it investigates the status of the first cograph: */
-      case g :: gs =>
-        if (g.current == null) {
-          /*! If the first cograph is completed, builder transforms it to the pure cograph
-           and sends it to the consumer. 
-          */
-          // TODO: do we need to sort it??
-          val completed = complete(g)
-          partialCoGraphs = gs
-          consumer.consume(Some(completed))
-        } else {
-          /*! If the first cograph is incomplete, then builder considers all variants suggested
-           by `machine`:
-           */
-          partialCoGraphs = gs
-          for (h <- machine.steps(g))
-            if (h == null)
-              /*! informing `consumer` about pruning, if any */
-              consumer.consume(None)
-            else
-              /*! or adding new cograph to the pending list otherwise */
-              partialCoGraphs = h :: partialCoGraphs
-        }
-        /*! and looping again. */
-        loop()
-    }
-}
-
-/*! The main logic of MRSC is here. 
-   Step created by SC machine is "applied" to the current active leaf.
-*/
-object CoGraphBuilder {
-  def start[C, D, E](c: C, e: E): PartialCoGraph[C, D, E] = {
+  private def start(c: C, e: E): PartialCoGraph[C, D, E] = {
     val startNode = CoNode[C, D, E](c, e, null, None, Nil)
     new PartialCoGraph(List(startNode), Nil, Nil)
   }
 
-  def complete[C, D, E](g: PartialCoGraph[C, D, E]): CoGraph[C, D, E] = {
-    val orderedNodes = g.complete.sortBy(_.coPath)(PathOrdering)
-    val rootNode = orderedNodes.head
-    CoGraph(rootNode, g.completeLeaves, orderedNodes)
+  private def normalize() {
+    while (true) {
+      if (gs.isEmpty)
+        return
+      val g = gs.head
+      if (g == null || g.current == null)
+        return
+      gs = machine.steps(g) ++ gs.tail
+    }
+  }
+
+  def hasNext(): Boolean = {
+    normalize()
+    !gs.isEmpty
+  }
+
+  def next : PartialCoGraph[C, D, E] = {
+    if (!hasNext)
+      throw new NoSuchElementException("no cograph")
+    val g = gs.head
+    gs = gs.tail
+    g
+  }
+}
+
+/*! This class is defined only to mimic the behavior of the old CoGraphBuilder.
+ * Normally, it is up to consumer to drive the producer and to decide when to stop. 
+ */
+
+class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E, _]) {
+
+  def buildCoGraph(conf: C, info: E): Unit = {
+    val producer = new CoGraphProducer[C, D, E](conf, info, machine)
+    while (producer.hasNext) {
+      val g = producer.next
+      if (g == null)
+        /*! informing `consumer` that a graph has been discarded. */
+        consumer.consume(None)
+      else
+        consumer.consume(Some(g.toCoGraph()))
+    }
   }
 }
