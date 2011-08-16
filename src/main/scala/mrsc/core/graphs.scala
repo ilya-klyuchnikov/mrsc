@@ -110,9 +110,9 @@ object Transformations {
   /*! Transposition is done in the following simple way. Nodes are grouped according to the 
    levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
-  def transpose[C, D, E](coGraph: CoGraph[C, D, E]): Graph[C, D, E] = {
-    val leafPathes = coGraph.leaves.map(_.coPath)
-    val levels = coGraph.nodes.groupBy(_.coPath.length).toList.sortBy(_._1).map(_._2)
+  def transpose[C, D, E](g: CoGraph[C, D, E]): Graph[C, D, E] = {
+    val leafPathes = g.leaves.map(_.coPath)
+    val levels = g.nodes.groupBy(_.coPath.length).toList.sortBy(_._1).map(_._2)
     val sortedLevels = levels.map(_.sortBy(_.path)(PathOrdering))
     val (tNodes, tLeaves) = subTranspose(sortedLevels, leafPathes)
     val nodes = tNodes map { _.node }

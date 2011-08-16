@@ -25,32 +25,31 @@ class BuilderCommandSpec extends mutable.Specification {
     "starts with a single-node cograph" in {
       pg1 = CoGraphBuilder.start(0, NoExtra)
 
-      (pg1.activeLeaf.get.conf must_== 0) and
+      (pg1.current.conf must_== 0) and
         (pg1.complete.size must_== 0) and
         (pg1.incompleteLeaves.size must_== 1)
     }
 
     "executes AddChildNodes command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1,
-        AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
+      pg1 = pg1.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra)))
 
-      (pg1.activeLeaf.get.conf must_== 1) and
+      (pg1.current.conf must_== 1) and
         (pg1.complete.size must_== 1) and
         (pg1.incompleteLeaves.size must_== 2)
     }
 
     "executes ConvertToLeaf command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1, ConvertToLeaf)
+      pg1 = pg1.convertToLeaf()
 
-      (pg1.activeLeaf.get.conf must_== 2) and
+      (pg1.current.conf must_== 2) and
         (pg1.complete.size must_== 2) and
         (pg1.incompleteLeaves.size must_== 1)
     }
 
     "executes ReplaceNode command" in {
-      val oldActive = pg1.activeLeaf.get
-      pg1 = CoGraphBuilder.executeCommand(pg1, Rebuild(21, NoExtra))
-      val newActive = pg1.activeLeaf.get
+      val oldActive = pg1.current
+      pg1 = pg1.rebuild(21, NoExtra)
+      val newActive = pg1.current
 
       (newActive.conf must_== 21) and
         (newActive.in must_== oldActive.in) and
@@ -59,26 +58,26 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes RollbackSubGraph command" in {
-      val root = pg1.activeLeaf.get.in.coNode
-      pg1 = CoGraphBuilder.executeCommand(pg1, Rollback(root, -1, NoExtra))
+      val root = pg1.current.in.coNode
+      pg1 = pg1.rollback(root, -1, NoExtra)
 
-      (pg1.activeLeaf.get.conf must_== -1) and
+      (pg1.current.conf must_== -1) and
         (pg1.complete.size must_== 0) and
         (pg1.incompleteLeaves.size must_== 1)
     }
 
     "executes AddChildNodes command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1, AddChildNodes(List((11, "-1 -> 11", NoExtra))))
+      pg1 = pg1.addChildNodes(List((11, "-1 -> 11", NoExtra)))
 
-      (pg1.activeLeaf.get.conf must_== 11) and
+      (pg1.current.conf must_== 11) and
         (pg1.complete.size must_== 1) and
         (pg1.incompleteLeaves.size must_== 1)
     }
 
     "executes Fold command" in {
-      pg1 = CoGraphBuilder.executeCommand(pg1, Fold(List()))
+      pg1 = pg1.fold(List())
 
-      (pg1.activeLeaf must beNone) and
+      (pg1.current must_== null) and
         (pg1.complete.size must_== 2) and
         (pg1.incompleteLeaves.size must_== 0)
     }
@@ -94,23 +93,23 @@ class BuilderCommandSpec extends mutable.Specification {
     "starts with a single-node cograph" in {
       pg2 = CoGraphBuilder.start(-1, NoExtra)
 
-      (pg2.activeLeaf.get.conf must_== -1) and
+      (pg2.current.conf must_== -1) and
         (pg2.complete.size must_== 0) and
         (pg2.incompleteLeaves.size must_== 1)
     }
 
     "executes AddChildNodes command" in {
-      pg2 = CoGraphBuilder.executeCommand(pg2, AddChildNodes(List((11, "-1 -> 11", NoExtra))))
+      pg2 = pg2.addChildNodes(List((11, "-1 -> 11", NoExtra)))
 
-      (pg2.activeLeaf.get.conf must_== 11) and
+      (pg2.current.conf must_== 11) and
         (pg2.complete.size must_== 1) and
         (pg2.incompleteLeaves.size must_== 1)
     }
 
     "executes Fold command" in {
-      pg2 = CoGraphBuilder.executeCommand(pg2, Fold(List()))
+      pg2 = pg2.fold(List())
 
-      (pg1.activeLeaf must beNone) and
+      (pg1.current must_== null) and
         (pg1.complete.size must_== 2) and
         (pg1.incompleteLeaves.size must_== 0)
     }

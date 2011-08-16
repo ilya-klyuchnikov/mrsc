@@ -8,21 +8,21 @@ import mrsc.core._
 import mrsc.pfp._
 
 object TinyMachine extends Machine[Int, String, Extra[String]] {
-  def steps(coGraph: PartialCoGraph[Int, String, Extra[String]])
-    : List[Command[Int, String, Extra[String]]] =
-    coGraph.current.conf match {
+  def steps(g: PartialCoGraph[Int, String, Extra[String]])
+    : List[PartialCoGraph[Int, String, Extra[String]]] =
+    g.current.conf match {
     case 0 =>
-      List(AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
+      List(g.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
     case 1 =>
-      List(ConvertToLeaf)
+      List(g.convertToLeaf)
     case 2 =>
-      List(Rebuild(21, NoExtra))
+      List(g.rebuild(21, NoExtra))
     case 21 =>
-      List(Rollback(coGraph.current.in.coNode, -1, NoExtra))
+      List(g.rollback(g.current.in.coNode, -1, NoExtra))
     case -1 =>
-      List(AddChildNodes(List((11, "-1 -> 11", NoExtra))))
+      List(g.addChildNodes(List((11, "-1 -> 11", NoExtra))))
     case 11 =>
-      List(Fold(List()))
+      List(g.fold(List()))
   }
 }
 
