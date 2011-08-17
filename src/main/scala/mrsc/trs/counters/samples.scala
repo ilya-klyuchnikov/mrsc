@@ -39,16 +39,16 @@ object CounterSamples extends App {
   
   import mrsc.pfp.NoExtra
 
-  def graphSize(g: TDGraph[_, _, _]): Int =
+  def graphSize(g: TGraph[_, _, _]): Int =
     size(g.root)
 
-  def size(n: TDNode[_, _, _]): Int = 1 + n.outs.map(out => size(out.node)).sum
+  def size(n: TNode[_, _, _]): Int = 1 + n.outs.map(out => size(out.tNode)).sum
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
     val sc = CounterSc(protocol, l)
     val consumer = new SimpleGraphConsumer[OmegaConf, Int]
-    val builder = new CoGraphBuilder(sc, consumer)
-    builder.buildCoGraph(protocol.start, NoExtra)
+    val builder = new GraphBuilder(sc, consumer)
+    builder.buildGraphs(protocol.start, NoExtra)
 
     for (graph <- consumer.result) {
       println("================================")
@@ -63,8 +63,8 @@ object CounterSamples extends App {
   def multiScProtocol(protocol: Protocol, l: Int): Unit = {
     val sc = CounterMultiSc(protocol, l)
     val consumer = new SimpleGraphConsumer[OmegaConf, Int]
-    val builder = new CoGraphBuilder(sc, consumer)
-    builder.buildCoGraph(protocol.start, NoExtra)
+    val builder = new GraphBuilder(sc, consumer)
+    builder.buildGraphs(protocol.start, NoExtra)
     val graphs = consumer.result
 
     val successGraphs = graphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
@@ -74,8 +74,8 @@ object CounterSamples extends App {
     }
   }
 
-  def checkSubTree(unsafe: OmegaConf => Boolean)(node: TDNode[OmegaConf, _, _]): Boolean =
-    !unsafe(node.conf) && node.outs.map(_.node).forall(checkSubTree(unsafe))
+  def checkSubTree(unsafe: OmegaConf => Boolean)(node: TNode[OmegaConf, _, _]): Boolean =
+    !unsafe(node.conf) && node.outs.map(_.tNode).forall(checkSubTree(unsafe))
 
   def verifyProtocol(protocol: Protocol, findMinimalProof: Boolean = true): Unit = {
     println()

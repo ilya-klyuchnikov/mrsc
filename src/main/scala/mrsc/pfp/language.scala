@@ -20,7 +20,7 @@ trait OperationalSemantics[C] {
 }
 
 trait Residuation[C] {
-  def residuate(graph: TDGraph[C, DriveInfo[C], _]): C
+  def residuate(graph: TGraph[C, DriveInfo[C], _]): C
 }
 
 trait MSG[C] extends Syntax[C] {

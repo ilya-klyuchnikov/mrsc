@@ -3,13 +3,13 @@ package mrsc.core
 case class CountResult(countCompleted: Int, countUnworkable: Int)
 
 class CountGraphConsumer[C, D, E](val maxCount: Int = 10000)
-  extends CoGraphConsumer[C, D, E, CountResult] {
+  extends GraphConsumer[C, D, E, CountResult] {
   var completed = 0
   var unworkable = 0
   lazy val result = CountResult(completed, unworkable)
 
-  override def consume(cg: PartialCoGraph[C, D, E]) {
-    if (cg.isUnworkable)
+  override def consume(g: Graph[C, D, E]) {
+    if (g.isUnworkable)
       unworkable = unworkable + 1
     else
       completed = completed + 1
@@ -24,15 +24,15 @@ class CountGraphConsumer[C, D, E](val maxCount: Int = 10000)
   override def buildResult() = result
 }
 
-class GraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E, List[TDGraph[C, D, E]]] {
+class TGraphConsumer[C, D, E] extends GraphConsumer[C, D, E, List[TGraph[C, D, E]]] {
 
-  var completedGraphs: List[TDGraph[C, D, E]] = List()
+  var completedGraphs: List[TGraph[C, D, E]] = List()
   lazy val result = completedGraphs
 
-  def consume(cg: PartialCoGraph[C, D, E]) {
-    if (cg.isComplete) {
-      val graph = Transformations.transpose(cg)
-      completedGraphs = graph :: completedGraphs
+  def consume(g: Graph[C, D, E]) {
+    if (g.isComplete) {
+      val tg = Transformations.transpose(g)
+      completedGraphs = tg :: completedGraphs
     }
   }
 

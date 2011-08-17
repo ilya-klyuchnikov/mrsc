@@ -1,15 +1,16 @@
 package mrsc.core
 
-import scala.annotation.tailrec
-
-/*! `PartialCoGraph[C, D, E]` is a central concept of MRSC. It represents a "work in progress".
- We know already processed part of an SC graph (`completeLeaves`, `completeNodes`) and a frontier 
- of incomplete part (`incompleteLeaves`).
+/*! `Graph[C, D, E]` is a central concept of MRSC.
+ * It may represent (1) a "work in progress" (2) a completed graph and
+ * (3) and unfinished yet unworkable graph.
+ * We know already processed part of an SC graph
+ * (`completeLeaves`, `completeNodes`) and a frontier 
+ * of incomplete part (`incompleteLeaves`).
  */
-case class PartialCoGraph[C, D, E](
-  incompleteLeaves: List[CoNode[C, D, E]],
-  completeLeaves: List[CoNode[C, D, E]],
-  completeNodes: List[CoNode[C, D, E]],
+case class Graph[C, D, E](
+  incompleteLeaves: List[Node[C, D, E]],
+  completeLeaves: List[Node[C, D, E]],
+  completeNodes: List[Node[C, D, E]],
   isUnworkable: Boolean = false) {
 
   /*! `isUnworkable` = is not good for further processing (for some reason).
@@ -35,47 +36,47 @@ case class PartialCoGraph[C, D, E](
 
   /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
    */
-  def convertToLeaf() : PartialCoGraph[C, D, E] = {
-    PartialCoGraph(incompleteLeaves.tail, current :: completeLeaves, current :: completeNodes)
+  def convertToLeaf() : Graph[C, D, E] = {
+    Graph(incompleteLeaves.tail, current :: completeLeaves, current :: completeNodes)
   }
   /*! This step corresponds (mainly) to driving: adds children to the current node. Then
    *  current node is moved to the complete part and new children are moved into 
    *  the incomplete part. Also the (co-)path is calculated for any child node.
    */
   def addChildNodes(ns: List[(C, D, E)]) = {
-    val deltaLeaves: List[CoNode[C, D, E]] = ns.zipWithIndex map {
+    val deltaLeaves: List[Node[C, D, E]] = ns.zipWithIndex map {
       case ((conf, dInfo, eInfo), i) =>
-        val in = CoEdge(current, dInfo)
-        CoNode(conf, eInfo, in, None, i :: current.coPath)
+        val in = Edge(current, dInfo)
+        Node(conf, eInfo, in, None, i :: current.path)
     }
     // Now it is depth-first traversal. If you change 
     // deltaLeaves ++ ls -> ls ++ deltaLeaves,
     // you will have breadth-first traversal
-    PartialCoGraph(deltaLeaves ++ incompleteLeaves.tail, completeLeaves, current :: completeNodes)
+    Graph(deltaLeaves ++ incompleteLeaves.tail, completeLeaves, current :: completeNodes)
   }
   /*! Just folding: creating a loopback and moving the node into the complete part 
    *  of the SC graph.  
    */
-  def fold(basePath: CoPath): PartialCoGraph[C, D, E] = {
-    val node = current.copy(back = Some(basePath))
-    PartialCoGraph(incompleteLeaves.tail, node :: completeLeaves, node :: completeNodes)
+  def fold(backPath: Path): Graph[C, D, E] = {
+    val node = current.copy(back = Some(backPath))
+    Graph(incompleteLeaves.tail, node :: completeLeaves, node :: completeNodes)
   }
   /*! Replacing the configuration of the current node. 
    *  The main use case is the rebuilding (generalization) of the active node.
    */
-  def rebuild(conf: C, extra: E): PartialCoGraph[C, D, E] = {
+  def rebuild(conf: C, extra: E): Graph[C, D, E] = {
     val node = current.copy(conf = conf, extraInfo = extra)
-    PartialCoGraph(node :: incompleteLeaves.tail, completeLeaves, completeNodes)
+    Graph(node :: incompleteLeaves.tail, completeLeaves, completeNodes)
   }
   /*! When doing rollback, we also prune all successors of the dangerous node. 
    */
-  def rollback(dangNode: CoNode[C, D, E], c: C, eInfo: E) = {
-    def prune_?(n: CoNode[C, D, E]) = n.tdPath.startsWith(dangNode.tdPath)
+  def rollback(dangNode: Node[C, D, E], c: C, eInfo: E) = {
+    def prune_?(n: Node[C, D, E]) = n.tPath.startsWith(dangNode.tPath)
     val node = dangNode.copy(conf = c, extraInfo = eInfo)
     val completeNodes1 = completeNodes.remove(prune_?)
     val completeLeaves1 = completeLeaves.remove(prune_?)
     val incompleteLeaves1 = incompleteLeaves.tail.remove(prune_?)
-    PartialCoGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
+    Graph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
   }
 }
 
@@ -85,12 +86,8 @@ case class PartialCoGraph[C, D, E](
  Processing of complete SC graphs is extracted into a separate abstraction.
  */
 
-/*! An instance of a graph may be pruned, and a client may be interested in knowing that fact:
-  so `GraphConsumer` receives `Some(graph)` when graph is completed and receives `None` 
-  if the graph was pruned. 
- */
-trait CoGraphConsumer[C, D, E, R] {
-  def consume(graph: PartialCoGraph[C, D, E]): Unit
+trait GraphConsumer[C, D, E, R] {
+  def consume(graph: Graph[C, D, E]): Unit
   def buildResult(): R
 }
 
@@ -101,23 +98,23 @@ trait CoGraphConsumer[C, D, E, R] {
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 trait Machine[C, D, E] {
-  type CG = PartialCoGraph[C, D, E]
+  type CG = Graph[C, D, E]
   def steps(g: CG): List[CG]
 }
 
-/*! This class is essentially an iterator producing cographs by demand. */
+/*! This class is essentially an iterator producing graphs by demand. */
 
-case class CoGraphProducer[C, D, E](conf: C, info: E, machine: Machine[C, D, E]) {
+case class GraphProducer[C, D, E](conf: C, info: E, machine: Machine[C, D, E]) {
 
-  /*! It maintains a list of partial cographs
-   * and starts with a one-element list of partial cographs. 
+  /*! It maintains a list of graphs
+   * and starts with a one-element list of graphs. 
    */
 
-  private var gs: List[PartialCoGraph[C, D, E]] = List(start(conf, info))
+  private var gs: List[Graph[C, D, E]] = List(start(conf, info))
 
-  private def start(c: C, e: E): PartialCoGraph[C, D, E] = {
-    val startNode = CoNode[C, D, E](c, e, null, None, Nil)
-    new PartialCoGraph(List(startNode), Nil, Nil)
+  private def start(c: C, e: E): Graph[C, D, E] = {
+    val startNode = Node[C, D, E](c, e, null, None, Nil)
+    new Graph(List(startNode), Nil, Nil)
   }
 
   private def normalize() {
@@ -136,23 +133,23 @@ case class CoGraphProducer[C, D, E](conf: C, info: E, machine: Machine[C, D, E])
     !gs.isEmpty
   }
 
-  def next() : PartialCoGraph[C, D, E] = {
+  def next() : Graph[C, D, E] = {
     if (!hasNext)
-      throw new NoSuchElementException("no cograph")
+      throw new NoSuchElementException("no graph")
     val g = gs.head
     gs = gs.tail
     g
   }
 }
 
-/*! This class is defined only to mimic the behavior of the old CoGraphBuilder.
+/*! This class is defined only to mimic the behavior of the old GraphBuilder.
  * Normally, it is up to consumer to drive the producer and to decide when to stop. 
  */
 
-class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E, _]) {
+class GraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: GraphConsumer[C, D, E, _]) {
 
-  def buildCoGraph(conf: C, info: E): Unit = {
-    val producer = new CoGraphProducer[C, D, E](conf, info, machine)
+  def buildGraphs(conf: C, info: E): Unit = {
+    val producer = new GraphProducer[C, D, E](conf, info, machine)
     while (producer.hasNext) {
       consumer.consume(producer.next())
     }

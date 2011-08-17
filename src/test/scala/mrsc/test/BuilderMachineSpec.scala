@@ -8,8 +8,8 @@ import mrsc.core._
 import mrsc.pfp._
 
 object TinyMachine extends Machine[Int, String, Extra[String]] {
-  def steps(g: PartialCoGraph[Int, String, Extra[String]])
-    : List[PartialCoGraph[Int, String, Extra[String]]] =
+  def steps(g: Graph[Int, String, Extra[String]])
+    : List[Graph[Int, String, Extra[String]]] =
     g.current.conf match {
     case 0 =>
       List(g.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
@@ -18,7 +18,7 @@ object TinyMachine extends Machine[Int, String, Extra[String]] {
     case 2 =>
       List(g.rebuild(21, NoExtra))
     case 21 =>
-      List(g.rollback(g.current.in.coNode, -1, NoExtra))
+      List(g.rollback(g.current.in.node, -1, NoExtra))
     case -1 =>
       List(g.addChildNodes(List((11, "-1 -> 11", NoExtra))))
     case 11 =>
@@ -30,24 +30,24 @@ object TinyMachine extends Machine[Int, String, Extra[String]] {
 class BuilderMachineSpec extends mutable.Specification {
   args(sequential = true)
 
-  val graph: TDGraph[Int, String, Extra[String]] = {
-    val n1 = TDNode[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), back = Some(List()), tdPath = List(0))
-    val e1 = TDEdge[Int, String, Extra[String]](n1, "-1 -> 11")
-    val n0 = TDNode[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), back = None, tdPath = List())
-    TDGraph(root = n0, leaves = List(n1))
+  val graph: TGraph[Int, String, Extra[String]] = {
+    val n1 = TNode[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), back = Some(List()), tPath = List(0))
+    val e1 = TEdge[Int, String, Extra[String]](n1, "-1 -> 11")
+    val n0 = TNode[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), back = None, tPath = List())
+    TGraph(root = n0, leaves = List(n1))
   }
 
-  "CoGraphBuilder with deterministic machine" should {
-    val consumer = new GraphConsumer[Int, String, Extra[String]]()
-    val builder = new CoGraphBuilder(TinyMachine, consumer)
-    builder.buildCoGraph(0, NoExtra)
+  "GraphBuilder with deterministic machine" should {
+    val consumer = new TGraphConsumer[Int, String, Extra[String]]()
+    val builder = new GraphBuilder(TinyMachine, consumer)
+    builder.buildGraphs(0, NoExtra)
     val graphs = consumer.result
     
     "produce just 1 result" in {
       graphs.size must_== 1
     }
 
-    "build cograph in depth first manner" in {
+    "build graph in depth first manner" in {
       graphs(0) must_== graph
     }
   }

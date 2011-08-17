@@ -35,7 +35,7 @@ case class RebuildingInfo[C](from: C) extends Extra[C]
 
 trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
   type WS
-  def fold(g: CG): Option[CoPath]
+  def fold(g: CG): Option[Path]
   def drive(g: CG): List[CG]
   def rebuildings(whistle: Option[WS], g: CG): List[CG]
   def inspect(g: CG): Option[WS]
@@ -72,12 +72,12 @@ trait Driving[C] extends PFPMachine[C] with OperationalSemantics[C] {
 }
 
 trait RenamingFolding[C] extends PFPMachine[C] with Syntax[C] {
-  override def fold(g: CG): Option[CoPath] =
-    g.current.ancestors.find { n => instance.equiv(g.current.conf, n.conf) } map { _.coPath }
+  override def fold(g: CG): Option[Path] =
+    g.current.ancestors.find { n => instance.equiv(g.current.conf, n.conf) } map { _.path }
 }
 
 trait BinaryWhistle[C] extends PFPMachine[C] {
-  type WS = CoNode[C, DriveInfo[C], Extra[C]]
+  type WS = Node[C, DriveInfo[C], Extra[C]]
   val ordering: PartialOrdering[C]
   override def inspect(g: CG): Option[WS] =
     g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }

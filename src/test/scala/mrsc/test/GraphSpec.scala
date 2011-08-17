@@ -13,30 +13,30 @@ class GraphSpec extends mutable.Specification {
   args(sequential = true)
 
   /*
-  var cograph1, cograph1a, cograph2, cograph2a: CoGraph[Int, Int, Extra[String]] = _
+  var graph1, graph1a, graph2, graph2a: Graph[Int, Int, Extra[String]] = _
   var graph1, graph2: Graph[Int, Int, Extra[String]] = _
 
   "Conodes and coedges are created from the top down" in {
 
     val cn0 = CoNode[Int, Int, Extra[String]](conf = 0, extraInfo = null, in = null, base = None, coPath = List())
-    val ce1 = CoEdge[Int, Int, Extra[String]](cn0, 1)
+    val ce1 = Edge[Int, Int, Extra[String]](cn0, 1)
     val cn1 = CoNode[Int, Int, Extra[String]](conf = 1, extraInfo = null, in = ce1, base = None, coPath = List(0))
-    val ce2 = CoEdge[Int, Int, Extra[String]](cn0, 2)
+    val ce2 = Edge[Int, Int, Extra[String]](cn0, 2)
     val cn2 = CoNode[Int, Int, Extra[String]](conf = 2, extraInfo = null, in = ce2, base = None, coPath = List(1))
-    val ce3 = CoEdge[Int, Int, Extra[String]](cn1, 3)
+    val ce3 = Edge[Int, Int, Extra[String]](cn1, 3)
     val cn3 = CoNode[Int, Int, Extra[String]](conf = 3, extraInfo = null, in = ce3, base = Some(List(1, 0)), coPath = List(0, 0))
-    val ce4 = CoEdge[Int, Int, Extra[String]](cn1, 4)
+    val ce4 = Edge[Int, Int, Extra[String]](cn1, 4)
     val cn4 = CoNode[Int, Int, Extra[String]](conf = 4, extraInfo = null, in = ce4, base = Some(List()), coPath = List(1, 0))
 
     "the top subtrees can be reused for constructing different co graphs" in {
-      cograph1 = CoGraph(root = cn0, nodes = List(cn0, cn1, cn2), leaves = List(cn1, cn2))
-      cograph2 = CoGraph(root = cn0, nodes = List(cn0, cn1, cn2, cn3, cn4), leaves = List(cn2, cn3, cn4))
+      graph1 = Graph(root = cn0, nodes = List(cn0, cn1, cn2), leaves = List(cn1, cn2))
+      graph2 = Graph(root = cn0, nodes = List(cn0, cn1, cn2, cn3, cn4), leaves = List(cn2, cn3, cn4))
       success
     }
 
     "nodes and leaves can be put into cogrpaph in unnatural order" in {
-      cograph1a = CoGraph(root = cn0, nodes = List(cn0, cn2, cn1), leaves = List(cn2, cn1))
-      cograph2a = CoGraph(root = cn0, nodes = List(cn0, cn1, cn2, cn3, cn4).reverse, leaves = List(cn2, cn3, cn4).reverse)
+      graph1a = Graph(root = cn0, nodes = List(cn0, cn2, cn1), leaves = List(cn2, cn1))
+      graph2a = Graph(root = cn0, nodes = List(cn0, cn1, cn2, cn3, cn4).reverse, leaves = List(cn2, cn3, cn4).reverse)
       success
     }
 
@@ -95,16 +95,16 @@ class GraphSpec extends mutable.Specification {
 */
   /*
   "Transformations" should {
-    "transpose cographs into corresponding graphs" in ({
-      Transformations.transpose(cograph1) must_== graph1
+    "transpose graphs" in ({
+      Transformations.transpose(graph1) must_== graph1
     } and {
-      Transformations.transpose(cograph2) must_== graph2
+      Transformations.transpose(graph2) must_== graph2
     })
     
     "canonize corresponding graphs: the order of nodes, edges and leave should be natural" in ({
-      Transformations.transpose(cograph1a) must_== graph1
+      Transformations.transpose(graph1a) must_== graph1
     } and {
-      Transformations.transpose(cograph2a) must_== graph2
+      Transformations.transpose(graph2a) must_== graph2
     })
   }
   */

@@ -11,24 +11,24 @@ import mrsc.pfp._
 class BuilderCommandSpec extends mutable.Specification {
   args(sequential = true)
 
-  var pg1, pg2: PartialCoGraph[Int, String, Extra[String]] = _
-//  var cg1, cg2: CoGraph[Int, String, Extra[String]] = _
+  var pg1, pg2: Graph[Int, String, Extra[String]] = _
+//  var cg1, cg2: TDGraph[Int, String, Extra[String]] = _
 
-  val graph: TDGraph[Int, String, Extra[String]] = {
-    val n1 = TDNode[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), back = Some(List()), tdPath = List(0))
-    val e1 = TDEdge[Int, String, Extra[String]](n1, "-1 -> 11")
-    val n0 = TDNode[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), back = None, tdPath = List())
-    TDGraph(root = n0, leaves = List(n1))
+  val graph: TGraph[Int, String, Extra[String]] = {
+    val n1 = TNode[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), back = Some(List()), tPath = List(0))
+    val e1 = TEdge[Int, String, Extra[String]](n1, "-1 -> 11")
+    val n0 = TNode[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), back = None, tPath = List())
+    TGraph(root = n0, leaves = List(n1))
   }
 
-  def start(c: Int): PartialCoGraph[Int,String,Extra[String]] = {
-    val startNode = CoNode[Int, String, Extra[String]](c, NoExtra, null, None, Nil)
-    new PartialCoGraph(List(startNode), Nil, Nil)
+  def start(c: Int): Graph[Int,String,Extra[String]] = {
+    val startNode = Node[Int, String, Extra[String]](c, NoExtra, null, None, Nil)
+    new Graph(List(startNode), Nil, Nil)
   }
 
   
-  "The builder of the 1st cograph" in {
-    "starts with a single-node cograph" in {
+  "The builder of the 1st graph" in {
+    "starts with a single-node graph" in {
       pg1 = start(0)
 
       
@@ -65,7 +65,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes RollbackSubGraph command" in {
-      val root = pg1.current.in.coNode
+      val root = pg1.current.in.node
       pg1 = pg1.rollback(root, -1, NoExtra)
 
       (pg1.current.conf must_== -1) and
@@ -89,15 +89,15 @@ class BuilderCommandSpec extends mutable.Specification {
         (pg1.incompleteLeaves.size must_== 0)
     }
 
-//    "produces final cograph" in {
-//      cg1 = pg1.toCoGraph()
+//    "produces final graph" in {
+//      cg1 = pg1
 //      (cg1.leaves.size must_== 1) and
 //        (cg1.root.conf must_== -1)
 //    }
   }
 
-  "The builder of the 2nd cograph" in {
-    "starts with a single-node cograph" in {
+  "The builder of the 2nd graph" in {
+    "starts with a single-node graph" in {
       pg2 = start(-1)
 
       (pg2.current.conf must_== -1) and
@@ -121,14 +121,14 @@ class BuilderCommandSpec extends mutable.Specification {
         (pg1.incompleteLeaves.size must_== 0)
     }
 
-//    "produces final cograph" in {
-//      cg2 = pg2.toCoGraph()
+//    "produces final graph" in {
+//      cg2 = pg2
 //      (cg2.leaves.size must_== 1) and
 //        (cg2.root.conf must_== -1)
 //    }
   }
 
-  "Produced cographs" should {
+  "Produced graphs" should {
     "be equal to each other" in {
       pg1 must_== pg2
     }

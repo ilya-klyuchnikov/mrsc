@@ -20,12 +20,12 @@ import SLLSyntax._
  */
 object SLLResiduator extends Residuation[Expr] {
 
-  override def residuate(graph: TDGraph[Expr, DriveInfo[Expr], _]): Expr =
+  override def residuate(graph: TGraph[Expr, DriveInfo[Expr], _]): Expr =
     SyntaxNormalization.fixNames(fold(graph, graph.root))
 
-  def fold(graph: TDGraph[Expr, DriveInfo[Expr], _], n: TDNode[Expr, DriveInfo[Expr], _]): Expr = n.back match {
+  def fold(graph: TGraph[Expr, DriveInfo[Expr], _], n: TNode[Expr, DriveInfo[Expr], _]): Expr = n.back match {
     // base node
-    case None if (graph.leaves.exists { _.back == Some(n.tdPath) }) =>
+    case None if (graph.leaves.exists { _.back == Some(n.tPath) }) =>
       val (f, vars) = signature(n)
       val call = FCall(f, vars)
       val body = build(graph, n)
@@ -41,32 +41,32 @@ object SLLResiduator extends Residuation[Expr] {
     case _ => build(graph, n)
   }
 
-  def build(tree: TDGraph[Expr, DriveInfo[Expr], _], n: TDNode[Expr, DriveInfo[Expr], _]): Expr = n.outs match {
+  def build(tree: TGraph[Expr, DriveInfo[Expr], _], n: TNode[Expr, DriveInfo[Expr], _]): Expr = n.outs match {
     case Nil => n.conf
     case children @ (n1 :: ns) => n1.driveInfo match {
       case TransientStepInfo =>
-        fold(tree, n1.node)
+        fold(tree, n1.tNode)
       case DecomposeStepInfo(compose) =>
-        compose(children map { _.node } map { fold(tree, _) })
+        compose(children map { _.tNode } map { fold(tree, _) })
       case VariantsStepInfo(_) =>
         val (fname, vs @ (v :: vars1)) = gSignature(n)
         val branches = children map { e =>
           val VariantsStepInfo(Contraction(v, c @ Ctr(cn, _))) = e.driveInfo
           val pat = Pat(cn, vars(c) map { _.name })
-          GFun(fname, pat, vars1 map { _.name }, fold(tree, e.node))
+          GFun(fname, pat, vars1 map { _.name }, fold(tree, e.tNode))
         } sortBy (_.p.name)
         val call = GCall(fname, vs)
         Where(call, branches)
     }
   }
 
-  private def signature(node: TDNode[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
-    val fname = "f/" + node.tdPath.mkString("/")
+  private def signature(node: TNode[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
+    val fname = "f/" + node.tPath.mkString("/")
     (fname, vars(node.conf))
   }
   
-  private def gSignature(node: TDNode[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
-    val fname = "g/" + node.tdPath.mkString("/")
+  private def gSignature(node: TNode[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
+    val fname = "g/" + node.tPath.mkString("/")
     (fname, vars(node.conf))
   }
 

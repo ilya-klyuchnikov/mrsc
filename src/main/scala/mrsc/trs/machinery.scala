@@ -5,9 +5,9 @@ import mrsc.pfp.{Extra, NoExtra}
 
 trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
-  type W = Option[CoNode[C, D, E]]
+  type W = Option[Node[C, D, E]]
   def isLeaf(g: CG): Boolean
-  def fold(g: CG): Option[CoPath]
+  def fold(g: CG): Option[Path]
   def blame(g: CG): W
   def drive(whistle: W, g: CG): List[CG]
   def rebuildings(whistle: W, g: CG): List[CG]
@@ -35,23 +35,23 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 }
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def fold(g: PartialCoGraph[C, D, Extra[C]]): Option[CoPath] =
-    g.current.ancestors.find { n => instance.lteq(n.conf, g.current.conf) } map { _.coPath }
+  override def fold(g: Graph[C, D, Extra[C]]): Option[Path] =
+    g.current.ancestors.find { n => instance.lteq(n.conf, g.current.conf) } map { _.path }
 }
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def fold(g: PartialCoGraph[C, D, Extra[C]]): Option[CoPath] =
-    g.completeNodes.find { n => instance.lteq(n.conf, g.current.conf) } map { _.coPath }
+  override def fold(g: Graph[C, D, Extra[C]]): Option[Path] =
+    g.completeNodes.find { n => instance.lteq(n.conf, g.current.conf) } map { _.path }
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] {
   def unsafe(c: C): Boolean
-  override def blame(g: PartialCoGraph[C, D, Extra[C]]): W =
+  override def blame(g: Graph[C, D, Extra[C]]): W =
     if (unsafe(g.current.conf)) Some(g.current) else None
 }
 
 trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: W, g: PartialCoGraph[C, D, Extra[C]]): List[PartialCoGraph[C, D, Extra[C]]] = {
+  override def rebuildings(whistle: W, g: Graph[C, D, Extra[C]]): List[Graph[C, D, Extra[C]]] = {
     whistle match {
       case None =>
         List()
@@ -63,14 +63,14 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C
 }
 
 trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: W, g: PartialCoGraph[C, D, Extra[C]]): List[PartialCoGraph[C, D, Extra[C]]] = {
+  override def rebuildings(whistle: W, g: Graph[C, D, Extra[C]]): List[Graph[C, D, Extra[C]]] = {
     val rbs = rebuildings(g.current.conf) filterNot unsafe
     rbs map { g.rebuild(_, NoExtra) }
   }
 }
 
 trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra[C]] with RewriteSemantics[C] {
-  override def drive(whistle: W, g: PartialCoGraph[C, Int, Extra[C]]): List[PartialCoGraph[C, Int, Extra[C]]] =
+  override def drive(whistle: W, g: Graph[C, Int, Extra[C]]): List[Graph[C, Int, Extra[C]]] =
     whistle match {
       case Some(blamed) =>
         List(g.toUnworkable())
@@ -81,6 +81,6 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra[C]] with RewriteS
         List(g.addChildNodes(subSteps))
     }
 
-  override def isLeaf(g: PartialCoGraph[C, Int, Extra[C]]) =
+  override def isLeaf(g: Graph[C, Int, Extra[C]]) =
     false
 }

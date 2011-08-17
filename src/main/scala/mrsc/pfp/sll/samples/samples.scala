@@ -96,8 +96,8 @@ object Samples {
     {
       val m1 = classic1(HEByCouplingWhistle)(task.program)
       val consumer1 = new SingleProgramConsumer(SLLResiduator)
-      val builder1 = new CoGraphBuilder(m1, consumer1)
-      builder1.buildCoGraph(task.target, NoExtra)
+      val builder1 = new GraphBuilder(m1, consumer1)
+      builder1.buildGraphs(task.target, NoExtra)
       println("**classic+ up:**")
       println(PrettySLL.pretty(consumer1.buildResult))
 
@@ -107,8 +107,8 @@ object Samples {
     {
       val m2 = classic2(HEByCouplingWhistle)(task.program)
       val consumer2 = new SingleProgramConsumer(SLLResiduator)
-      val builder2 = new CoGraphBuilder(m2, consumer2)
-      builder2.buildCoGraph(task.target, NoExtra)
+      val builder2 = new GraphBuilder(m2, consumer2)
+      builder2.buildGraphs(task.target, NoExtra)
       println("**classic+ down:**")
       println(PrettySLL.pretty(consumer2.buildResult))
 
@@ -120,10 +120,10 @@ object Samples {
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
       val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      val builder3 = new CoGraphBuilder(m3, consumer3)
-      builder3.buildCoGraph(task.target, NoExtra)
+      val builder3 = new GraphBuilder(m3, consumer3)
+      builder3.buildGraphs(task.target, NoExtra)
 
-      val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
+      val ResidualResult(completed, discarded, residuals) = consumer3.buildResult
 
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
@@ -139,10 +139,10 @@ object Samples {
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
       val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      val builder3 = new CoGraphBuilder(m3, consumer3)
-      builder3.buildCoGraph(task.target, NoExtra)
+      val builder3 = new GraphBuilder(m3, consumer3)
+      builder3.buildGraphs(task.target, NoExtra)
 
-      val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
+      val ResidualResult(completed, discarded, residuals) = consumer3.buildResult
 
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
@@ -200,9 +200,9 @@ object Samples {
     {
       val machine = new ClassicMix(task.program, HEByCouplingWhistle)
       val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new CoGraphBuilder(machine, consumer)
+      val builder = new GraphBuilder(machine, consumer)
       try {
-        builder.buildCoGraph(task.target, NoExtra)
+        builder.buildGraphs(task.target, NoExtra)
       } catch {
         case _ =>
       }
@@ -215,9 +215,9 @@ object Samples {
     {
       val machine = new Multi4(task.program, HEWhistle)
       val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new CoGraphBuilder(machine, consumer)
+      val builder = new GraphBuilder(machine, consumer)
       try {
-        builder.buildCoGraph(task.target, NoExtra)
+        builder.buildGraphs(task.target, NoExtra)
       } catch {
         case _ =>
       }
@@ -230,9 +230,9 @@ object Samples {
     {
       val machine = new Multi1(task.program, HEWhistle)
       val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new CoGraphBuilder(machine, consumer)
+      val builder = new GraphBuilder(machine, consumer)
       try {
-        builder.buildCoGraph(task.target, NoExtra)
+        builder.buildGraphs(task.target, NoExtra)
       } catch {
         case _ =>
       }
