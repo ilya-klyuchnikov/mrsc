@@ -41,7 +41,7 @@ trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra[C]] wi
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
   override def fold(g: PartialCoGraph[C, D, Extra[C]]): Option[CoPath] =
-    g.complete.find { n => instance.lteq(n.conf, g.current.conf) } map { _.coPath }
+    g.completeNodes.find { n => instance.lteq(n.conf, g.current.conf) } map { _.coPath }
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] {

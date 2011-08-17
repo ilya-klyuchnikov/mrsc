@@ -12,6 +12,7 @@ class GraphSpec extends mutable.Specification {
 
   args(sequential = true)
 
+  /*
   var cograph1, cograph1a, cograph2, cograph2a: CoGraph[Int, Int, Extra[String]] = _
   var graph1, graph2: Graph[Int, Int, Extra[String]] = _
 
@@ -91,7 +92,8 @@ class GraphSpec extends mutable.Specification {
       graph2.get(List(0, 1)) must_== n4
     })
   }
-
+*/
+  /*
   "Transformations" should {
     "transpose cographs into corresponding graphs" in ({
       Transformations.transpose(cograph1) must_== graph1
@@ -105,4 +107,5 @@ class GraphSpec extends mutable.Specification {
       Transformations.transpose(cograph2a) must_== graph2
     })
   }
+  */
 }

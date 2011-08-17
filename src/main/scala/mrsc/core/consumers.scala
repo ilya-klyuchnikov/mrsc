@@ -31,7 +31,7 @@ class GraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E, List[Graph[C, D, E
 
   def consume(cg: PartialCoGraph[C, D, E]) {
     if (cg.isComplete) {
-      val graph = Transformations.transpose(cg.toCoGraph())
+      val graph = Transformations.transpose(cg)
       completedGraphs = graph :: completedGraphs
     }
   }

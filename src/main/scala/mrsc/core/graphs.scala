@@ -75,14 +75,6 @@ case class Node[C, D, E](
   override def toString = GraphPrettyPrinter.toString(this)
 }
 
-/*! `CoGraph[C, D, E]` is dual to `Graph[C, D, E]`. 
- It has additionally the list of all nodes (vertices).
- */
-case class CoGraph[C, D, E](
-  root: CoNode[C, D, E],
-  leaves: List[CoNode[C, D, E]],
-  nodes: List[CoNode[C, D, E]])
-
 /*! `CoNode[C, D, E]` is dual to `Node[C, D, E]`. 
  */
 case class CoNode[C, D, E](
@@ -110,9 +102,13 @@ object Transformations {
   /*! Transposition is done in the following simple way. Nodes are grouped according to the 
    levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
-  def transpose[C, D, E](g: CoGraph[C, D, E]): Graph[C, D, E] = {
-    val leafPathes = g.leaves.map(_.coPath)
-    val levels = g.nodes.groupBy(_.coPath.length).toList.sortBy(_._1).map(_._2)
+  def transpose[C, D, E](g: PartialCoGraph[C, D, E]): Graph[C, D, E] = {
+    assert(g.isComplete)
+    val orderedNodes = g.completeNodes.sortBy(_.coPath)(PathOrdering)
+    val rootNode = orderedNodes.head
+
+    val leafPathes = g.completeLeaves.map(_.coPath)
+    val levels = orderedNodes.groupBy(_.coPath.length).toList.sortBy(_._1).map(_._2)
     val sortedLevels = levels.map(_.sortBy(_.path)(PathOrdering))
     val (tNodes, tLeaves) = subTranspose(sortedLevels, leafPathes)
     val nodes = tNodes map { _.node }

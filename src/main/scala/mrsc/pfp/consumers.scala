@@ -18,7 +18,7 @@ class ResiduatingConsumer[C](residuator: Residuation[C])
       unworkableCoGraphsCount = unworkableCoGraphsCount + 1
     else {
       completedCoGraphsCount = completedCoGraphsCount + 1
-      val graph = Transformations.transpose(cg.toCoGraph())
+      val graph = Transformations.transpose(cg)
       val residual = residuator.residuate(graph)
       residuals = residual :: residuals
     }
@@ -41,7 +41,7 @@ class SingleProgramConsumer[C](residuator: Residuation[C])
     if (residualProgram != null)
       throw new Error()
     if (cg.isComplete) {
-      graph = Transformations.transpose(cg.toCoGraph())
+      graph = Transformations.transpose(cg)
       println(graph)
       residualProgram = residuator.residuate(graph)
     }

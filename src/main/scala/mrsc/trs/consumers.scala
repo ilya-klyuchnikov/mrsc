@@ -11,7 +11,7 @@ class SimpleGraphConsumer[C, D] extends CoGraphConsumer[C, D, Extra[C], List[Gra
 
   def consume(cg: PartialCoGraph[C, D, Extra[C]]) {
     if (cg.isComplete) {
-      val graph = Transformations.transpose(cg.toCoGraph())
+      val graph = Transformations.transpose(cg)
       completedGraphs = graph :: completedGraphs
     }
   }

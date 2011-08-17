@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 case class PartialCoGraph[C, D, E](
   incompleteLeaves: List[CoNode[C, D, E]],
   completeLeaves: List[CoNode[C, D, E]],
-  complete: List[CoNode[C, D, E]],
+  completeNodes: List[CoNode[C, D, E]],
   isUnworkable: Boolean = false) {
 
   /*! `isUnworkable` = is not good for further processing (for some reason).
@@ -20,8 +20,8 @@ case class PartialCoGraph[C, D, E](
   
   /*! `current` is the vanguard of the incomplete part. It will be processed next.
    */
-  val current = if (incompleteLeaves.isEmpty) null else incompleteLeaves.head
-
+  val current = if (isComplete) null else incompleteLeaves.head
+  
   /*! Transformations performed over graphs by driving
    *  (and some other parts of the supercompiler?)
    *  Perhaps, they might be exposed via a trait?
@@ -36,7 +36,7 @@ case class PartialCoGraph[C, D, E](
   /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
    */
   def convertToLeaf() : PartialCoGraph[C, D, E] = {
-    PartialCoGraph(incompleteLeaves.tail, current :: completeLeaves, current :: complete)
+    PartialCoGraph(incompleteLeaves.tail, current :: completeLeaves, current :: completeNodes)
   }
   /*! This step corresponds (mainly) to driving: adds children to the current node. Then
    *  current node is moved to the complete part and new children are moved into 
@@ -51,37 +51,31 @@ case class PartialCoGraph[C, D, E](
     // Now it is depth-first traversal. If you change 
     // deltaLeaves ++ ls -> ls ++ deltaLeaves,
     // you will have breadth-first traversal
-    PartialCoGraph(deltaLeaves ++ incompleteLeaves.tail, completeLeaves, current :: complete)
+    PartialCoGraph(deltaLeaves ++ incompleteLeaves.tail, completeLeaves, current :: completeNodes)
   }
   /*! Just folding: creating a loopback and moving the node into the complete part 
    *  of the SC graph.  
    */
   def fold(basePath: CoPath): PartialCoGraph[C, D, E] = {
     val node = current.copy(base = Some(basePath))
-    PartialCoGraph(incompleteLeaves.tail, node :: completeLeaves, node :: complete)
+    PartialCoGraph(incompleteLeaves.tail, node :: completeLeaves, node :: completeNodes)
   }
   /*! Replacing the configuration of the current node. 
    *  The main use case is the rebuilding (generalization) of the active node.
    */
   def rebuild(conf: C, extra: E): PartialCoGraph[C, D, E] = {
     val node = current.copy(conf = conf, extraInfo = extra)
-    PartialCoGraph(node :: incompleteLeaves.tail, completeLeaves, complete)
+    PartialCoGraph(node :: incompleteLeaves.tail, completeLeaves, completeNodes)
   }
   /*! When doing rollback, we also prune all successors of the dangerous node. 
    */
   def rollback(dangNode: CoNode[C, D, E], c: C, eInfo: E) = {
     def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
     val node = dangNode.copy(conf = c, extraInfo = eInfo)
-    val completeNodes1 = complete.remove(prune_?)
+    val completeNodes1 = completeNodes.remove(prune_?)
     val completeLeaves1 = completeLeaves.remove(prune_?)
     val incompleteLeaves1 = incompleteLeaves.tail.remove(prune_?)
     PartialCoGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
-  }
-
-  def toCoGraph(): CoGraph[C, D, E] = {
-    val orderedNodes = complete.sortBy(_.coPath)(PathOrdering)
-    val rootNode = orderedNodes.head
-    CoGraph(rootNode, completeLeaves, orderedNodes)
   }
 }
 
