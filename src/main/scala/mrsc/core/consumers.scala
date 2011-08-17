@@ -24,9 +24,9 @@ class CountGraphConsumer[C, D, E](val maxCount: Int = 10000)
   override def buildResult() = result
 }
 
-class GraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E, List[Graph[C, D, E]]] {
+class GraphConsumer[C, D, E] extends CoGraphConsumer[C, D, E, List[TDGraph[C, D, E]]] {
 
-  var completedGraphs: List[Graph[C, D, E]] = List()
+  var completedGraphs: List[TDGraph[C, D, E]] = List()
   lazy val result = completedGraphs
 
   def consume(cg: PartialCoGraph[C, D, E]) {

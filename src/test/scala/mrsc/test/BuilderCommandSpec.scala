@@ -14,11 +14,11 @@ class BuilderCommandSpec extends mutable.Specification {
   var pg1, pg2: PartialCoGraph[Int, String, Extra[String]] = _
 //  var cg1, cg2: CoGraph[Int, String, Extra[String]] = _
 
-  val graph: Graph[Int, String, Extra[String]] = {
-    val n1 = Node[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), base = Some(List()), path = List(0))
-    val e1 = Edge[Int, String, Extra[String]](n1, "-1 -> 11")
-    val n0 = Node[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), base = None, path = List())
-    Graph(root = n0, leaves = List(n1))
+  val graph: TDGraph[Int, String, Extra[String]] = {
+    val n1 = TDNode[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), back = Some(List()), tdPath = List(0))
+    val e1 = TDEdge[Int, String, Extra[String]](n1, "-1 -> 11")
+    val n0 = TDNode[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), back = None, tdPath = List())
+    TDGraph(root = n0, leaves = List(n1))
   }
 
   def start(c: Int): PartialCoGraph[Int,String,Extra[String]] = {

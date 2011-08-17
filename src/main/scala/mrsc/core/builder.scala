@@ -57,7 +57,7 @@ case class PartialCoGraph[C, D, E](
    *  of the SC graph.  
    */
   def fold(basePath: CoPath): PartialCoGraph[C, D, E] = {
-    val node = current.copy(base = Some(basePath))
+    val node = current.copy(back = Some(basePath))
     PartialCoGraph(incompleteLeaves.tail, node :: completeLeaves, node :: completeNodes)
   }
   /*! Replacing the configuration of the current node. 
@@ -70,7 +70,7 @@ case class PartialCoGraph[C, D, E](
   /*! When doing rollback, we also prune all successors of the dangerous node. 
    */
   def rollback(dangNode: CoNode[C, D, E], c: C, eInfo: E) = {
-    def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
+    def prune_?(n: CoNode[C, D, E]) = n.tdPath.startsWith(dangNode.tdPath)
     val node = dangNode.copy(conf = c, extraInfo = eInfo)
     val completeNodes1 = completeNodes.remove(prune_?)
     val completeLeaves1 = completeLeaves.remove(prune_?)

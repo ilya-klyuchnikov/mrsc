@@ -39,10 +39,10 @@ object CounterSamples extends App {
   
   import mrsc.pfp.NoExtra
 
-  def graphSize(g: Graph[_, _, _]): Int =
+  def graphSize(g: TDGraph[_, _, _]): Int =
     size(g.root)
 
-  def size(n: Node[_, _, _]): Int = 1 + n.outs.map(out => size(out.node)).sum
+  def size(n: TDNode[_, _, _]): Int = 1 + n.outs.map(out => size(out.node)).sum
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
     val sc = CounterSc(protocol, l)
@@ -74,7 +74,7 @@ object CounterSamples extends App {
     }
   }
 
-  def checkSubTree(unsafe: OmegaConf => Boolean)(node: Node[OmegaConf, _, _]): Boolean =
+  def checkSubTree(unsafe: OmegaConf => Boolean)(node: TDNode[OmegaConf, _, _]): Boolean =
     !unsafe(node.conf) && node.outs.map(_.node).forall(checkSubTree(unsafe))
 
   def verifyProtocol(protocol: Protocol, findMinimalProof: Boolean = true): Unit = {

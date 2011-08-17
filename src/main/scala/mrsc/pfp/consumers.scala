@@ -35,7 +35,7 @@ class SingleProgramConsumer[C](residuator: Residuation[C])
   val description = "I expect one result"
 
   var residualProgram: C = null.asInstanceOf[C]
-  var graph: Graph[C, DriveInfo[C], Extra[C]] = null
+  var graph: TDGraph[C, DriveInfo[C], Extra[C]] = null
 
   def consume(cg: PartialCoGraph[C, DriveInfo[C], Extra[C]]) {
     if (residualProgram != null)

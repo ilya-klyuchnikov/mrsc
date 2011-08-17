@@ -20,12 +20,12 @@ import SLLSyntax._
  */
 object SLLResiduator extends Residuation[Expr] {
 
-  override def residuate(graph: Graph[Expr, DriveInfo[Expr], _]): Expr =
+  override def residuate(graph: TDGraph[Expr, DriveInfo[Expr], _]): Expr =
     SyntaxNormalization.fixNames(fold(graph, graph.root))
 
-  def fold(graph: Graph[Expr, DriveInfo[Expr], _], n: Node[Expr, DriveInfo[Expr], _]): Expr = n.base match {
+  def fold(graph: TDGraph[Expr, DriveInfo[Expr], _], n: TDNode[Expr, DriveInfo[Expr], _]): Expr = n.back match {
     // base node
-    case None if (graph.leaves.exists { _.base == Some(n.path) }) =>
+    case None if (graph.leaves.exists { _.back == Some(n.tdPath) }) =>
       val (f, vars) = signature(n)
       val call = FCall(f, vars)
       val body = build(graph, n)
@@ -41,7 +41,7 @@ object SLLResiduator extends Residuation[Expr] {
     case _ => build(graph, n)
   }
 
-  def build(tree: Graph[Expr, DriveInfo[Expr], _], n: Node[Expr, DriveInfo[Expr], _]): Expr = n.outs match {
+  def build(tree: TDGraph[Expr, DriveInfo[Expr], _], n: TDNode[Expr, DriveInfo[Expr], _]): Expr = n.outs match {
     case Nil => n.conf
     case children @ (n1 :: ns) => n1.driveInfo match {
       case TransientStepInfo =>
@@ -60,13 +60,13 @@ object SLLResiduator extends Residuation[Expr] {
     }
   }
 
-  private def signature(node: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
-    val fname = "f/" + node.path.mkString("/")
+  private def signature(node: TDNode[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
+    val fname = "f/" + node.tdPath.mkString("/")
     (fname, vars(node.conf))
   }
   
-  private def gSignature(node: Node[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
-    val fname = "g/" + node.path.mkString("/")
+  private def gSignature(node: TDNode[Expr, DriveInfo[Expr], _]): (String, List[Var]) = {
+    val fname = "g/" + node.tdPath.mkString("/")
     (fname, vars(node.conf))
   }
 
