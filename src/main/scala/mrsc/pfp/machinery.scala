@@ -47,7 +47,7 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
       case _ =>
         val signal = inspect(g)
         val driveSteps = 
-          if (signal.isEmpty) drive(g) else List(null)
+          if (signal.isEmpty) drive(g) else List(g.toUnworkable())
         val rebuildSteps = rebuildings(signal, g)
         driveSteps ++ rebuildSteps
     }

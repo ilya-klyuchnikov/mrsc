@@ -73,7 +73,7 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra[C]] with RewriteS
   override def drive(whistle: W, g: PartialCoGraph[C, Int, Extra[C]]): List[PartialCoGraph[C, Int, Extra[C]]] =
     whistle match {
       case Some(blamed) =>
-        List(null)
+        List(g.toUnworkable())
       case None =>
         val subSteps =
           for ((next, i) <- drive(g.current.conf).zipWithIndex if next.isDefined)

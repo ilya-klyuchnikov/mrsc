@@ -9,8 +9,15 @@ import scala.annotation.tailrec
 case class PartialCoGraph[C, D, E](
   incompleteLeaves: List[CoNode[C, D, E]],
   completeLeaves: List[CoNode[C, D, E]],
-  complete: List[CoNode[C, D, E]]) {
+  complete: List[CoNode[C, D, E]],
+  isUnworkable: Boolean = false) {
 
+  /*! `isUnworkable` = is not good for further processing (for some reason).
+   *  'isComplete` = is finished, there is nothing to do.
+   */
+  val isComplete = incompleteLeaves.isEmpty 
+  def toUnworkable() = this.copy(isUnworkable = true)
+  
   /*! `current` is the vanguard of the incomplete part. It will be processed next.
    */
   val current = if (incompleteLeaves.isEmpty) null else incompleteLeaves.head
@@ -89,7 +96,7 @@ case class PartialCoGraph[C, D, E](
   if the graph was pruned. 
  */
 trait CoGraphConsumer[C, D, E, R] {
-  def consume(graph: Option[CoGraph[C, D, E]]): Unit
+  def consume(graph: PartialCoGraph[C, D, E]): Unit
   def buildResult(): R
 }
 
@@ -124,18 +131,18 @@ case class CoGraphProducer[C, D, E](conf: C, info: E, machine: Machine[C, D, E])
       if (gs.isEmpty)
         return
       val g = gs.head
-      if (g == null || g.current == null)
+      if (g.isComplete || g.isUnworkable)
         return
       gs = machine.steps(g) ++ gs.tail
     }
   }
 
-  def hasNext(): Boolean = {
+  def hasNext: Boolean = {
     normalize()
     !gs.isEmpty
   }
 
-  def next : PartialCoGraph[C, D, E] = {
+  def next() : PartialCoGraph[C, D, E] = {
     if (!hasNext)
       throw new NoSuchElementException("no cograph")
     val g = gs.head
@@ -153,12 +160,7 @@ class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsum
   def buildCoGraph(conf: C, info: E): Unit = {
     val producer = new CoGraphProducer[C, D, E](conf, info, machine)
     while (producer.hasNext) {
-      val g = producer.next
-      if (g == null)
-        /*! informing `consumer` that a graph has been discarded. */
-        consumer.consume(None)
-      else
-        consumer.consume(Some(g.toCoGraph()))
+      consumer.consume(producer.next())
     }
   }
 }
