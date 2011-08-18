@@ -24,7 +24,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   with BinaryWhistle[Expr]
   with LowerRebuildingsOnBinaryWhistle[Expr]
 
-// generalize (in all possible ways) blamed configuration (when whistle blows)
+// generalize (in all possible ways) a dubious configuration (when whistle blows)
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
@@ -35,7 +35,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
-// 1. the blamed one (with rollback)
+// 1. the dubious one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
@@ -46,7 +46,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with BinaryWhistle[Expr]
   with DoubleRebuildingsOnBinaryWhistle[Expr]
 
-class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
+class ClassicDubiousGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
@@ -80,7 +80,7 @@ object Samples {
   def multi2(w: PartialOrdering[Expr])(p: Program) = new Multi2(p, w)
   def multi3(w: PartialOrdering[Expr])(p: Program) = new Multi3(p, w)
   def multi4(w: PartialOrdering[Expr])(p: Program) = new Multi4(p, w)
-  def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicBlamedGen(p, w)
+  def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicDubiousGen(p, w)
   def classic2(w: PartialOrdering[Expr])(p: Program) = new ClassicCurrentGen(p, w)
   def classic3(w: PartialOrdering[Expr])(p: Program) = new ClassicMix(p, w)
 

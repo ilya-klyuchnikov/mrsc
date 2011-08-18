@@ -52,7 +52,7 @@ trait CountersSemantics extends RewriteSemantics[OmegaConf] {
 
 trait LWhistle {
   val l: Int
-  def unsafe(counter: OmegaConf) = counter exists {
+  def dubious(counter: OmegaConf) = counter exists {
     case Value(i) => i >= l
     case Omega => false
   }

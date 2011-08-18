@@ -31,8 +31,8 @@ case class CounterMultiSc(val protocol: Protocol, val l: Int)
 
 trait ProtocolSafetyAware extends LWhistle {
   val protocol: Protocol
-  override def unsafe(counter: OmegaConf): Boolean =
-    super.unsafe(counter) || protocol.unsafe(counter)
+  override def dubious(counter: OmegaConf): Boolean =
+    super.dubious(counter) || protocol.unsafe(counter)
 }
 
 object CounterSamples extends App {

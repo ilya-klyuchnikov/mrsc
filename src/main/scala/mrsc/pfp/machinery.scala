@@ -45,10 +45,10 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
       case Some(path) =>
         List(g.fold(path))
       case _ =>
-        val signal = inspect(g)
+        val whistle = inspect(g)
         val driveSteps = 
-          if (signal.isEmpty) drive(g) else List(g.toUnworkable())
-        val rebuildSteps = rebuildings(signal, g)
+          if (whistle.isEmpty) drive(g) else List(g.toUnworkable())
+        val rebuildSteps = rebuildings(whistle, g)
         driveSteps ++ rebuildSteps
     }
 }
@@ -83,12 +83,11 @@ trait BinaryWhistle[C] extends PFPMachine[C] {
     g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
-case object UnarySignal
 trait UnaryWhistle[C] extends PFPMachine[C] {
-  type WS = UnarySignal.type
-  def unsafe(c: C): Boolean
+  type WS = Unit
+  def dubious(c: C): Boolean
   override def inspect(g: CG): Option[WS] =
-    if (unsafe(g.current.conf)) Some(UnarySignal) else None
+    if (dubious(g.current.conf)) Some(Unit) else None
 }
 
 trait AllRebuildings[C] extends PFPMachine[C] with Syntax[C] {
