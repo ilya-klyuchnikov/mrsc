@@ -36,7 +36,7 @@ case class Graph[C, D, E](
 
   /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
    */
-  def convertToLeaf() : Graph[C, D, E] = {
+  def completeLeaf() : Graph[C, D, E] = {
     Graph(incompleteLeaves.tail, current :: completeLeaves, current :: completeNodes)
   }
   /*! This step corresponds (mainly) to driving: adds children to the current node. Then

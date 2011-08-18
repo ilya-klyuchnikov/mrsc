@@ -57,7 +57,7 @@ trait Driving[C] extends PFPMachine[C] with OperationalSemantics[C] {
   override def drive(g: CG): List[CG] =
     driveStep(g.current.conf) match {
       case StopDriveStep =>
-        List(g.convertToLeaf())
+        List(g.completeLeaf())
       case DecomposeDriveStep(compose, args) =>
         val stepInfo = DecomposeStepInfo(compose)
         val subSteps = args map { a => (a, stepInfo, NoExtra) }

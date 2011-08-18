@@ -11,8 +11,8 @@ import mrsc.pfp._
 class BuilderCommandSpec extends mutable.Specification {
   args(sequential = true)
 
-  var pg1, pg2: Graph[Int, String, Extra[String]] = _
-//  var cg1, cg2: TDGraph[Int, String, Extra[String]] = _
+  var g1, g2: Graph[Int, String, Extra[String]] = _
+  var tg1, tg2: TGraph[Int, String, Extra[String]] = _
 
   val graph: TGraph[Int, String, Extra[String]] = {
     val n1 = TNode[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), back = Some(List()), tPath = List(0))
@@ -29,114 +29,102 @@ class BuilderCommandSpec extends mutable.Specification {
   
   "The builder of the 1st graph" in {
     "starts with a single-node graph" in {
-      pg1 = start(0)
+      g1 = start(0)
 
       
-      (pg1.current.conf must_== 0) and
-        (pg1.completeNodes.size must_== 0) and
-        (pg1.incompleteLeaves.size must_== 1)
+      (g1.current.conf must_== 0) and
+        (g1.completeNodes.size must_== 0) and
+        (g1.incompleteLeaves.size must_== 1)
     }
 
     "executes AddChildNodes command" in {
-      pg1 = pg1.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra)))
+      g1 = g1.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra)))
 
-      (pg1.current.conf must_== 1) and
-        (pg1.completeNodes.size must_== 1) and
-        (pg1.incompleteLeaves.size must_== 2)
+      (g1.current.conf must_== 1) and
+        (g1.completeNodes.size must_== 1) and
+        (g1.incompleteLeaves.size must_== 2)
     }
 
     "executes ConvertToLeaf command" in {
-      pg1 = pg1.convertToLeaf()
+      g1 = g1.completeLeaf()
 
-      (pg1.current.conf must_== 2) and
-        (pg1.completeNodes.size must_== 2) and
-        (pg1.incompleteLeaves.size must_== 1)
+      (g1.current.conf must_== 2) and
+        (g1.completeNodes.size must_== 2) and
+        (g1.incompleteLeaves.size must_== 1)
     }
 
     "executes ReplaceNode command" in {
-      val oldActive = pg1.current
-      pg1 = pg1.rebuild(21, NoExtra)
-      val newActive = pg1.current
+      val oldActive = g1.current
+      g1 = g1.rebuild(21, NoExtra)
+      val newActive = g1.current
 
       (newActive.conf must_== 21) and
         (newActive.in must_== oldActive.in) and
-        (pg1.completeNodes.size must_== 2) and
-        (pg1.incompleteLeaves.size must_== 1)
+        (g1.completeNodes.size must_== 2) and
+        (g1.incompleteLeaves.size must_== 1)
     }
 
     "executes RollbackSubGraph command" in {
-      val root = pg1.current.in.node
-      pg1 = pg1.rollback(root, -1, NoExtra)
+      val root = g1.current.in.node
+      g1 = g1.rollback(root, -1, NoExtra)
 
-      (pg1.current.conf must_== -1) and
-        (pg1.completeNodes.size must_== 0) and
-        (pg1.incompleteLeaves.size must_== 1)
+      (g1.current.conf must_== -1) and
+        (g1.completeNodes.size must_== 0) and
+        (g1.incompleteLeaves.size must_== 1)
     }
 
     "executes AddChildNodes command" in {
-      pg1 = pg1.addChildNodes(List((11, "-1 -> 11", NoExtra)))
+      g1 = g1.addChildNodes(List((11, "-1 -> 11", NoExtra)))
 
-      (pg1.current.conf must_== 11) and
-        (pg1.completeNodes.size must_== 1) and
-        (pg1.incompleteLeaves.size must_== 1)
+      (g1.current.conf must_== 11) and
+        (g1.completeNodes.size must_== 1) and
+        (g1.incompleteLeaves.size must_== 1)
     }
 
     "executes Fold command" in {
-      pg1 = pg1.fold(List())
+      g1 = g1.fold(List())
 
-      (pg1.current must_== null) and
-        (pg1.completeNodes.size must_== 2) and
-        (pg1.incompleteLeaves.size must_== 0)
+      (g1.current must_== null) and
+        (g1.completeNodes.size must_== 2) and
+        (g1.incompleteLeaves.size must_== 0)
     }
-
-//    "produces final graph" in {
-//      cg1 = pg1
-//      (cg1.leaves.size must_== 1) and
-//        (cg1.root.conf must_== -1)
-//    }
   }
 
   "The builder of the 2nd graph" in {
     "starts with a single-node graph" in {
-      pg2 = start(-1)
+      g2 = start(-1)
 
-      (pg2.current.conf must_== -1) and
-        (pg2.completeNodes.size must_== 0) and
-        (pg2.incompleteLeaves.size must_== 1)
+      (g2.current.conf must_== -1) and
+        (g2.completeNodes.size must_== 0) and
+        (g2.incompleteLeaves.size must_== 1)
     }
 
     "executes AddChildNodes command" in {
-      pg2 = pg2.addChildNodes(List((11, "-1 -> 11", NoExtra)))
+      g2 = g2.addChildNodes(List((11, "-1 -> 11", NoExtra)))
 
-      (pg2.current.conf must_== 11) and
-        (pg2.completeNodes.size must_== 1) and
-        (pg2.incompleteLeaves.size must_== 1)
+      (g2.current.conf must_== 11) and
+        (g2.completeNodes.size must_== 1) and
+        (g2.incompleteLeaves.size must_== 1)
     }
 
     "executes Fold command" in {
-      pg2 = pg2.fold(List())
+      g2 = g2.fold(List())
 
-      (pg1.current must_== null) and
-        (pg1.completeNodes.size must_== 2) and
-        (pg1.incompleteLeaves.size must_== 0)
+      (g1.current must_== null) and
+        (g1.completeNodes.size must_== 2) and
+        (g1.incompleteLeaves.size must_== 0)
     }
-
-//    "produces final graph" in {
-//      cg2 = pg2
-//      (cg2.leaves.size must_== 1) and
-//        (cg2.root.conf must_== -1)
-//    }
   }
 
   "Produced graphs" should {
     "be equal to each other" in {
-      pg1 must_== pg2
+      g1 must_== g2
     }
     "be equal to sample graph" in {
-      val g1 = Transformations.transpose(pg1)
-      val g2 = Transformations.transpose(pg2)
+      val tgraph1 = Transformations.transpose(g1)
+      val tgraph2 = Transformations.transpose(g2)
 
-      (g1 must_== graph) and (g2 must_== graph)
+      (tgraph1 must_== graph) and (tgraph2 must_== graph)
     }
   }
 }

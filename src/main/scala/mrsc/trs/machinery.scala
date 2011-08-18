@@ -22,7 +22,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
   */
   override def steps(g: CG): List[CG] =
     if (isLeaf(g))
-      List(g.convertToLeaf())
+      List(g.completeLeaf())
     else fold(g) match {
       case Some(path) =>
         List(g.fold(path))

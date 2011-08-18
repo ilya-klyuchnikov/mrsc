@@ -14,7 +14,7 @@ object TinyMachine extends Machine[Int, String, Extra[String]] {
     case 0 =>
       List(g.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
     case 1 =>
-      List(g.convertToLeaf)
+      List(g.completeLeaf())
     case 2 =>
       List(g.rebuild(21, NoExtra))
     case 21 =>
