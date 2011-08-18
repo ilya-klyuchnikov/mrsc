@@ -6,8 +6,8 @@ import mrsc.pfp.{Extra, NoExtra}
 trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
   type WS = Node[C, D, E]
-  def isLeaf(g: CG): Boolean
-  def fold(g: CG): Option[Path]
+  def unsafe(g: CG): Boolean = false
+  def canFold(g: CG): Option[Path]
   def inspect(g: CG): Option[WS]
   def drive(whistle: Option[WS], g: CG): List[CG]
   def rebuildings(whistle: Option[WS], g: CG): List[CG]
@@ -21,12 +21,12 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
    Note that the whistle signal is passed to `drive`, `rebuildings` and `tricks`.
   */
   override def steps(g: CG): List[CG] =
-    if (isLeaf(g))
-      List(g.completeLeaf())
-    else fold(g) match {
+    if (unsafe(g))
+      List(g.toUnworkable())
+    else canFold(g) match {
       case Some(path) =>
         List(g.fold(path))
-      case _ =>
+      case None =>
         val whistle = inspect(g)
         val driveSteps = drive(whistle, g)
         val rebuildSteps = rebuildings(whistle, g)
@@ -34,13 +34,18 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
     }
 }
 
+trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Extra[C]] {
+  def unsafe(c: C): Boolean
+  override def unsafe(g: CG): Boolean = unsafe(g.current.conf)
+}
+
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def fold(g: Graph[C, D, Extra[C]]): Option[Path] =
+  override def canFold(g: Graph[C, D, Extra[C]]): Option[Path] =
     g.current.ancestors.find { n => instance.lteq(n.conf, g.current.conf) } map { _.path }
 }
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def fold(g: Graph[C, D, Extra[C]]): Option[Path] =
+  override def canFold(g: Graph[C, D, Extra[C]]): Option[Path] =
     g.completeNodes.find { n => instance.lteq(n.conf, g.current.conf) } map { _.path }
 }
 
@@ -80,7 +85,4 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra[C]] with RewriteS
             yield (next.get, i + 1, NoExtra)
         List(g.addChildNodes(subSteps))
     }
-
-  override def isLeaf(g: Graph[C, Int, Extra[C]]) =
-    false
 }

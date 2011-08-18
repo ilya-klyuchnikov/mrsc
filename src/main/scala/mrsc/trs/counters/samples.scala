@@ -9,6 +9,12 @@ trait LGen extends PreSyntax[OmegaConf] {
     List(c.map { e => if (e >= l) Omega else e })
 }
 
+trait ProtocolSafetyAware extends SafetyAware[OmegaConf, Int] {
+  val protocol: Protocol
+  override def unsafe(counter: OmegaConf): Boolean =
+    protocol.unsafe(counter)
+}
+
 case class CounterSc(val protocol: Protocol, val l: Int)
   extends CountersPreSyntax
   with LGen
@@ -28,12 +34,6 @@ case class CounterMultiSc(val protocol: Protocol, val l: Int)
   with SimpleUnaryWhistle[OmegaConf, Int]
   with ProtocolSafetyAware
   with SimpleGensWithUnaryWhistle[OmegaConf, Int]
-
-trait ProtocolSafetyAware extends LWhistle {
-  val protocol: Protocol
-  override def dubious(counter: OmegaConf): Boolean =
-    super.dubious(counter) || protocol.unsafe(counter)
-}
 
 object CounterSamples extends App {
   
