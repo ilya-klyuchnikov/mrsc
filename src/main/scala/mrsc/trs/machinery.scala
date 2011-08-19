@@ -6,11 +6,11 @@ import mrsc.pfp.{Extra, NoExtra}
 trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
   type WS = Node[C, D, E]
-  def unsafe(g: CG): Boolean = false
-  def canFold(g: CG): Option[Path]
-  def inspect(g: CG): Option[WS]
-  def drive(whistle: Option[WS], g: CG): List[CG]
-  def rebuildings(whistle: Option[WS], g: CG): List[CG]
+  def unsafe(g: G): Boolean = false
+  def canFold(g: G): Option[Path]
+  def inspect(g: G): Option[WS]
+  def drive(whistle: Option[WS], g: G): List[G]
+  def rebuildings(whistle: Option[WS], g: G): List[G]
 
   /*! The logic of this machine is straightforward:
      
@@ -20,7 +20,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
     
    Note that the whistle signal is passed to `drive`, `rebuildings` and `tricks`.
   */
-  override def steps(g: CG): List[CG] =
+  override def steps(g: G): List[G] =
     if (unsafe(g))
       List(g.toUnworkable())
     else canFold(g) match {
@@ -36,7 +36,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
 trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Extra[C]] {
   def unsafe(c: C): Boolean
-  override def unsafe(g: CG): Boolean = unsafe(g.current.conf)
+  override def unsafe(g: G): Boolean = unsafe(g.current.conf)
 }
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {

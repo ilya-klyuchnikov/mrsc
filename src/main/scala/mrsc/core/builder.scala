@@ -98,8 +98,8 @@ trait GraphConsumer[C, D, E, R] {
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 trait Machine[C, D, E] {
-  type CG = Graph[C, D, E]
-  def steps(g: CG): List[CG]
+  type G = Graph[C, D, E]
+  def steps(g: G): List[G]
 }
 
 /*! This class is essentially an iterator producing graphs by demand. */
