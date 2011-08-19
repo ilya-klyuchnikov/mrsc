@@ -1,7 +1,6 @@
 package mrsc.trs
 
 import mrsc.core._
-import mrsc.pfp.{Extra, NoExtra}
 
 trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
@@ -34,55 +33,58 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
     }
 }
 
-trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Extra[C]] {
+trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Unit] {
   def unsafe(c: C): Boolean
   override def unsafe(g: G): Boolean = unsafe(g.current.conf)
 }
 
-trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def canFold(g: Graph[C, D, Extra[C]]): Option[Path] =
+trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] {
+  override def canFold(g: Graph[C, D, Unit]): Option[Path] =
     g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
 }
 
-trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def canFold(g: Graph[C, D, Extra[C]]): Option[Path] =
+trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] {
+  override def canFold(g: Graph[C, D, Unit]): Option[Path] =
     g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
 }
 
-trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] {
+trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] {
   def dubious(c: C): Boolean
-  override def inspect(g: Graph[C, D, Extra[C]]): Option[WS] =
+  override def inspect(g: Graph[C, D, Unit]): Option[WS] =
     if (dubious(g.current.conf)) Some(g.current) else None
 }
 
-trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[WS], g: Graph[C, D, Extra[C]]): List[Graph[C, D, Extra[C]]] = {
+trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
+  override def rebuildings(whistle: Option[WS], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
     whistle match {
       case None =>
         List()
       case Some(_) =>
         val rbs = rebuildings(g.current.conf) filterNot dubious
-        rbs map { g.rebuild(_, NoExtra) }
+        rbs map { g.rebuild(_, ()) }
     }
   }
 }
 
-trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[WS], g: Graph[C, D, Extra[C]]): List[Graph[C, D, Extra[C]]] = {
+trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
+  override def rebuildings(whistle: Option[WS], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
     val rbs = rebuildings(g.current.conf) filterNot dubious
-    rbs map { g.rebuild(_, NoExtra) }
+    rbs map { g.rebuild(_, ()) }
   }
 }
 
-trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra[C]] with RewriteSemantics[C] {
-  override def drive(whistle: Option[WS], g: Graph[C, Int, Extra[C]]): List[Graph[C, Int, Extra[C]]] =
+trait RuleDriving[C] extends GenericMultiMachine[C, Int, Unit] with RewriteSemantics[C] {
+  override def drive(whistle: Option[WS], g: Graph[C, Int, Unit]): List[Graph[C, Int, Unit]] =
     whistle match {
       case Some(_) =>
         List(g.toUnworkable())
       case None =>
         val subSteps =
           for ((next, i) <- drive(g.current.conf).zipWithIndex if next.isDefined)
-            yield (next.get, i + 1, NoExtra)
-        List(g.addChildNodes(subSteps))
+            yield (next.get, i + 1, ())
+        if (subSteps.isEmpty)
+          List(g.completeCurrentNode())
+        else
+          List(g.addChildNodes(subSteps))
     }
 }

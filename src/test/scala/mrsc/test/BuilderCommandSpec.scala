@@ -46,7 +46,7 @@ class BuilderCommandSpec extends mutable.Specification {
     }
 
     "executes ConvertToLeaf command" in {
-      g1 = g1.completeLeaf()
+      g1 = g1.completeCurrentNode()
 
       (g1.current.conf must_== 2) and
         (g1.completeNodes.size must_== 2) and

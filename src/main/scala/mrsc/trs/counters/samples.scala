@@ -37,8 +37,6 @@ case class CounterMultiSc(val protocol: Protocol, val l: Int)
 
 object CounterSamples extends App {
   
-  import mrsc.pfp.NoExtra
-
   def graphSize(g: TGraph[_, _, _]): Int =
     size(g.root)
 
@@ -48,7 +46,7 @@ object CounterSamples extends App {
     val sc = CounterSc(protocol, l)
     val consumer = new SimpleGraphConsumer[OmegaConf, Int]
     val builder = new GraphBuilder(sc, consumer)
-    builder.buildGraphs(protocol.start, NoExtra)
+    builder.buildGraphs(protocol.start, ())
 
     for (graph <- consumer.result) {
       println("================================")
@@ -64,7 +62,7 @@ object CounterSamples extends App {
     val sc = CounterMultiSc(protocol, l)
     val consumer = new SimpleGraphConsumer[OmegaConf, Int]
     val builder = new GraphBuilder(sc, consumer)
-    builder.buildGraphs(protocol.start, NoExtra)
+    builder.buildGraphs(protocol.start, ())
     val graphs = consumer.result
 
     val successGraphs = graphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
