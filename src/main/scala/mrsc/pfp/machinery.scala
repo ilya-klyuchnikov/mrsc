@@ -73,7 +73,7 @@ trait Driving[C] extends PFPMachine[C] with OperationalSemantics[C] {
 
 trait RenamingFolding[C] extends PFPMachine[C] with Syntax[C] {
   override def canFold(g: G): Option[Path] =
-    g.current.ancestors.find { n => instance.equiv(g.current.conf, n.conf) } map { _.path }
+    g.current.ancestors.find { n => equiv(g.current.conf, n.conf) } map { _.path }
 }
 
 trait BinaryWhistle[C] extends PFPMachine[C] {
@@ -141,7 +141,7 @@ trait UpperMsgOrLowerMggOnBinaryWhistle[C]
             List(rollback)
           case None =>
             val cands = rawRebuildings(currentConf) filterNot trivialRb(currentConf)
-            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instance.lteq(c1, c2) } }
+            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instanceOf(c2, c1) } }
             mgg.map(translate).map(g.rebuild(_, NoExtra)).toList
         }
       case None =>
@@ -165,7 +165,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] wit
             List(replace)
           case None =>
             val cands = rawRebuildings(upperConf) filterNot trivialRb(upperConf)
-            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instance.lteq(c1, c2) } }
+            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instanceOf(c2, c1) } }
             mgg.map(translate).map(g.rollback(upper, _, NoExtra)).toList
         }
       case None =>

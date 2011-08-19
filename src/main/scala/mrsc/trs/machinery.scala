@@ -41,12 +41,12 @@ trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Extra[C]] {
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
   override def canFold(g: Graph[C, D, Extra[C]]): Option[Path] =
-    g.current.ancestors.find { n => instance.lteq(n.conf, g.current.conf) } map { _.path }
+    g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
 }
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
   override def canFold(g: Graph[C, D, Extra[C]]): Option[Path] =
-    g.completeNodes.find { n => instance.lteq(n.conf, g.current.conf) } map { _.path }
+    g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] {

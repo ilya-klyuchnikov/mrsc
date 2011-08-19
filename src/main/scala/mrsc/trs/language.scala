@@ -1,7 +1,8 @@
 package mrsc.trs
 
 trait PreSyntax[C] {
-  def instance: PartialOrdering[C]
+  def instanceOf(c1: C, c2: C): Boolean
+  def equiv(c1: C, c2: C): Boolean
   def rebuildings(c: C): List[C]
 }
 

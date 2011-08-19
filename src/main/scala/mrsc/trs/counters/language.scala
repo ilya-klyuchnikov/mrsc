@@ -33,7 +33,9 @@ case object Omega extends Component {
 }
 
 trait CountersPreSyntax extends PreSyntax[OmegaConf] {
-  val instance = OmegaConfInstanceOrdering
+  def instanceOf(c1: OmegaConf, c2: OmegaConf) = OmegaConfInstanceOrdering.lteq(c2, c1)
+  def equiv(c1: OmegaConf, c2: OmegaConf) = OmegaConfInstanceOrdering.equiv(c1, c2)
+
   def rebuildings(c: OmegaConf) = gens(c) - c
   def gens(c: OmegaConf): List[OmegaConf] = c match {
     case Nil => List(Nil)
