@@ -15,7 +15,7 @@ trait ProtocolSafetyAware extends SafetyAware[OmegaConf, Int] {
     protocol.unsafe(counter)
 }
 
-case class CounterSc(val protocol: Protocol, val l: Int)
+case class CounterMachine(val protocol: Protocol, val l: Int)
   extends CountersSyntax
   with LGen
   with LWhistle
@@ -25,7 +25,7 @@ case class CounterSc(val protocol: Protocol, val l: Int)
   with SimpleUnaryWhistle[OmegaConf, Int]
   with SimpleCurrentGensOnWhistle[OmegaConf, Int]
 
-case class CounterMultiSc(val protocol: Protocol, val l: Int)
+case class CounterMultiMachine(val protocol: Protocol, val l: Int)
   extends CountersSyntax
   with LWhistle
   with CountersSemantics
@@ -43,29 +43,29 @@ object CounterSamples extends App {
   def size(n: TNode[_, _, _]): Int = 1 + n.outs.map(out => size(out.tNode)).sum
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
-    val sc = CounterSc(protocol, l)
-    val consumer = new SimpleGraphConsumer[OmegaConf, Int]
-    val builder = new GraphBuilder(sc, consumer)
-    builder.buildGraphs(protocol.start, ())
+    val machine = CounterMachine(protocol, l)
+    val producer = GraphProducer(machine)
+    val graphs = producer(protocol.start, ())
 
-    for (graph <- consumer.result) {
+    for (graph <- graphs) {
+      val tgraph = Transformations.transpose(graph)
       println("================================")
       println()
-      println(graph)
+      println(tgraph)
       println()
-      println(checkSubTree(protocol.unsafe)(graph.root))
+      //val isSafe = checkSubTree(protocol.unsafe)(tgraph.root)
+      println(graph.isComplete || !protocol.unsafe(graph.current.conf))
       println()
     }
   }
 
   def multiScProtocol(protocol: Protocol, l: Int): Unit = {
-    val sc = CounterMultiSc(protocol, l)
-    val consumer = new SimpleGraphConsumer[OmegaConf, Int]
-    val builder = new GraphBuilder(sc, consumer)
-    builder.buildGraphs(protocol.start, ())
-    val graphs = consumer.result
-
-    val successGraphs = graphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
+    val machine = CounterMultiMachine(protocol, l)
+    val producer = GraphProducer(machine)
+    val graphs = producer(protocol.start, ())
+    val tgraphs = graphs map Transformations.transpose
+    val successGraphs = tgraphs filter (_.isComplete)
+    //val successGraphs = tgraphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
     if (!successGraphs.isEmpty) {
       val minGraph = successGraphs.minBy(graphSize)
       println(minGraph)

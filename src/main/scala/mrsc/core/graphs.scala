@@ -50,7 +50,8 @@ case class Edge[C, D, E](node: Node[C, D, E], driveInfo: D)
   `E` (extra information) is a type of extra label of a node (extra info). 
   Extra information may be seen as an additional "instrumentation" of SC graph.
  */
-case class TGraph[C, D, E](root: TNode[C, D, E], leaves: List[TNode[C, D, E]]) {
+case class TGraph[C, D, E](root: TNode[C, D, E], leaves: List[TNode[C, D, E]],
+    isComplete: Boolean = true, isUnworkable: Boolean = false) {
   def get(tPath: TPath): TNode[C, D, E] = root.get(tPath)
   override def toString = root.toString
 }
@@ -107,17 +108,19 @@ object Transformations {
    levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
   def transpose[C, D, E](g: Graph[C, D, E]): TGraph[C, D, E] = {
-    assert(g.isComplete)
-    val orderedNodes = g.completeNodes.sortBy(_.path)(PathOrdering)
+    //assert(g.isComplete)
+    val allLeaves = g.incompleteLeaves ++ g.completeLeaves
+    val allNodes = g.incompleteLeaves ++ g.completeNodes
+    val orderedNodes = allNodes.sortBy(_.path)(PathOrdering)
     val rootNode = orderedNodes.head
 
-    val leafPathes = g.completeLeaves.map(_.path)
+    val leafPathes = allLeaves.map(_.path)
     val levels = orderedNodes.groupBy(_.path.length).toList.sortBy(_._1).map(_._2)
     val sortedLevels = levels.map(_.sortBy(_.tPath)(PathOrdering))
     val (tNodes, tLeaves) = subTranspose(sortedLevels, leafPathes)
     val nodes = tNodes map { _.node }
     val leaves = tLeaves map { _.node }
-    return TGraph(nodes(0), leaves)
+    return TGraph(nodes(0), leaves, g.isComplete, g.isUnworkable)
   }
 
   // sub-transposes graph into transposed graph level-by-level

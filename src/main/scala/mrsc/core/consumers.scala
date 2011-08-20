@@ -38,3 +38,10 @@ class TGraphConsumer[C, D, E] extends GraphConsumer[C, D, E, List[TGraph[C, D, E
 
   override def buildResult() = result
 }
+
+case class TGraphProducer[C, D, E](machine: Machine[C, D, E]) {
+  val producer = GraphProducer(machine)
+  def apply(conf: C, info: E) = {
+    producer(conf, info) map Transformations.transpose
+  }
+}

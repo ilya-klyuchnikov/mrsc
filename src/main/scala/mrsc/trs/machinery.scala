@@ -35,7 +35,10 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
 trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Unit] {
   def unsafe(c: C): Boolean
-  override def unsafe(g: G): Boolean = unsafe(g.current.conf)
+  override def unsafe(g: G): Boolean = {
+    assert(!g.isComplete)
+    unsafe(g.current.conf)
+  }
 }
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] {
