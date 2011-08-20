@@ -6,7 +6,7 @@ import mrsc.pfp._
 import Decomposition._
 import SLLSyntax._
 
-trait SLLSyntax extends Syntax[Expr] {
+trait SLLSyntax extends PFPSyntax[Expr] {
   def instanceOf(c1: Expr, c2: Expr): Boolean = SLLSyntax.instanceOf(c1, c2)
   def equiv(c1: Expr, c2: Expr): Boolean = instanceOf(c1, c2) && instanceOf(c2, c1)
   

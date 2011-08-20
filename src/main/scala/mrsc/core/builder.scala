@@ -102,6 +102,34 @@ trait Machine[C, D, E] {
   def steps(g: G): List[G]
 }
 
+/*!# Equivalence and instance relations on configurations
+  
+  If the current configuration is `equivalent` to another configuration labeling
+  an ancestor node, the supercompiler can loop back to that ancestor.
+  (Looping back to arbitrary completed nodes is also possible if the operation
+  `rollback` is not used, so that non-ancestor nodes cannot be pruned.)
+  If the current configuration is an `instance` of another configuration
+  the supercompiler may perform some actions in order to make looping
+  back possible.
+  
+  At the semantic level a configuration c is regarded as a representation of set(c),
+  a set of states of a computation process.
+  It is assumed that
+    (1) equiv(c1, c2) implies that set(c1) = set(c2);
+    (2) instanceOf(c1, c2) implies set(c1) <= set(c2).
+    
+  Note that, `equiv` and `instanceOf` are supposed to be computable and total.
+  On the other hand, the relations set(c1) = set(c2) and set(c1) <= set(c2) are,
+  generally, not decidable. For this reason, in the general case,
+  `equiv`  and `instanceOf` are not required to be transitive, and `instanceOf`
+  is not required to be antisymmetric.
+ */
+
+trait EquivAndInstanceOf[C] {
+  def equiv(c1: C, c2: C): Boolean 
+  def instanceOf(c1: C, c2: C): Boolean
+}
+
 /*! This class is essentially an iterator producing graphs by demand. */
 
 case class GraphProducer[C, D, E](conf: C, info: E, machine: Machine[C, D, E]) {

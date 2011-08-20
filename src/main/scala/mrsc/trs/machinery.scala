@@ -38,12 +38,12 @@ trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Unit] {
   override def unsafe(g: G): Boolean = unsafe(g.current.conf)
 }
 
-trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] {
+trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] {
   override def canFold(g: Graph[C, D, Unit]): Option[Path] =
     g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
 }
 
-trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] {
+trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] {
   override def canFold(g: Graph[C, D, Unit]): Option[Path] =
     g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
 }
@@ -54,7 +54,7 @@ trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] {
     if (dubious(g.current.conf)) Some(g.current) else None
 }
 
-trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
+trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
   override def rebuildings(whistle: Option[WS], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
     whistle match {
       case None =>
@@ -66,7 +66,7 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] w
   }
 }
 
-trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
+trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
   override def rebuildings(whistle: Option[WS], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
     val rbs = rebuildings(g.current.conf) filterNot dubious
     rbs map { g.rebuild(_, ()) }

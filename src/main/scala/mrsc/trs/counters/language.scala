@@ -32,7 +32,7 @@ case object Omega extends Component {
   override def toString = "ϖ"
 }
 
-trait CountersPreSyntax extends PreSyntax[OmegaConf] {
+trait CountersSyntax extends TRSSyntax[OmegaConf] {
   def instanceOf(c1: OmegaConf, c2: OmegaConf) = OmegaConfInstanceOrdering.lteq(c2, c1)
   def equiv(c1: OmegaConf, c2: OmegaConf) = OmegaConfInstanceOrdering.equiv(c1, c2)
 

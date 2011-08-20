@@ -71,7 +71,7 @@ trait Driving[C] extends PFPMachine[C] with OperationalSemantics[C] {
     }
 }
 
-trait RenamingFolding[C] extends PFPMachine[C] with Syntax[C] {
+trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
   override def canFold(g: G): Option[Path] =
     g.current.ancestors.find { n => equiv(g.current.conf, n.conf) } map { _.path }
 }
@@ -90,13 +90,13 @@ trait UnaryWhistle[C] extends PFPMachine[C] {
     if (dubious(g.current.conf)) Some(Unit) else None
 }
 
-trait AllRebuildings[C] extends PFPMachine[C] with Syntax[C] {
+trait AllRebuildings[C] extends PFPMachine[C] with PFPSyntax[C] {
   override def rebuildings(whistle: Option[WS], g: G): List[G] = {
     rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
   }
 }
 
-trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] with BinaryWhistle[C] {
+trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
   override def rebuildings(whistle: Option[WS], g:G): List[G] =
     whistle match {
       case None    => List()
@@ -104,7 +104,7 @@ trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] wi
     }
 }
 
-trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] with BinaryWhistle[C] {
+trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
   override def rebuildings(whistle: Option[WS], g: G): List[G] =
     whistle match {
       case None        => List()
@@ -112,7 +112,7 @@ trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] wi
     }
 }
 
-trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] with BinaryWhistle[C] {
+trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
   override def rebuildings(whistle: Option[WS], g:G): List[G] =
     whistle match {
       case None =>

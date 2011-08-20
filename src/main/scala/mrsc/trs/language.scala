@@ -1,8 +1,8 @@
 package mrsc.trs
 
-trait PreSyntax[C] {
-  def instanceOf(c1: C, c2: C): Boolean
-  def equiv(c1: C, c2: C): Boolean
+import mrsc.core._
+
+trait TRSSyntax[C] extends EquivAndInstanceOf[C] {
   def rebuildings(c: C): List[C]
 }
 

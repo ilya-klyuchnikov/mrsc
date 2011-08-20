@@ -2,9 +2,7 @@ package mrsc.pfp
 
 import mrsc.core._
 
-trait Syntax[C] {
-  def instanceOf(c1: C, c2: C): Boolean
-  def equiv(c1: C, c2: C): Boolean
+trait PFPSyntax[C] extends EquivAndInstanceOf[C] {
   def subst(c: C, sub: Subst[C]): C
   def findSubst(from: C, to: C): Option[Subst[C]]
   def rawRebuildings(c: C): List[RawRebuilding[C]]
@@ -24,7 +22,7 @@ trait Residuation[C] {
   def residuate(graph: TGraph[C, DriveInfo[C], _]): C
 }
 
-trait MSG[C] extends Syntax[C] {
+trait MSG[C] extends PFPSyntax[C] {
 
   def msg(c1: C, c2: C): Option[RawRebuilding[C]] = {
     val nonTrivialRbs = rawRebuildings(c1) filterNot trivialRb(c1)

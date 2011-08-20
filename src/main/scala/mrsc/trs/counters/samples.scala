@@ -3,7 +3,7 @@ package mrsc.trs.counters
 import mrsc.core._
 import mrsc.trs._
 
-trait LGen extends PreSyntax[OmegaConf] {
+trait LGen extends TRSSyntax[OmegaConf] {
   val l: Int
   override def rebuildings(c: OmegaConf) =
     List(c.map { e => if (e >= l) Omega else e })
@@ -16,7 +16,7 @@ trait ProtocolSafetyAware extends SafetyAware[OmegaConf, Int] {
 }
 
 case class CounterSc(val protocol: Protocol, val l: Int)
-  extends CountersPreSyntax
+  extends CountersSyntax
   with LGen
   with LWhistle
   with CountersSemantics
@@ -26,7 +26,7 @@ case class CounterSc(val protocol: Protocol, val l: Int)
   with SimpleCurrentGensOnWhistle[OmegaConf, Int]
 
 case class CounterMultiSc(val protocol: Protocol, val l: Int)
-  extends CountersPreSyntax
+  extends CountersSyntax
   with LWhistle
   with CountersSemantics
   with RuleDriving[OmegaConf]
