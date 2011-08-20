@@ -24,7 +24,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   with BinaryWhistle[Expr]
   with LowerRebuildingsOnBinaryWhistle[Expr]
 
-// generalize (in all possible ways) a dubious configuration (when whistle blows)
+// generalize (in all possible ways) a dangerous configuration (when whistle blows)
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
@@ -35,7 +35,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
-// 1. the dubious one (with rollback)
+// 1. the dangerous one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
@@ -288,7 +288,7 @@ object Samples {
     // 0 results here (because only UP generalization is allowed)
     // runTask(SLLTasks.namedTasks("FastFib"), multi3(HEByCouplingWhistle)_)
     
-    preRunTasks()
+    //preRunTasks()
     
     testRunTasks()
 

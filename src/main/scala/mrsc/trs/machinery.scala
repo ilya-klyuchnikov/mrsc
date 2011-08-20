@@ -4,12 +4,12 @@ import mrsc.core._
 
 trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
-  type WS = Node[C, D, E]
+  type Warning = Node[C, D, E]
   def unsafe(g: G): Boolean = false
   def canFold(g: G): Option[Path]
-  def inspect(g: G): Option[WS]
-  def drive(whistle: Option[WS], g: G): List[G]
-  def rebuildings(whistle: Option[WS], g: G): List[G]
+  def mayDiverge(g: G): Option[Warning]
+  def drive(whistle: Option[Warning], g: G): List[G]
+  def rebuildings(whistle: Option[Warning], g: G): List[G]
 
   /*! The logic of this machine is straightforward:
      
@@ -26,7 +26,7 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
       case Some(path) =>
         List(g.fold(path))
       case None =>
-        val whistle = inspect(g)
+        val whistle = mayDiverge(g)
         val driveSteps = drive(whistle, g)
         val rebuildSteps = rebuildings(whistle, g)
         driveSteps ++ rebuildSteps
@@ -49,32 +49,32 @@ trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Unit] w
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] {
-  def dubious(c: C): Boolean
-  override def inspect(g: Graph[C, D, Unit]): Option[WS] =
-    if (dubious(g.current.conf)) Some(g.current) else None
+  def dangerous(c: C): Boolean
+  override def mayDiverge(g: Graph[C, D, Unit]): Option[Warning] =
+    if (dangerous(g.current.conf)) Some(g.current) else None
 }
 
 trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[WS], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
+  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
     whistle match {
       case None =>
         List()
       case Some(_) =>
-        val rbs = rebuildings(g.current.conf) filterNot dubious
+        val rbs = rebuildings(g.current.conf) filterNot dangerous
         rbs map { g.rebuild(_, ()) }
     }
   }
 }
 
 trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[WS], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
-    val rbs = rebuildings(g.current.conf) filterNot dubious
+  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
+    val rbs = rebuildings(g.current.conf) filterNot dangerous
     rbs map { g.rebuild(_, ()) }
   }
 }
 
 trait RuleDriving[C] extends GenericMultiMachine[C, Int, Unit] with RewriteSemantics[C] {
-  override def drive(whistle: Option[WS], g: Graph[C, Int, Unit]): List[Graph[C, Int, Unit]] =
+  override def drive(whistle: Option[Warning], g: Graph[C, Int, Unit]): List[Graph[C, Int, Unit]] =
     whistle match {
       case Some(_) =>
         List(g.toUnworkable())

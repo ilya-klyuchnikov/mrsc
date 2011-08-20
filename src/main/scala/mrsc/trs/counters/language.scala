@@ -33,15 +33,30 @@ case object Omega extends Component {
 }
 
 trait CountersSyntax extends TRSSyntax[OmegaConf] {
-  def instanceOf(c1: OmegaConf, c2: OmegaConf) = OmegaConfInstanceOrdering.lteq(c2, c1)
-  def equiv(c1: OmegaConf, c2: OmegaConf) = OmegaConfInstanceOrdering.equiv(c1, c2)
+  def equiv(c1: OmegaConf, c2: OmegaConf) = CountersSyntax.equiv(c1, c2)
+  def instanceOf(c1: OmegaConf, c2: OmegaConf) = CountersSyntax.instanceOf(c1, c2)
+  def rebuildings(c: OmegaConf) = CountersSyntax.rebuildings(c)
+}
 
-  def rebuildings(c: OmegaConf) = gens(c) - c
-  def gens(c: OmegaConf): List[OmegaConf] = c match {
-    case Nil => List(Nil)
-    case e :: c1 => for (cg <- genComp(e); gs <- gens(c1)) yield cg :: gs
+object CountersSyntax extends {
+  def equiv(c1: OmegaConf, c2: OmegaConf) = c1 == c2
+
+  def instanceOf(c1: OmegaConf, c2: OmegaConf): Boolean =
+    (c1, c2).zipped.forall(instanceOf)
+
+  def instanceOf(x: Component, y: Component) = (x, y) match {
+    case (_, Omega) => true
+    case (_, _) => x == y
   }
-  def genComp(c: Component): List[Component] = c match {
+
+  private def cartProd[T](zzs: List[List[T]]): List[List[T]] = zzs match {
+    case Nil => List(List())
+    case xs :: xss => for (y <- xs; ys <- cartProd(xss)) yield y :: ys
+  }
+
+  def rebuildings(c: OmegaConf) = cartProd(c map genComp) - c
+
+  private def genComp(c: Component): List[Component] = c match {
     case Omega => List(Omega)
     case value => List(Omega, value)
   }
@@ -54,16 +69,8 @@ trait CountersSemantics extends RewriteSemantics[OmegaConf] {
 
 trait LWhistle {
   val l: Int
-  def dubious(counter: OmegaConf) = counter exists {
+  def dangerous(counter: OmegaConf) = counter exists {
     case Value(i) => i >= l
     case Omega => false
-  }
-}
-
-object OmegaConfInstanceOrdering extends SimplePartialOrdering[OmegaConf] {
-  def lteq(c1: OmegaConf, c2: OmegaConf) = (c1, c2).zipped.forall(lteq)
-  def lteq(x: Component, y: Component) = (x, y) match {
-    case (Omega, _) => true
-    case (_, _) => x == y
   }
 }

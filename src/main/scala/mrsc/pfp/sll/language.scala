@@ -7,8 +7,8 @@ import Decomposition._
 import SLLSyntax._
 
 trait SLLSyntax extends PFPSyntax[Expr] {
+  def equiv(c1: Expr, c2: Expr): Boolean = SLLSyntax.equiv(c1, c2)
   def instanceOf(c1: Expr, c2: Expr): Boolean = SLLSyntax.instanceOf(c1, c2)
-  def equiv(c1: Expr, c2: Expr): Boolean = instanceOf(c1, c2) && instanceOf(c2, c1)
   
   override def subst(c: Expr, sub: Subst[Expr]): Expr =
     SLLSyntax.subst(c, sub)
@@ -51,6 +51,8 @@ object SLLSyntax {
   }
 
   def vars(t: Expr): List[Var] = vs(t).distinct
+
+  def equiv(c1: Expr, c2: Expr): Boolean = instanceOf(c1, c2) && instanceOf(c2, c1)
 
   def instanceOf(t1: Expr, t2: Expr): Boolean = (t1.size >= t2.size) && (findSubst(t2, t1).isDefined)
 

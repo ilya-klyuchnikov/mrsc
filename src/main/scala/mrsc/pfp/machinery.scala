@@ -34,18 +34,18 @@ case object NoExtra extends Extra[Nothing]
 case class RebuildingInfo[C](from: C) extends Extra[C]
 
 trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
-  type WS
+  type Warning
   def canFold(g: G): Option[Path]
   def drive(g: G): List[G]
-  def rebuildings(whistle: Option[WS], g: G): List[G]
-  def inspect(g: G): Option[WS]
+  def rebuildings(whistle: Option[Warning], g: G): List[G]
+  def mayDiverge(g: G): Option[Warning]
 
   override def steps(g :G): List[G] =
     canFold(g) match {
       case Some(path) =>
         List(g.fold(path))
       case _ =>
-        val whistle = inspect(g)
+        val whistle = mayDiverge(g)
         val driveSteps = 
           if (whistle.isEmpty) drive(g) else List(g.toUnworkable())
         val rebuildSteps = rebuildings(whistle, g)
@@ -77,27 +77,27 @@ trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
 }
 
 trait BinaryWhistle[C] extends PFPMachine[C] {
-  type WS = Node[C, DriveInfo[C], Extra[C]]
+  type Warning = Node[C, DriveInfo[C], Extra[C]]
   val ordering: PartialOrdering[C]
-  override def inspect(g: G): Option[WS] =
+  override def mayDiverge(g: G): Option[Warning] =
     g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
 trait UnaryWhistle[C] extends PFPMachine[C] {
-  type WS = Unit
-  def dubious(c: C): Boolean
-  override def inspect(g: G): Option[WS] =
-    if (dubious(g.current.conf)) Some(Unit) else None
+  type Warning = Unit
+  def dangerous(c: C): Boolean
+  override def mayDiverge(g: G): Option[Warning] =
+    if (dangerous(g.current.conf)) Some(Unit) else None
 }
 
 trait AllRebuildings[C] extends PFPMachine[C] with PFPSyntax[C] {
-  override def rebuildings(whistle: Option[WS], g: G): List[G] = {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] = {
     rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
   }
 }
 
 trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[WS], g:G): List[G] =
+  override def rebuildings(whistle: Option[Warning], g:G): List[G] =
     whistle match {
       case None    => List()
       case Some(_) => rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
@@ -105,7 +105,7 @@ trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C]
 }
 
 trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[WS], g: G): List[G] =
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
     whistle match {
       case None        => List()
       case Some(upper) => rebuildings(upper.conf) map { g.rollback(upper, _, NoExtra) }
@@ -113,7 +113,7 @@ trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C]
 }
 
 trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[WS], g:G): List[G] =
+  override def rebuildings(whistle: Option[Warning], g:G): List[G] =
     whistle match {
       case None =>
         List()
@@ -129,7 +129,7 @@ trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C
 trait UpperMsgOrLowerMggOnBinaryWhistle[C]
   extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], g:G): List[G] = {
+  def rebuildings(whistle: Option[Warning], g:G): List[G] = {
     whistle match {
       case Some(upper) =>
         val currentConf = g.current.conf
@@ -153,7 +153,7 @@ trait UpperMsgOrLowerMggOnBinaryWhistle[C]
 // funny: most specific down or most general up
 trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], g:G): List[G] = {
+  def rebuildings(whistle: Option[Warning], g:G): List[G] = {
     whistle match {
       case Some(upper) =>
         val currentConf = g.current.conf
@@ -176,7 +176,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] wit
 
 trait MSGCurrentOrDriving[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], g: G): List[G] = {
+  def rebuildings(whistle: Option[Warning], g: G): List[G] = {
     whistle match {
       case Some(upper) =>
         val currentConf = g.current.conf
@@ -197,7 +197,7 @@ trait MSGCurrentOrDriving[C] extends PFPMachine[C] with MSG[C] with BinaryWhistl
 
 trait DoubleMsgOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], g: G): List[G] = {
+  def rebuildings(whistle: Option[Warning], g: G): List[G] = {
     whistle match {
       case Some(upper) =>
         val current = g.current
