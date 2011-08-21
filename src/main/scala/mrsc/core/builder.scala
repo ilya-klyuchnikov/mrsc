@@ -80,21 +80,6 @@ case class Graph[C, D, E](
   }
 }
 
-/*!# Processing of complete graphs
- 
- Graph builder knows only how to build a graph, but not what to do with this graph later.
- Processing of complete SC graphs is extracted into a separate abstraction.
- */
-
-trait GraphConsumer[C, D, E, R] {
-  def consume(graph: Graph[C, D, E]): Unit
-  def buildResult(): R
-}
-
-trait ScEngine[C, D, E, R] {
-  def run(machine: Machine[C, D, E], conf: C, info: E): R
-}
-
 /*!# Abstract machines
   
   An abstract machine represents the semantics of the object language 
@@ -134,6 +119,11 @@ trait EquivAndInstanceOf[C] {
   def instanceOf(c1: C, c2: C): Boolean
 }
 
+/*!# Processing of complete and unworkable graphs
+ 
+ A graph producer knows only how to build a graph, but not what to do with this graph later.
+ */
+
 /*! This class produces iterators producing graphs by demand. */
 
 case class GraphProducer[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
@@ -172,18 +162,5 @@ case class GraphProducer[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
     val g = gs.head
     gs = gs.tail
     g
-  }
-}
-
-/*! This class is defined only to mimic the behavior of the old GraphBuilder.
- * Normally, it is up to consumer to drive the producer and to decide when to stop. 
- */
-
-class GraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: GraphConsumer[C, D, E, _]) {
-
-  def buildGraphs(conf: C, info: E): Unit = {
-    val graphs = GraphProducer(machine, conf, info)
-    for (g <- graphs)
-      consumer.consume(g)
   }
 }

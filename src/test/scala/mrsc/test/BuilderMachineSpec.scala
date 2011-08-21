@@ -27,7 +27,7 @@ object TinyMachine extends Machine[Int, String, Extra[String]] {
 }
 
 @RunWith(classOf[JUnitRunner])
-class BuilderMachineSpec extends mutable.Specification {
+class ProducerMachineSpec extends mutable.Specification {
   args(sequential = true)
 
   val graph: TGraph[Int, String, Extra[String]] = {
@@ -37,12 +37,8 @@ class BuilderMachineSpec extends mutable.Specification {
     TGraph(root = n0, leaves = List(n1))
   }
 
-  "GraphBuilder with deterministic machine" should {
-    //val consumer = new TGraphConsumer[Int, String, Extra[String]]()
-    //val builder = new GraphBuilder(TinyMachine, consumer)
-    //builder.buildGraphs(0, NoExtra)
-    //val graphs = consumer.result
-    
+  "GraphProducer with deterministic machine" should {    
+
     val producer = GraphProducer(TinyMachine, 0, NoExtra) map Transformations.transpose
     val tgraphs = producer.toList
     //assert(tgraphs == graphs)

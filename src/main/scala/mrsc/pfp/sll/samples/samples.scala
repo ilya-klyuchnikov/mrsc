@@ -95,12 +95,9 @@ object Samples {
     
     {
       val m1 = classic1(HEByCouplingWhistle)(task.program)
-      //val consumer1 = new SingleProgramConsumer(SLLResiduator)
-      //val builder1 = new GraphBuilder(m1, consumer1)
-      //builder1.buildGraphs(task.target, NoExtra)
-      val builder = new SingleProgramBuilder(SLLResiduator)
-      val residualProgram = builder.run(m1, task.target, NoExtra)
-      //assert(consumer1.buildResult == residualProgram)
+      val producer = SingleProgramProducer(SLLResiduator)
+      val residualProgram = producer(m1, task.target, NoExtra)
+
       println("**classic+ up:**")
       println(PrettySLL.pretty(residualProgram))
 
@@ -109,12 +106,9 @@ object Samples {
 
     {
       val m2 = classic2(HEByCouplingWhistle)(task.program)
-      //val consumer2 = new SingleProgramConsumer(SLLResiduator)
-      //val builder2 = new GraphBuilder(m2, consumer2)
-      //builder2.buildGraphs(task.target, NoExtra)
-      val builder = new SingleProgramBuilder(SLLResiduator)
-      val residualProgram = builder.run(m2, task.target, NoExtra)
-      //assert(consumer2.buildResult == residualProgram)
+      val producer = SingleProgramProducer(SLLResiduator)
+      val residualProgram = producer(m2, task.target, NoExtra)
+
       println("**classic+ down:**")
       println(PrettySLL.pretty(residualProgram))
 
@@ -125,12 +119,7 @@ object Samples {
      
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      //val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      //val builder3 = new GraphBuilder(m3, consumer3)
-      //builder3.buildGraphs(task.target, NoExtra)
-      //val ResidualResult(completed3, discarded3, residuals3) = consumer3.buildResult
       val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
-      //assert(residuals.toList.reverse == residuals3)
       
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
@@ -146,12 +135,7 @@ object Samples {
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      //val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      //val builder3 = new GraphBuilder(m3, consumer3)
-      //builder3.buildGraphs(task.target, NoExtra)
-      //val ResidualResult(completed3, discarded3, residuals3) = consumer3.buildResult
       val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
-      //assert(residuals.toList.reverse == residuals3)
 
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
@@ -210,18 +194,9 @@ object Samples {
 
     {
       val machine = new ClassicMix(task.program, HEByCouplingWhistle)
-      //val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      //val builder = new GraphBuilder(machine, consumer)
-      //try {
-      //  builder.buildGraphs(task.target, NoExtra)
-      //} catch {
-      //  case _ =>
-      //}
-      //val result = consumer.buildResult
-      
       val graphs = CountingGraphProducer(machine, task.target, NoExtra)
+
       try { graphs foreach (_ => ()) } catch { case _ => }
-      //assert(graphs.completed == result.countCompleted)
 
       val res = expandRight(8, graphs.completed + "")
       print(res)
@@ -229,18 +204,9 @@ object Samples {
     
     {
       val machine = new Multi4(task.program, HEWhistle)
-      //val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      //val builder = new GraphBuilder(machine, consumer)
-      //try {
-      //  builder.buildGraphs(task.target, NoExtra)
-      //} catch {
-      //  case _ =>
-      //}
-      //val result = consumer.buildResult
-
       val graphs = CountingGraphProducer(machine, task.target, NoExtra)
+
       try { graphs foreach (_ => ()) } catch { case _ => }
-      //assert(graphs.completed == result.countCompleted)
       
       val res = expandRight(8, graphs.completed + "")
       print(res)
@@ -248,18 +214,9 @@ object Samples {
     
     {
       val machine = new Multi1(task.program, HEWhistle)
-      //val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      //val builder = new GraphBuilder(machine, consumer)
-      //try {
-      //  builder.buildGraphs(task.target, NoExtra)
-      //} catch {
-      //  case _ =>
-      //}
-      //val result = consumer.buildResult
-
       val graphs = CountingGraphProducer(machine, task.target, NoExtra)
+
       try { graphs foreach (_ => ()) } catch { case _ => }
-      //assert(graphs.completed == result.countCompleted)
 
       val res = expandRight(8, graphs.completed + "")
       print(res)
@@ -311,7 +268,7 @@ object Samples {
     // 0 results here (because only UP generalization is allowed)
     // runTask(SLLTasks.namedTasks("FastFib"), multi3(HEByCouplingWhistle)_)
     
-    //preRunTasks()
+    preRunTasks()
     
     testRunTasks()
 
