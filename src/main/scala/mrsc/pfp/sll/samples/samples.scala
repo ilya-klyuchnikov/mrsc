@@ -210,46 +210,58 @@ object Samples {
 
     {
       val machine = new ClassicMix(task.program, HEByCouplingWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new GraphBuilder(machine, consumer)
-      try {
-        builder.buildGraphs(task.target, NoExtra)
-      } catch {
-        case _ =>
-      }
-      val result = consumer.buildResult
+      //val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
+      //val builder = new GraphBuilder(machine, consumer)
+      //try {
+      //  builder.buildGraphs(task.target, NoExtra)
+      //} catch {
+      //  case _ =>
+      //}
+      //val result = consumer.buildResult
+      
+      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
+      try { graphs foreach (_ => ()) } catch { case _ => }
+      //assert(graphs.completed == result.countCompleted)
 
-      val res = expandRight(8, result.countCompleted + "")
+      val res = expandRight(8, graphs.completed + "")
       print(res)
     }
     
     {
       val machine = new Multi4(task.program, HEWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new GraphBuilder(machine, consumer)
-      try {
-        builder.buildGraphs(task.target, NoExtra)
-      } catch {
-        case _ =>
-      }
-      val result = consumer.buildResult
+      //val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
+      //val builder = new GraphBuilder(machine, consumer)
+      //try {
+      //  builder.buildGraphs(task.target, NoExtra)
+      //} catch {
+      //  case _ =>
+      //}
+      //val result = consumer.buildResult
 
-      val res = expandRight(8, result.countCompleted + "")
+      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
+      try { graphs foreach (_ => ()) } catch { case _ => }
+      //assert(graphs.completed == result.countCompleted)
+      
+      val res = expandRight(8, graphs.completed + "")
       print(res)
     }
     
     {
       val machine = new Multi1(task.program, HEWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new GraphBuilder(machine, consumer)
-      try {
-        builder.buildGraphs(task.target, NoExtra)
-      } catch {
-        case _ =>
-      }
-      val result = consumer.buildResult
+      //val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
+      //val builder = new GraphBuilder(machine, consumer)
+      //try {
+      //  builder.buildGraphs(task.target, NoExtra)
+      //} catch {
+      //  case _ =>
+      //}
+      //val result = consumer.buildResult
 
-      val res = expandRight(8, result.countCompleted + "")
+      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
+      try { graphs foreach (_ => ()) } catch { case _ => }
+      //assert(graphs.completed == result.countCompleted)
+
+      val res = expandRight(8, graphs.completed + "")
       print(res)
     }
 

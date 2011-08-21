@@ -38,17 +38,21 @@ class BuilderMachineSpec extends mutable.Specification {
   }
 
   "GraphBuilder with deterministic machine" should {
-    val consumer = new TGraphConsumer[Int, String, Extra[String]]()
-    val builder = new GraphBuilder(TinyMachine, consumer)
-    builder.buildGraphs(0, NoExtra)
-    val graphs = consumer.result
+    //val consumer = new TGraphConsumer[Int, String, Extra[String]]()
+    //val builder = new GraphBuilder(TinyMachine, consumer)
+    //builder.buildGraphs(0, NoExtra)
+    //val graphs = consumer.result
+    
+    val producer = GraphProducer(TinyMachine, 0, NoExtra) map Transformations.transpose
+    val tgraphs = producer.toList
+    //assert(tgraphs == graphs)
     
     "produce just 1 result" in {
-      graphs.size must_== 1
+      tgraphs.size must_== 1
     }
 
     "build graph in depth first manner" in {
-      graphs(0) must_== graph
+      tgraphs(0) must_== graph
     }
   }
 
