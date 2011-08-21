@@ -24,6 +24,35 @@ class CountGraphConsumer[C, D, E](val maxCount: Int = 10000)
   override def buildResult() = result
 }
 
+case class CountingGraphProducer[C, D, E](
+  machine: Machine[C, D, E], conf: C, info: E,
+  maxCount: Int = 10000)
+  extends Iterator[Graph[C, D, E]] {
+
+  var completed = 0
+  var unworkable = 0
+
+  private val graphs = GraphProducer(machine, conf, info)
+
+  def hasNext: Boolean = graphs.hasNext
+
+  def next(): Graph[C, D, E] = {
+    val g = graphs.next()
+
+    if (g.isUnworkable)
+      unworkable += 1
+    else
+      completed += 1
+
+    if (completed > maxCount) {
+      completed = -1
+      unworkable = -1
+      throw new ModelingError("too many results")
+    }
+    g
+  }
+}
+
 class TGraphConsumer[C, D, E] extends GraphConsumer[C, D, E, List[TGraph[C, D, E]]] {
 
   var completedGraphs: List[TGraph[C, D, E]] = List()
@@ -37,11 +66,4 @@ class TGraphConsumer[C, D, E] extends GraphConsumer[C, D, E, List[TGraph[C, D, E
   }
 
   override def buildResult() = result
-}
-
-case class TGraphProducer[C, D, E](machine: Machine[C, D, E]) {
-  val producer = GraphProducer(machine)
-  def apply(conf: C, info: E) = {
-    producer(conf, info) map Transformations.transpose
-  }
 }

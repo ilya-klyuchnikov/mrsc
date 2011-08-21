@@ -17,6 +17,7 @@ class ResiduatingConsumer[C](residuator: Residuation[C])
     if (g.isUnworkable)
       unworkableGraphsCount = unworkableGraphsCount + 1
     else {
+      assert(g.isComplete)
       completedGraphsCount = completedGraphsCount + 1
       val graph = Transformations.transpose(g)
       val residual = residuator.residuate(graph)
@@ -48,4 +49,44 @@ class SingleProgramConsumer[C](residuator: Residuation[C])
   }
 
   override def buildResult() = residualProgram
+}
+
+case class ResiduatingProducer[C](
+    machine: Machine[C, DriveInfo[C], Extra[C]], conf: C, info: Extra[C],
+    residuator: Residuation[C])
+  extends Iterator[C]
+{
+  val description = "counting completed and discarded graphs and showing residual programs"
+
+  val graphs = CountingGraphProducer(machine, conf, info, 1000)
+  val completeGraphs = graphs filter (_.isComplete)
+
+  def completed = graphs.completed
+  def unworkable = graphs.unworkable
+  
+  def hasNext: Boolean = completeGraphs.hasNext
+
+  def next(): C = {
+    val g = completeGraphs.next()
+    val t = Transformations.transpose(g)
+    residuator.residuate(t)
+  }
+}
+
+class SingleProgramBuilder[C](residuator: Residuation[C])
+  extends ScEngine[C, DriveInfo[C], Extra[C], C] {
+  val description = "I expect one result"
+
+  var residualProgram: C = null.asInstanceOf[C]
+  var tgraph: TGraph[C, DriveInfo[C], Extra[C]] = null
+
+  def run(machine: Machine[C, DriveInfo[C], Extra[C]], conf: C, info: Extra[C]): C = {
+    val graphs = GraphProducer(machine, conf, info) filter (_.isComplete)
+    assert(!graphs.isEmpty)
+    val g = graphs.next()
+    assert(graphs.isEmpty)
+    val tgraph = Transformations.transpose(g)
+    println(tgraph)
+    residuator.residuate(tgraph)
+  }
 }

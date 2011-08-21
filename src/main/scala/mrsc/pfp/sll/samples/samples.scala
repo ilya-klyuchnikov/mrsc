@@ -46,7 +46,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with BinaryWhistle[Expr]
   with DoubleRebuildingsOnBinaryWhistle[Expr]
 
-class ClassicDubiousGen(val program: Program, val ordering: PartialOrdering[Expr])
+class ClassicDangerousGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
@@ -80,7 +80,7 @@ object Samples {
   def multi2(w: PartialOrdering[Expr])(p: Program) = new Multi2(p, w)
   def multi3(w: PartialOrdering[Expr])(p: Program) = new Multi3(p, w)
   def multi4(w: PartialOrdering[Expr])(p: Program) = new Multi4(p, w)
-  def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicDubiousGen(p, w)
+  def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicDangerousGen(p, w)
   def classic2(w: PartialOrdering[Expr])(p: Program) = new ClassicCurrentGen(p, w)
   def classic3(w: PartialOrdering[Expr])(p: Program) = new ClassicMix(p, w)
 
@@ -95,36 +95,43 @@ object Samples {
     
     {
       val m1 = classic1(HEByCouplingWhistle)(task.program)
-      val consumer1 = new SingleProgramConsumer(SLLResiduator)
-      val builder1 = new GraphBuilder(m1, consumer1)
-      builder1.buildGraphs(task.target, NoExtra)
+      //val consumer1 = new SingleProgramConsumer(SLLResiduator)
+      //val builder1 = new GraphBuilder(m1, consumer1)
+      //builder1.buildGraphs(task.target, NoExtra)
+      val builder = new SingleProgramBuilder(SLLResiduator)
+      val residualProgram = builder.run(m1, task.target, NoExtra)
+      //assert(consumer1.buildResult == residualProgram)
       println("**classic+ up:**")
-      println(PrettySLL.pretty(consumer1.buildResult))
+      println(PrettySLL.pretty(residualProgram))
 
-      Checker.check(task, Lifting.expr2Task(consumer1.residualProgram))
+      Checker.check(task, Lifting.expr2Task(residualProgram))
     }
 
     {
       val m2 = classic2(HEByCouplingWhistle)(task.program)
-      val consumer2 = new SingleProgramConsumer(SLLResiduator)
-      val builder2 = new GraphBuilder(m2, consumer2)
-      builder2.buildGraphs(task.target, NoExtra)
+      //val consumer2 = new SingleProgramConsumer(SLLResiduator)
+      //val builder2 = new GraphBuilder(m2, consumer2)
+      //builder2.buildGraphs(task.target, NoExtra)
+      val builder = new SingleProgramBuilder(SLLResiduator)
+      val residualProgram = builder.run(m2, task.target, NoExtra)
+      //assert(consumer2.buildResult == residualProgram)
       println("**classic+ down:**")
-      println(PrettySLL.pretty(consumer2.buildResult))
+      println(PrettySLL.pretty(residualProgram))
 
-      Checker.check(task, Lifting.expr2Task(consumer2.residualProgram))
+      Checker.check(task, Lifting.expr2Task(residualProgram))
     }
 
      println("**others:**")
      
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      val builder3 = new GraphBuilder(m3, consumer3)
-      builder3.buildGraphs(task.target, NoExtra)
-
-      val ResidualResult(completed, discarded, residuals) = consumer3.buildResult
-
+      //val consumer3 = new ResiduatingConsumer(SLLResiduator)
+      //val builder3 = new GraphBuilder(m3, consumer3)
+      //builder3.buildGraphs(task.target, NoExtra)
+      //val ResidualResult(completed3, discarded3, residuals3) = consumer3.buildResult
+      val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
+      //assert(residuals.toList.reverse == residuals3)
+      
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
         println("***")
@@ -133,16 +140,18 @@ object Samples {
         println("+++")
         Checker.check(task, taskS)
       }
-
+      val completed = residuals.completed
+      val discarded = residuals.unworkable
     }
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      val builder3 = new GraphBuilder(m3, consumer3)
-      builder3.buildGraphs(task.target, NoExtra)
-
-      val ResidualResult(completed, discarded, residuals) = consumer3.buildResult
+      //val consumer3 = new ResiduatingConsumer(SLLResiduator)
+      //val builder3 = new GraphBuilder(m3, consumer3)
+      //builder3.buildGraphs(task.target, NoExtra)
+      //val ResidualResult(completed3, discarded3, residuals3) = consumer3.buildResult
+      val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
+      //assert(residuals.toList.reverse == residuals3)
 
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
@@ -152,6 +161,8 @@ object Samples {
         println("+++")
         Checker.check(task, taskS)
       }
+      val completed = residuals.completed
+      val discarded = residuals.unworkable
     }
 
     println()

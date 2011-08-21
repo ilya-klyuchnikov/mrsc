@@ -44,8 +44,7 @@ object CounterSamples extends App {
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
     val machine = CounterMachine(protocol, l)
-    val producer = GraphProducer(machine)
-    val graphs = producer(protocol.start, ())
+    val graphs = GraphProducer(machine, protocol.start, ())
 
     for (graph <- graphs) {
       val tgraph = Transformations.transpose(graph)
@@ -61,8 +60,7 @@ object CounterSamples extends App {
 
   def multiScProtocol(protocol: Protocol, l: Int): Unit = {
     val machine = CounterMultiMachine(protocol, l)
-    val producer = GraphProducer(machine)
-    val graphs = producer(protocol.start, ())
+    val graphs = GraphProducer(machine, protocol.start, ())
     val tgraphs = graphs map Transformations.transpose
     val successGraphs = tgraphs filter (_.isComplete)
     //val successGraphs = tgraphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }

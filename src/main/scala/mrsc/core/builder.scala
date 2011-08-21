@@ -91,6 +91,10 @@ trait GraphConsumer[C, D, E, R] {
   def buildResult(): R
 }
 
+trait ScEngine[C, D, E, R] {
+  def run(machine: Machine[C, D, E], conf: C, info: E): R
+}
+
 /*!# Abstract machines
   
   An abstract machine represents the semantics of the object language 
@@ -132,43 +136,42 @@ trait EquivAndInstanceOf[C] {
 
 /*! This class produces iterators producing graphs by demand. */
 
-case class GraphProducer[C, D, E](machine: Machine[C, D, E]) {
+case class GraphProducer[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
+  extends Iterator[Graph[C, D, E]] {
 
-  def apply(conf: C, info: E) = new Iterator[Graph[C, D, E]] {
-    /*! It maintains a list of graphs
+  /*! It maintains a list of graphs
      * and starts with a one-element list of graphs. 
      */
 
-    private var gs: List[Graph[C, D, E]] = List(start(conf, info))
+  private var gs: List[Graph[C, D, E]] = List(initial(conf, info))
 
-    private def start(c: C, e: E): Graph[C, D, E] = {
-      val startNode = Node[C, D, E](c, e, null, None, Nil)
-      new Graph(List(startNode), Nil, Nil)
-    }
+  private def initial(c: C, e: E): Graph[C, D, E] = {
+    val initialNode = Node[C, D, E](c, e, null, None, Nil)
+    new Graph(List(initialNode), Nil, Nil)
+  }
 
-    private def normalize() {
-      while (true) {
-        if (gs.isEmpty)
-          return
-        val g = gs.head
-        if (g.isComplete || g.isUnworkable)
-          return
-        gs = machine.steps(g) ++ gs.tail
-      }
-    }
-
-    def hasNext: Boolean = {
-      normalize()
-      !gs.isEmpty
-    }
-
-    def next(): Graph[C, D, E] = {
-      if (!hasNext)
-        throw new NoSuchElementException("no graph")
+  private def normalize() {
+    while (true) {
+      if (gs.isEmpty)
+        return
       val g = gs.head
-      gs = gs.tail
-      g
+      if (g.isComplete || g.isUnworkable)
+        return
+      gs = machine.steps(g) ++ gs.tail
     }
+  }
+
+  def hasNext: Boolean = {
+    normalize()
+    !gs.isEmpty
+  }
+
+  def next(): Graph[C, D, E] = {
+    if (!hasNext)
+      throw new NoSuchElementException("no graph")
+    val g = gs.head
+    gs = gs.tail
+    g
   }
 }
 
@@ -176,11 +179,10 @@ case class GraphProducer[C, D, E](machine: Machine[C, D, E]) {
  * Normally, it is up to consumer to drive the producer and to decide when to stop. 
  */
 
-class GraphBuilder[C, D, E](machine: Machine[C, D, E],
-    consumer: GraphConsumer[C, D, E, _]) {
-  val producer = GraphProducer[C, D, E](machine)
+class GraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: GraphConsumer[C, D, E, _]) {
+
   def buildGraphs(conf: C, info: E): Unit = {
-    val graphs = producer(conf, info)
+    val graphs = GraphProducer(machine, conf, info)
     for (g <- graphs)
       consumer.consume(g)
   }
