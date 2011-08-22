@@ -196,7 +196,7 @@ object Samples {
       val machine = new ClassicMix(task.program, HEByCouplingWhistle)
       val graphs = CountingGraphProducer(machine, task.target, NoExtra)
 
-      try { graphs foreach (_ => ()) } catch { case _ => }
+      try { graphs foreach (_ => ()) } catch { case _: ModelingError => }
 
       val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
       print(res)
@@ -206,7 +206,7 @@ object Samples {
       val machine = new Multi4(task.program, HEWhistle)
       val graphs = CountingGraphProducer(machine, task.target, NoExtra)
 
-      try { graphs foreach (_ => ()) } catch { case _ => }
+      try { graphs foreach (_ => ()) } catch { case _: ModelingError => }
       
       val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
       print(res)
@@ -216,7 +216,7 @@ object Samples {
       val machine = new Multi1(task.program, HEWhistle)
       val graphs = CountingGraphProducer(machine, task.target, NoExtra)
 
-      try { graphs foreach (_ => ()) } catch { case _ => }
+      try { graphs foreach (_ => ()) } catch { case _: ModelingError => }
 
       val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
       print(res)
