@@ -1,7 +1,8 @@
 package mrsc.trs
 
-trait PreSyntax[C] {
-  def instance: PartialOrdering[C]
+import mrsc.core._
+
+trait TRSSyntax[C] extends EquivAndInstanceOf[C] {
   def rebuildings(c: C): List[C]
 }
 

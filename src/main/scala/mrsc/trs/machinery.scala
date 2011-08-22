@@ -1,16 +1,15 @@
 package mrsc.trs
 
 import mrsc.core._
-import mrsc.pfp.{Extra, NoExtra}
 
 trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
-  type W = Option[CoNode[C, D, E]]
-  def isLeaf(pState: PS): Boolean
-  def fold(pState: PS): Option[CoPath]
-  def blame(pState: PS): W
-  def drive(whistle: W, pState: PS): List[CMD]
-  def rebuildings(whistle: W, pState: PS): List[CMD]
+  type Warning = Node[C, D, E]
+  def unsafe(g: G): Boolean = false
+  def canFold(g: G): Option[Path]
+  def mayDiverge(g: G): Option[Warning]
+  def drive(whistle: Option[Warning], g: G): List[G]
+  def rebuildings(whistle: Option[Warning], g: G): List[G]
 
   /*! The logic of this machine is straightforward:
      
@@ -20,66 +19,75 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
     
    Note that the whistle signal is passed to `drive`, `rebuildings` and `tricks`.
   */
-  override def steps(pState: PS): List[CMD] =
-    if (isLeaf(pState))
-      List(ConvertToLeaf)
-    else fold(pState) match {
+  override def steps(g: G): List[G] =
+    if (unsafe(g))
+      List(g.toUnworkable())
+    else canFold(g) match {
       case Some(path) =>
-        List(Fold(path))
-      case _ =>
-        val signal = blame(pState)
-        val driveSteps = drive(signal, pState)
-        val rebuildSteps = rebuildings(signal, pState)
+        List(g.fold(path))
+      case None =>
+        val whistle = mayDiverge(g)
+        val driveSteps = drive(whistle, g)
+        val rebuildSteps = rebuildings(whistle, g)
         driveSteps ++ rebuildSteps
     }
 }
 
-trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def fold(pState: PState[C, D, Extra[C]]): Option[CoPath] =
-    pState.current.ancestors.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.coPath }
-}
-
-trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] {
-  override def fold(pState: PState[C, D, Extra[C]]): Option[CoPath] =
-    pState.complete.find { n => instance.lteq(n.conf, pState.current.conf) } map { _.coPath }
-}
-
-trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] {
+trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Unit] {
   def unsafe(c: C): Boolean
-  override def blame(pState: PState[C, D, Extra[C]]): W =
-    if (unsafe(pState.current.conf)) Some(pState.current) else None
+  override def unsafe(g: G): Boolean = {
+    assert(!g.isComplete)
+    unsafe(g.current.conf)
+  }
 }
 
-trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: W, pState: PState[C, D, Extra[C]]): List[Command[C, D, Extra[C]]] = {
+trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] {
+  override def canFold(g: Graph[C, D, Unit]): Option[Path] =
+    g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
+}
+
+trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] {
+  override def canFold(g: Graph[C, D, Unit]): Option[Path] =
+    g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
+}
+
+trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] {
+  def dangerous(c: C): Boolean
+  override def mayDiverge(g: Graph[C, D, Unit]): Option[Warning] =
+    if (dangerous(g.current.conf)) Some(g.current) else None
+}
+
+trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
+  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
     whistle match {
       case None =>
         List()
-      case Some(blamed) =>
-        val rbs = rebuildings(pState.current.conf) filterNot unsafe
-        rbs map { Rebuild(_, NoExtra) }
+      case Some(_) =>
+        val rbs = rebuildings(g.current.conf) filterNot dangerous
+        rbs map { g.rebuild(_, ()) }
     }
   }
 }
 
-trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Extra[C]] with PreSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: W, pState: PState[C, D, Extra[C]]): List[Command[C, D, Extra[C]]] = {
-    val rbs = rebuildings(pState.current.conf) filterNot unsafe
-    rbs map { Rebuild(_, NoExtra) }
+trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
+  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
+    val rbs = rebuildings(g.current.conf) filterNot dangerous
+    rbs map { g.rebuild(_, ()) }
   }
 }
 
-trait RuleDriving[C] extends GenericMultiMachine[C, Int, Extra[C]] with RewriteSemantics[C] {
-  override def drive(whistle: W, pState: PState[C, Int, Extra[C]]): List[Command[C, Int, Extra[C]]] =
+trait RuleDriving[C] extends GenericMultiMachine[C, Int, Unit] with RewriteSemantics[C] {
+  override def drive(whistle: Option[Warning], g: Graph[C, Int, Unit]): List[Graph[C, Int, Unit]] =
     whistle match {
-      case Some(blamed) => List(Discard)
+      case Some(_) =>
+        List(g.toUnworkable())
       case None =>
         val subSteps =
-          for ((next, i) <- drive(pState.current.conf).zipWithIndex if next.isDefined)
-            yield (next.get, i + 1, NoExtra)
-        List(AddChildNodes(subSteps))
+          for ((next, i) <- drive(g.current.conf).zipWithIndex if next.isDefined)
+            yield (next.get, i + 1, ())
+        if (subSteps.isEmpty)
+          List(g.completeCurrentNode())
+        else
+          List(g.addChildNodes(subSteps))
     }
-
-  override def isLeaf(pState: PState[C, Int, Extra[C]]) =
-    false
 }

@@ -34,115 +34,115 @@ case object NoExtra extends Extra[Nothing]
 case class RebuildingInfo[C](from: C) extends Extra[C]
 
 trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
-  type WS
-  def fold(pState: PS): Option[CoPath]
-  def drive(pState: PS): List[CMD]
-  def rebuildings(whistle: Option[WS], pState: PS): List[CMD]
-  def inspect(pState: PS): Option[WS]
+  type Warning
+  def canFold(g: G): Option[Path]
+  def drive(g: G): List[G]
+  def rebuildings(whistle: Option[Warning], g: G): List[G]
+  def mayDiverge(g: G): Option[Warning]
 
-  override def steps(pState: PS): List[CMD] =
-    fold(pState) match {
+  override def steps(g :G): List[G] =
+    canFold(g) match {
       case Some(path) =>
-        List(Fold(path))
+        List(g.fold(path))
       case _ =>
-        val signal = inspect(pState)
+        val whistle = mayDiverge(g)
         val driveSteps = 
-          if (signal.isEmpty) drive(pState) else List(Discard)
-        val rebuildSteps = rebuildings(signal, pState)
+          if (whistle.isEmpty) drive(g) else List(g.toUnworkable())
+        val rebuildSteps = rebuildings(whistle, g)
         driveSteps ++ rebuildSteps
     }
 }
 
 trait Driving[C] extends PFPMachine[C] with OperationalSemantics[C] {
-  override def drive(pState: PS): List[CMD] =
-    driveStep(pState.current.conf) match {
+  override def drive(g: G): List[G] =
+    driveStep(g.current.conf) match {
       case StopDriveStep =>
-        List(ConvertToLeaf)
+        List(g.completeCurrentNode())
       case DecomposeDriveStep(compose, args) =>
         val stepInfo = DecomposeStepInfo(compose)
         val subSteps = args map { a => (a, stepInfo, NoExtra) }
-        List(AddChildNodes(subSteps))
+        List(g.addChildNodes(subSteps))
       case TransientDriveStep(next) =>
         val subSteps = List((next, TransientStepInfo, NoExtra))
-        List(AddChildNodes(subSteps))
+        List(g.addChildNodes(subSteps))
       case VariantsDriveStep(vs) =>
         val ns = vs map { v => (v._1, VariantsStepInfo(v._2), NoExtra) }
-        List(AddChildNodes(ns))
+        List(g.addChildNodes(ns))
     }
 }
 
-trait RenamingFolding[C] extends PFPMachine[C] with Syntax[C] {
-  override def fold(pState: PS): Option[CoPath] =
-    pState.current.ancestors.find { n => instance.equiv(pState.current.conf, n.conf) } map { _.coPath }
+trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
+  override def canFold(g: G): Option[Path] =
+    g.current.ancestors.find { n => equiv(g.current.conf, n.conf) } map { _.path }
 }
 
 trait BinaryWhistle[C] extends PFPMachine[C] {
-  type WS = CoNode[C, DriveInfo[C], Extra[C]]
+  type Warning = Node[C, DriveInfo[C], Extra[C]]
   val ordering: PartialOrdering[C]
-  override def inspect(pState: PS): Option[WS] =
-    pState.current.ancestors find { n => ordering.lteq(n.conf, pState.current.conf) }
+  override def mayDiverge(g: G): Option[Warning] =
+    g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
-case object UnarySignal
 trait UnaryWhistle[C] extends PFPMachine[C] {
-  type WS = UnarySignal.type
-  def unsafe(c: C): Boolean
-  override def inspect(pState: PS): Option[WS] =
-    if (unsafe(pState.current.conf)) Some(UnarySignal) else None
+  type Warning = Unit
+  def dangerous(c: C): Boolean
+  override def mayDiverge(g: G): Option[Warning] =
+    if (dangerous(g.current.conf)) Some(Unit) else None
 }
 
-trait AllRebuildings[C] extends PFPMachine[C] with Syntax[C] {
-  override def rebuildings(whistle: Option[WS], pState: PS): List[CMD] = {
-    rebuildings(pState.current.conf) map { Rebuild(_, NoExtra) }
+trait AllRebuildings[C] extends PFPMachine[C] with PFPSyntax[C] {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] = {
+    rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
   }
 }
 
-trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[WS], pState: PS): List[CMD] =
+trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g:G): List[G] =
     whistle match {
       case None    => List()
-      case Some(_) => rebuildings(pState.current.conf) map { Rebuild(_, NoExtra) }
+      case Some(_) => rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
     }
 }
 
-trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[WS], pState: PS): List[CMD] =
+trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
     whistle match {
       case None        => List()
-      case Some(upper) => rebuildings(upper.conf) map { Rollback(upper, _, NoExtra) }
+      case Some(upper) => rebuildings(upper.conf) map { g.rollback(upper, _, NoExtra) }
     }
 }
 
-trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with Syntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[WS], pState: PS): List[CMD] =
+trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g:G): List[G] =
     whistle match {
       case None =>
         List()
       case Some(upper) =>
         val rebuilds =
-          rebuildings(pState.current.conf) map { Rebuild(_, NoExtra) }
+          rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
         val rollbacks =
-          rebuildings(upper.conf) map { Rollback(upper, _, NoExtra) }
+          rebuildings(upper.conf) map { g.rollback(upper, _, NoExtra) }
         rebuilds ++ rollbacks
     }
 }
 
-trait UpperMsgOrLowerMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
+trait UpperMsgOrLowerMggOnBinaryWhistle[C]
+  extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], pState: PS): List[CMD] = {
+  def rebuildings(whistle: Option[Warning], g:G): List[G] = {
     whistle match {
       case Some(upper) =>
-        val currentConf = pState.current.conf
+        val currentConf = g.current.conf
         val upperConf = upper.conf
         msg(upperConf, currentConf) match {
           case Some(rb) =>
             val conf1 = translate(rb)
-            val rollback = Rollback(upper, conf1, NoExtra)
+            val rollback = g.rollback(upper, conf1, NoExtra)
             List(rollback)
           case None =>
             val cands = rawRebuildings(currentConf) filterNot trivialRb(currentConf)
-            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instance.lteq(c1, c2) } }
-            mgg.map(translate).map(Rebuild(_, NoExtra)).toList
+            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instanceOf(c2, c1) } }
+            mgg.map(translate).map(g.rebuild(_, NoExtra)).toList
         }
       case None =>
         List()
@@ -153,20 +153,20 @@ trait UpperMsgOrLowerMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] wit
 // funny: most specific down or most general up
 trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], pState: PS): List[CMD] = {
+  def rebuildings(whistle: Option[Warning], g:G): List[G] = {
     whistle match {
       case Some(upper) =>
-        val currentConf = pState.current.conf
+        val currentConf = g.current.conf
         val upperConf = upper.conf
         msg(currentConf, upperConf) match {
           case Some(rb) =>
             val conf1 = translate(rb)
-            val replace = Rebuild(conf1, NoExtra)
+            val replace = g.rebuild(conf1, NoExtra)
             List(replace)
           case None =>
             val cands = rawRebuildings(upperConf) filterNot trivialRb(upperConf)
-            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instance.lteq(c1, c2) } }
-            mgg.map(translate).map(Rollback(upper, _, NoExtra)).toList
+            val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => instanceOf(c2, c1) } }
+            mgg.map(translate).map(g.rollback(upper, _, NoExtra)).toList
         }
       case None =>
         List()
@@ -176,18 +176,18 @@ trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] wit
 
 trait MSGCurrentOrDriving[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], pState: PS): List[CMD] = {
+  def rebuildings(whistle: Option[Warning], g: G): List[G] = {
     whistle match {
       case Some(upper) =>
-        val currentConf = pState.current.conf
+        val currentConf = g.current.conf
         val upperConf = upper.conf
         msg(currentConf, upperConf) match {
           case Some(rb) =>
             val conf1 = translate(rb)
-            val replace = Rebuild(conf1, NoExtra)
+            val replace = g.rebuild(conf1, NoExtra)
             List(replace)
           case None =>
-            drive(pState)
+            drive(g)
         }
       case None =>
         List()
@@ -197,12 +197,12 @@ trait MSGCurrentOrDriving[C] extends PFPMachine[C] with MSG[C] with BinaryWhistl
 
 trait DoubleMsgOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[WS], pState: PS): List[CMD] = {
+  def rebuildings(whistle: Option[Warning], g: G): List[G] = {
     whistle match {
       case Some(upper) =>
-        val current = pState.current
-        val replace = msg(current.conf, upper.conf) map { rb => Rebuild(translate(rb), NoExtra) }
-        val rollback = msg(upper.conf, current.conf) map { rb => Rollback(upper, translate(rb), NoExtra) }
+        val current = g.current
+        val replace = msg(current.conf, upper.conf) map { rb => g.rebuild(translate(rb), NoExtra) }
+        val rollback = msg(upper.conf, current.conf) map { rb => g.rollback(upper, translate(rb), NoExtra) }
         rollback.toList ++ replace.toList
       case None =>
         List()

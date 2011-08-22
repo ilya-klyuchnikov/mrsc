@@ -24,7 +24,7 @@ class Multi2(val program: Program, val ordering: PartialOrdering[Expr])
   with BinaryWhistle[Expr]
   with LowerRebuildingsOnBinaryWhistle[Expr]
 
-// generalize (in all possible ways) blamed configuration (when whistle blows)
+// generalize (in all possible ways) a dangerous configuration (when whistle blows)
 class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
@@ -35,7 +35,7 @@ class Multi3(val program: Program, val ordering: PartialOrdering[Expr])
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 
 // when whistle blows, it considers all generalization of two nodes:
-// 1. the blamed one (with rollback)
+// 1. the dangerous one (with rollback)
 // 2. the current one
 class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
@@ -46,7 +46,7 @@ class Multi4(val program: Program, val ordering: PartialOrdering[Expr])
   with BinaryWhistle[Expr]
   with DoubleRebuildingsOnBinaryWhistle[Expr]
 
-class ClassicBlamedGen(val program: Program, val ordering: PartialOrdering[Expr])
+class ClassicDangerousGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
@@ -80,7 +80,7 @@ object Samples {
   def multi2(w: PartialOrdering[Expr])(p: Program) = new Multi2(p, w)
   def multi3(w: PartialOrdering[Expr])(p: Program) = new Multi3(p, w)
   def multi4(w: PartialOrdering[Expr])(p: Program) = new Multi4(p, w)
-  def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicBlamedGen(p, w)
+  def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicDangerousGen(p, w)
   def classic2(w: PartialOrdering[Expr])(p: Program) = new ClassicCurrentGen(p, w)
   def classic3(w: PartialOrdering[Expr])(p: Program) = new ClassicMix(p, w)
 
@@ -95,36 +95,32 @@ object Samples {
     
     {
       val m1 = classic1(HEByCouplingWhistle)(task.program)
-      val consumer1 = new SingleProgramConsumer(SLLResiduator)
-      val builder1 = new CoGraphBuilder(m1, consumer1)
-      builder1.buildCoGraph(task.target, NoExtra)
-      println("**classic+ up:**")
-      println(PrettySLL.pretty(consumer1.buildResult))
+      val producer = SingleProgramProducer(SLLResiduator)
+      val residualProgram = producer(m1, task.target, NoExtra)
 
-      Checker.check(task, Lifting.expr2Task(consumer1.residualProgram))
+      println("**classic+ up:**")
+      println(PrettySLL.pretty(residualProgram))
+
+      Checker.check(task, Lifting.expr2Task(residualProgram))
     }
 
     {
       val m2 = classic2(HEByCouplingWhistle)(task.program)
-      val consumer2 = new SingleProgramConsumer(SLLResiduator)
-      val builder2 = new CoGraphBuilder(m2, consumer2)
-      builder2.buildCoGraph(task.target, NoExtra)
-      println("**classic+ down:**")
-      println(PrettySLL.pretty(consumer2.buildResult))
+      val producer = SingleProgramProducer(SLLResiduator)
+      val residualProgram = producer(m2, task.target, NoExtra)
 
-      Checker.check(task, Lifting.expr2Task(consumer2.residualProgram))
+      println("**classic+ down:**")
+      println(PrettySLL.pretty(residualProgram))
+
+      Checker.check(task, Lifting.expr2Task(residualProgram))
     }
 
      println("**others:**")
      
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      val builder3 = new CoGraphBuilder(m3, consumer3)
-      builder3.buildCoGraph(task.target, NoExtra)
-
-      val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
-
+      val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
+      
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
         println("***")
@@ -133,16 +129,13 @@ object Samples {
         println("+++")
         Checker.check(task, taskS)
       }
-
+      val completed = residuals.completed
+      val discarded = residuals.unworkable
     }
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      val consumer3 = new ResiduatingConsumer(SLLResiduator)
-      val builder3 = new CoGraphBuilder(m3, consumer3)
-      builder3.buildCoGraph(task.target, NoExtra)
-
-      val ResidualResult(completed, pruned, residuals) = consumer3.buildResult
+      val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
 
       for (sllTask2 <- residuals) {
         println(PrettySLL.pretty(sllTask2))
@@ -152,6 +145,8 @@ object Samples {
         println("+++")
         Checker.check(task, taskS)
       }
+      val completed = residuals.completed
+      val discarded = residuals.unworkable
     }
 
     println()
@@ -199,46 +194,31 @@ object Samples {
 
     {
       val machine = new ClassicMix(task.program, HEByCouplingWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new CoGraphBuilder(machine, consumer)
-      try {
-        builder.buildCoGraph(task.target, NoExtra)
-      } catch {
-        case _ =>
-      }
-      val result = consumer.buildResult
+      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
 
-      val res = expandRight(8, result.countCompleted + "")
+      try { graphs foreach (_ => ()) } catch { case _ => }
+
+      val res = expandRight(8, graphs.completed + "")
       print(res)
     }
     
     {
       val machine = new Multi4(task.program, HEWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new CoGraphBuilder(machine, consumer)
-      try {
-        builder.buildCoGraph(task.target, NoExtra)
-      } catch {
-        case _ =>
-      }
-      val result = consumer.buildResult
+      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
 
-      val res = expandRight(8, result.countCompleted + "")
+      try { graphs foreach (_ => ()) } catch { case _ => }
+      
+      val res = expandRight(8, graphs.completed + "")
       print(res)
     }
     
     {
       val machine = new Multi1(task.program, HEWhistle)
-      val consumer = new CountGraphConsumer[Expr, DriveInfo[Expr], Extra[Expr]]()
-      val builder = new CoGraphBuilder(machine, consumer)
-      try {
-        builder.buildCoGraph(task.target, NoExtra)
-      } catch {
-        case _ =>
-      }
-      val result = consumer.buildResult
+      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
 
-      val res = expandRight(8, result.countCompleted + "")
+      try { graphs foreach (_ => ()) } catch { case _ => }
+
+      val res = expandRight(8, graphs.completed + "")
       print(res)
     }
 

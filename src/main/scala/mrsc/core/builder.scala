@@ -1,44 +1,83 @@
 package mrsc.core
 
-import scala.annotation.tailrec
-
-/*! `PartialCoGraph[C, I]` is a central concept of MRSC. It represents a "work in progress".
- We know already processed part of an SC graph (`completeLeaves`, `completeNodes`) and a frontier 
- of incomplete part (`incompleteLeaves`).
+/*! `Graph[C, D, E]` is a central concept of MRSC.
+ * It may represent (1) a "work in progress" (2) a completed graph and
+ * (3) and unfinished yet unworkable graph.
+ * We know already processed part of an SC graph
+ * (`completeLeaves`, `completeNodes`) and a frontier 
+ * of incomplete part (`incompleteLeaves`).
  */
-case class PartialCoGraph[C, D, E](
-  incompleteLeaves: List[CoNode[C, D, E]],
-  completeLeaves: List[CoNode[C, D, E]],
-  complete: List[CoNode[C, D, E]]) {
+case class Graph[C, D, E](
+  incompleteLeaves: List[Node[C, D, E]],
+  completeLeaves: List[Node[C, D, E]],
+  completeNodes: List[Node[C, D, E]],
+  isUnworkable: Boolean = false) {
 
-  /*! `activeLeaf` is the vanguard of the incomplete part. It will be processed next.
+  /*! `isUnworkable` = is not good for further processing (for some reason).
+   *  'isComplete` = is finished, there is nothing to do.
    */
-  val activeLeaf: Option[CoNode[C, D, E]] = incompleteLeaves.headOption
-
-  /*! Partial state is exposed to SC machines. SC machine decides what step should be done next 
-      based on `pState`.
+  val isComplete = incompleteLeaves.isEmpty 
+  def toUnworkable() = this.copy(isUnworkable = true)
+  
+  /*! `current` is the vanguard of the incomplete part. It will be processed next.
    */
-  val pState = PState(activeLeaf.getOrElse(null), complete)
-}
+  val current = if (isComplete) null else incompleteLeaves.head
+  
+  /*! Transformations performed over graphs by driving
+   *  (and some other parts of the supercompiler?)
+   *  Perhaps, they might be exposed via a trait?
+   */
 
-/*! `PState` stands for partial state.
- Based on the current `PState`, SCP machine should decide what should be done next.
- */
-case class PState[C, D, E](current: CoNode[C, D, E], complete: List[CoNode[C, D, E]])
+  /*!# Abstract steps
+     Under the hood an abstract machine deals with some kind of semantics of the language.
+     Low-level operations should be translated into high-level abstract operations (or messages) 
+     over SC graphs.
+  */
 
-/*!# Processing of complete graphs
- 
- Graph builder knows only how to build a graph, but not what to do with this graph later.
- Processing of complete SC graphs is extracted into a separate abstraction.
- */
-
-/*! An instance of a graph may be pruned, and a client may be interested in knowing that fact:
-  so `GraphConsumer` receives `Some(graph)` when graph is completed and receives `None` 
-  if the graph was pruned. 
- */
-trait CoGraphConsumer[C, D, E, R] {
-  def consume(graph: Option[CoGraph[C, D, E]]): Unit
-  def buildResult(): R
+  /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
+   */
+  def completeCurrentNode() : Graph[C, D, E] = {
+    Graph(incompleteLeaves.tail, current :: completeLeaves, current :: completeNodes)
+  }
+  /*! This step corresponds (mainly) to driving: adds children to the current node. Then
+   *  current node is moved to the complete part and new children are moved into 
+   *  the incomplete part. Also the (co-)path is calculated for any child node.
+   */
+  def addChildNodes(ns: List[(C, D, E)]) = {
+    val deltaLeaves: List[Node[C, D, E]] = ns.zipWithIndex map {
+      case ((conf, dInfo, eInfo), i) =>
+        val in = Edge(current, dInfo)
+        Node(conf, eInfo, in, None, i :: current.path)
+    }
+    // Now it is depth-first traversal. If you change 
+    // deltaLeaves ++ ls -> ls ++ deltaLeaves,
+    // you will have breadth-first traversal
+    Graph(deltaLeaves ++ incompleteLeaves.tail, completeLeaves, current :: completeNodes)
+  }
+  /*! Just folding: creating a loopback and moving the node into the complete part 
+   *  of the SC graph.  
+   */
+  def fold(backPath: Path): Graph[C, D, E] = {
+    val node = current.copy(back = Some(backPath))
+    Graph(incompleteLeaves.tail, node :: completeLeaves, node :: completeNodes)
+  }
+  /*! Replacing the configuration of the current node. 
+   *  The main use case is the rebuilding (generalization) of the active node.
+   */
+  def rebuild(conf: C, extra: E): Graph[C, D, E] = {
+    val node = current.copy(conf = conf, extraInfo = extra)
+    Graph(node :: incompleteLeaves.tail, completeLeaves, completeNodes)
+  }
+  /*! When doing rollback, we also prune all successors of the dangerous node. 
+   */
+  def rollback(dangNode: Node[C, D, E], c: C, eInfo: E) = {
+    def prune_?(n: Node[C, D, E]) = n.tPath.startsWith(dangNode.tPath)
+    val node = dangNode.copy(conf = c, extraInfo = eInfo)
+    val completeNodes1 = completeNodes.remove(prune_?)
+    val completeLeaves1 = completeLeaves.remove(prune_?)
+    val incompleteLeaves1 = incompleteLeaves.tail.remove(prune_?)
+    Graph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
+  }
 }
 
 /*!# Abstract machines
@@ -48,174 +87,80 @@ trait CoGraphConsumer[C, D, E, R] {
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 trait Machine[C, D, E] {
-  type PS = PState[C, D, E]
-  type CMD = Command[C, D, E]
-  def steps(pState: PS): List[CMD]
+  type G = Graph[C, D, E]
+  def steps(g: G): List[G]
 }
 
-/*!# Abstract steps
+/*!# Equivalence and instance relations on configurations
   
- Under the hood an abstract machine deals with some kind of semantics of the language.
- Low-level operations should be translated into high-level abstract operations (or messages) 
- over SC graphs.
- */
-sealed trait Command[+C, +D, +E]
-
-/*! The step `MMakeLeaf` means that the current branch of the graph in focus is
-   a terminal node (leaf).
- */
-case object ConvertToLeaf extends Command[Nothing, Nothing, Nothing]
-
-/*! `MAddForest` corresponds to development of current branch of the graph (driving in 90%).
- Development is divided into several `subSteps`.
- */
-case class AddChildNodes[C, D, E](ns: List[(C, D, E)]) extends Command[C, D, E]
-
-/*! `MFold` signals that there is a path to something similar to the current state in the past
- of the current SC Graph.
- */
-case class Fold(coPath: CoPath) extends Command[Nothing, Nothing, Nothing]
-
-/*! The step `MPrune` means that the current graph should be discarded. In the case of 
- the "single-result" supercompilation it means failure (= no good result). In the case of
- multi-result supercompilation it means that we should continue with the next variant.   
- */
-case object Discard extends Command[Nothing, Nothing, Nothing]
-
-/*! `MReplace` is fixing the current state of the branch.
- */
-case class Rebuild[C, D, E](conf: C, extraInfo: E) extends Command[C, D, E]
-
-/*! `MRollback` is fixing the past `dangerous` state of the current branch.
- */
-case class Rollback[C, D, E](to: CoNode[C, D, E],
-  val conf: C, val extraInfo: E) extends Command[C, D, E]
-
-/*!# SC cographs builders
- 
- SC cographs builders implement the logic of constructing SC cographs step-by-step by invoking
- provided abstract machines. They build cographs - it is up to `CoGraphConsumer` how to use this 
- cograph further.
+  If the current configuration is `equivalent` to another configuration labeling
+  an ancestor node, the supercompiler can loop back to that ancestor.
+  (Looping back to arbitrary completed nodes is also possible if the operation
+  `rollback` is not used, so that non-ancestor nodes cannot be pruned.)
+  If the current configuration is an `instance` of another configuration
+  the supercompiler may perform some actions in order to make looping
+  back possible.
+  
+  At the semantic level a configuration c is regarded as a representation of set(c),
+  a set of states of a computation process.
+  It is assumed that
+    (1) equiv(c1, c2) implies that set(c1) = set(c2);
+    (2) instanceOf(c1, c2) implies set(c1) <= set(c2).
+    
+  Note that, `equiv` and `instanceOf` are supposed to be computable and total.
+  On the other hand, the relations set(c1) = set(c2) and set(c1) <= set(c2) are,
+  generally, not decidable. For this reason, in the general case,
+  `equiv`  and `instanceOf` are not required to be transitive, and `instanceOf`
+  is not required to be antisymmetric.
  */
 
-/*! `MultiCoGraphBuilder` considers all steps returned by `MultiResultMachine` and proceeds with
-  all possible variants.
- */
-class CoGraphBuilder[C, D, E](machine: Machine[C, D, E], consumer: CoGraphConsumer[C, D, E, _]) {
-  import CoGraphBuilder._
-
-  /*! It maintains a list of partial cographs ...
-   */
-  var partialCoGraphs: List[PartialCoGraph[C, D, E]] = null
-
-  /*! ... starts with a one-element list of partial cographs ... 
-   */
-  def buildCoGraph(conf: C, info: E): Unit = {
-    partialCoGraphs = List(start(conf, info))
-    loop()
-  }
-
-  /*! ... and loops
-   */
-  @tailrec
-  private def loop(): Unit =
-    partialCoGraphs match {
-      /*! If `partialCoGraphs` is empty, then it just stops, */
-      case Nil =>
-      /*! otherwise it investigates the status of the first cograph: */
-      case g :: gs =>
-        g.activeLeaf match {
-          /*! If the first cograph is completed, builder transforms it to the pure cograph
-           and sends it to the consumer. 
-          */
-          case None =>
-            // TODO: do we need to sort it??
-            val completed = complete(g)
-            partialCoGraphs = gs
-            consumer.consume(Some(completed))
-
-          /*! If the first cograph is incomplete, then builder considers all variants suggested
-           by `machine`:
-           */
-          case Some(leaf) =>
-            partialCoGraphs = gs
-            for (step <- machine.steps(g.pState)) step match {
-              /*! informing `consumer` about pruning, if any */
-              case Discard =>
-                consumer.consume(None)
-              /*! or adding new cograph to the pending list otherwise */
-              case s =>
-                partialCoGraphs = executeCommand(g, s) :: partialCoGraphs
-            }
-        }
-        /*! and looping again. */
-        loop()
-    }
+trait EquivAndInstanceOf[C] {
+  def equiv(c1: C, c2: C): Boolean 
+  def instanceOf(c1: C, c2: C): Boolean
 }
 
-/*! The main logic of MRSC is here. 
-   Step created by SC machine is "applied" to the current active leaf.
-*/
-object CoGraphBuilder {
-  def start[C, D, E](c: C, e: E): PartialCoGraph[C, D, E] = {
-    val startNode = CoNode[C, D, E](c, e, null, None, Nil)
-    new PartialCoGraph(List(startNode), Nil, Nil)
+/*!# Processing of complete and unworkable graphs
+ 
+ A graph producer knows only how to build a graph, but not what to do with this graph later.
+ */
+
+/*! This class produces iterators producing graphs by demand. */
+
+case class GraphProducer[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
+  extends Iterator[Graph[C, D, E]] {
+
+  /*! It maintains a list of graphs
+     * and starts with a one-element list of graphs. 
+     */
+
+  private var gs: List[Graph[C, D, E]] = List(initial(conf, info))
+
+  private def initial(c: C, e: E): Graph[C, D, E] = {
+    val initialNode = Node[C, D, E](c, e, null, None, Nil)
+    new Graph(List(initialNode), Nil, Nil)
   }
 
-  def executeCommand[C, D, E](g: PartialCoGraph[C, D, E], command: Command[C, D, E]): PartialCoGraph[C, D, E] = g.incompleteLeaves match {
-    case active :: ls =>
-      command match {
-        /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
-         */
-        case ConvertToLeaf =>
-          PartialCoGraph(ls, active :: g.completeLeaves, active :: g.complete)
-        /*! Replacing the configuration of the current node. 
-           The main use case is the rebuilding (generalization) of the active node.
-         */
-        case Rebuild(conf, extra) =>
-          val node = active.copy(conf = conf, extraInfo = extra)
-          PartialCoGraph(node :: ls, g.completeLeaves, g.complete)
-        /*! Just folding: creating a loopback and moving the node into the complete part 
-            of the SC graph.  
-         */
-        case Fold(basePath) =>
-          val node = active.copy(base = Some(basePath))
-          PartialCoGraph(ls, node :: g.completeLeaves, node :: g.complete)
-        /*! This step corresponds (mainly) to driving: adds children to the current node. Then
-            current node is moved to the complete part and new children are moved into 
-            the incomplete part. Also the (co-)path is calculated for any child node.
-         */
-        case AddChildNodes(ns) =>
-          val deltaLeaves: List[CoNode[C, D, E]] = ns.zipWithIndex map {
-            case ((conf, dInfo, eInfo), i) =>
-              val in = CoEdge(active, dInfo)
-              CoNode(conf, eInfo, in, None, i :: active.coPath)
-          }
-          // Now it is depth-first traversal. If you change 
-          // deltaLeaves ++ ls -> ls ++ deltaLeaves,
-          // you will have breadth-first traversal
-          PartialCoGraph(deltaLeaves ++ ls, g.completeLeaves, active :: g.complete)
-        /*! When doing rollback, we also prune all successors of the dangerous node. 
-         */
-        case Rollback(dangNode, c, eInfo) =>
-          def prune_?(n: CoNode[C, D, E]) = n.path.startsWith(dangNode.path)
-          val node = dangNode.copy(conf = c, extraInfo = eInfo)
-          val completeNodes1 = g.complete.remove(prune_?)
-          val completeLeaves1 = g.completeLeaves.remove(prune_?)
-          val incompleteLeaves1 = ls.remove(prune_?)
-          PartialCoGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
-        /*! A graph cannot prune itself - it should be performed by a builder.
-         */
-        case Discard =>
-          throw new Error()
-      }
-    case _ =>
-      throw new Error()
+  private def normalize() {
+    while (true) {
+      if (gs.isEmpty)
+        return
+      val g = gs.head
+      if (g.isComplete || g.isUnworkable)
+        return
+      gs = machine.steps(g) ++ gs.tail
+    }
   }
 
-  def complete[C, D, E](g: PartialCoGraph[C, D, E]): CoGraph[C, D, E] = {
-    val orderedNodes = g.complete.sortBy(_.coPath)(PathOrdering)
-    val rootNode = orderedNodes.head
-    CoGraph(rootNode, g.completeLeaves, orderedNodes)
+  def hasNext: Boolean = {
+    normalize()
+    !gs.isEmpty
+  }
+
+  def next(): Graph[C, D, E] = {
+    if (!hasNext)
+      throw new NoSuchElementException("no graph")
+    val g = gs.head
+    gs = gs.tail
+    g
   }
 }
