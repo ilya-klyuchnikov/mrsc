@@ -1,9 +1,9 @@
 package mrsc.trs
 
-import mrsc.core._
-
-trait TRSSyntax[C] extends EquivAndInstanceOf[C] {
+trait TRSSyntax[C] {
   def rebuildings(c: C): List[C]
+  def equiv(c1: C, c2: C): Boolean 
+  def instanceOf(c1: C, c2: C): Boolean
 }
 
 // There are n rules. Variants should return a list of length n
