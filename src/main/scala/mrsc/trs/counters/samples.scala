@@ -3,14 +3,20 @@ package mrsc.trs.counters
 import mrsc.core._
 import mrsc.trs._
 
-trait LGen extends PreSyntax[OmegaConf] {
+trait LGen extends TRSSyntax[OmegaConf] {
   val l: Int
   override def rebuildings(c: OmegaConf) =
     List(c.map { e => if (e >= l) Omega else e })
 }
 
-case class CounterSc(val protocol: Protocol, val l: Int)
-  extends CountersPreSyntax
+trait ProtocolSafetyAware extends SafetyAware[OmegaConf, Int] {
+  val protocol: Protocol
+  override def unsafe(counter: OmegaConf): Boolean =
+    protocol.unsafe(counter)
+}
+
+case class CounterMachine(val protocol: Protocol, val l: Int)
+  extends CountersSyntax
   with LGen
   with LWhistle
   with CountersSemantics
@@ -19,8 +25,8 @@ case class CounterSc(val protocol: Protocol, val l: Int)
   with SimpleUnaryWhistle[OmegaConf, Int]
   with SimpleCurrentGensOnWhistle[OmegaConf, Int]
 
-case class CounterMultiSc(val protocol: Protocol, val l: Int)
-  extends CountersPreSyntax
+case class CounterMultiMachine(val protocol: Protocol, val l: Int)
+  extends CountersSyntax
   with LWhistle
   with CountersSemantics
   with RuleDriving[OmegaConf]
@@ -29,53 +35,43 @@ case class CounterMultiSc(val protocol: Protocol, val l: Int)
   with ProtocolSafetyAware
   with SimpleGensWithUnaryWhistle[OmegaConf, Int]
 
-trait ProtocolSafetyAware extends LWhistle {
-  val protocol: Protocol
-  override def unsafe(counter: OmegaConf): Boolean =
-    super.unsafe(counter) || protocol.unsafe(counter)
-}
-
 object CounterSamples extends App {
   
-  import mrsc.pfp.NoExtra
-
-  def graphSize(g: Graph[_, _, _]): Int =
+  def graphSize(g: TGraph[_, _, _]): Int =
     size(g.root)
 
-  def size(n: Node[_, _, _]): Int = 1 + n.outs.map(out => size(out.node)).sum
+  def size(n: TNode[_, _, _]): Int = 1 + n.outs.map(out => size(out.tNode)).sum
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
-    val sc = CounterSc(protocol, l)
-    val consumer = new SimpleGraphConsumer[OmegaConf, Int]
-    val builder = new CoGraphBuilder(sc, consumer)
-    builder.buildCoGraph(protocol.start, NoExtra)
+    val machine = CounterMachine(protocol, l)
+    val graphs = GraphProducer(machine, protocol.start, ())
 
-    for (graph <- consumer.result) {
+    for (graph <- graphs) {
+      val tgraph = Transformations.transpose(graph)
       println("================================")
       println()
-      println(graph)
+      println(tgraph)
       println()
-      println(checkSubTree(protocol.unsafe)(graph.root))
+      //val isSafe = checkSubTree(protocol.unsafe)(tgraph.root)
+      println(graph.isComplete || !protocol.unsafe(graph.current.conf))
       println()
     }
   }
 
   def multiScProtocol(protocol: Protocol, l: Int): Unit = {
-    val sc = CounterMultiSc(protocol, l)
-    val consumer = new SimpleGraphConsumer[OmegaConf, Int]
-    val builder = new CoGraphBuilder(sc, consumer)
-    builder.buildCoGraph(protocol.start, NoExtra)
-    val graphs = consumer.result
-
-    val successGraphs = graphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
+    val machine = CounterMultiMachine(protocol, l)
+    val graphs = GraphProducer(machine, protocol.start, ())
+    val tgraphs = graphs map Transformations.transpose
+    val successGraphs = tgraphs filter (_.isComplete)
+    //val successGraphs = tgraphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
     if (!successGraphs.isEmpty) {
       val minGraph = successGraphs.minBy(graphSize)
       println(minGraph)
     }
   }
 
-  def checkSubTree(unsafe: OmegaConf => Boolean)(node: Node[OmegaConf, _, _]): Boolean =
-    !unsafe(node.conf) && node.outs.map(_.node).forall(checkSubTree(unsafe))
+  def checkSubTree(unsafe: OmegaConf => Boolean)(node: TNode[OmegaConf, _, _]): Boolean =
+    !unsafe(node.conf) && node.outs.map(_.tNode).forall(checkSubTree(unsafe))
 
   def verifyProtocol(protocol: Protocol, findMinimalProof: Boolean = true): Unit = {
     println()
