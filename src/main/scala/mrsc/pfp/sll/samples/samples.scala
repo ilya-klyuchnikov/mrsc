@@ -155,8 +155,8 @@ object Samples {
   def preRunTasks(): Unit = {
     println("Counting completed graphs")
     println()
-    val header = expand(40, """Task \ Supercompiler""") + expandRight(8, "1") +
-      expandRight(8, "2") + expandRight(8, "3")
+    val header = expand(40, """Task \ Supercompiler""") + expandRight(12, "1") +
+      expandRight(12, "2") + expandRight(12, "3")
     println(header)
     println()
     
@@ -198,7 +198,7 @@ object Samples {
 
       try { graphs foreach (_ => ()) } catch { case _ => }
 
-      val res = expandRight(8, graphs.completed + "")
+      val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
       print(res)
     }
     
@@ -208,7 +208,7 @@ object Samples {
 
       try { graphs foreach (_ => ()) } catch { case _ => }
       
-      val res = expandRight(8, graphs.completed + "")
+      val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
       print(res)
     }
     
@@ -218,7 +218,7 @@ object Samples {
 
       try { graphs foreach (_ => ()) } catch { case _ => }
 
-      val res = expandRight(8, graphs.completed + "")
+      val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
       print(res)
     }
 
