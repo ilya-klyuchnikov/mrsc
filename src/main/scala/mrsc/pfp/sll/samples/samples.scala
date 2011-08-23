@@ -84,170 +84,6 @@ object Samples {
   def classic2(w: PartialOrdering[Expr])(p: Program) = new ClassicCurrentGen(p, w)
   def classic3(w: PartialOrdering[Expr])(p: Program) = new ClassicMix(p, w)
 
-  // just tries classic variants of 
-  // SLL supercompilation
-  def testRun(task: SLLTask): Unit = {
-
-    println("************************")
-    println(task.target)
-    println("************************")
-    println()
-    
-    {
-      val m1 = classic1(HEByCouplingWhistle)(task.program)
-      val producer = SingleProgramProducer(SLLResiduator)
-      val residualProgram = producer(m1, task.target, NoExtra)
-
-      println("**classic+ up:**")
-      println(PrettySLL.pretty(residualProgram))
-
-      Checker.check(task, Lifting.expr2Task(residualProgram))
-    }
-
-    {
-      val m2 = classic2(HEByCouplingWhistle)(task.program)
-      val producer = SingleProgramProducer(SLLResiduator)
-      val residualProgram = producer(m2, task.target, NoExtra)
-
-      println("**classic+ down:**")
-      println(PrettySLL.pretty(residualProgram))
-
-      Checker.check(task, Lifting.expr2Task(residualProgram))
-    }
-
-     println("**others:**")
-     
-    {
-      val m3 = classic3(HEByCouplingWhistle)(task.program)
-      val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
-      
-      for (sllTask2 <- residuals) {
-        println(PrettySLL.pretty(sllTask2))
-        println("***")
-        val taskS = Lifting.expr2Task(sllTask2)
-        println(taskS)
-        println("+++")
-        Checker.check(task, taskS)
-      }
-      val completed = residuals.completed
-      val discarded = residuals.unworkable
-    }
-
-    {
-      val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      val residuals = ResiduatingProducer(m3, task.target, NoExtra, SLLResiduator)
-
-      for (sllTask2 <- residuals) {
-        println(PrettySLL.pretty(sllTask2))
-        println("***")
-        val taskS = Lifting.expr2Task(sllTask2)
-        println(taskS)
-        println("+++")
-        Checker.check(task, taskS)
-      }
-      val completed = residuals.completed
-      val discarded = residuals.unworkable
-    }
-
-    println()
-  }
-
-  def preRunTasks(): Unit = {
-    println("Counting completed graphs")
-    println()
-    val header = expand(40, """Task \ Supercompiler""") + expandRight(12, "1") +
-      expandRight(12, "2") + expandRight(12, "3")
-    println(header)
-    println()
-    
-    preRun(SLLTasks.namedTasks("NaiveFib"))
-    preRun(SLLTasks.namedTasks("FastFib"))
-    preRun(SLLTasks.namedTasks("EqPlus"))
-    preRun(SLLTasks.namedTasks("EqPlusa"))
-    preRun(SLLTasks.namedTasks("EqPlusb"))
-    preRun(SLLTasks.namedTasks("EqPlusc"))
-    preRun(SLLTasks.namedTasks("EqPlus1"))
-    preRun(SLLTasks.namedTasks("EqPlus1a"))
-    preRun(SLLTasks.namedTasks("EqPlus1b"))
-    preRun(SLLTasks.namedTasks("EqPlus1c"))
-    preRun(SLLTasks.namedTasks("OddEven"))
-    preRun(SLLTasks.namedTasks("EvenMult"))
-    preRun(SLLTasks.namedTasks("EvenSqr"))
-    preRun(SLLTasks.namedTasks("NaiveReverse"))
-    preRun(SLLTasks.namedTasks("FastReverse"))
-    preRun(SLLTasks.namedTasks("LastDouble"))
-    preRun(SLLTasks.namedTasks("App"))
-    preRun(SLLTasks.namedTasks("Idle"))
-    
-    println()
-    println("1 - classic msg mix, he by coupling")
-    println("2 - all gens (up and down by whistle), he")
-    println("3 - always gen, he")
-    
-    println()
-    println()
-  }
-
-  def preRun(task: SLLTask): Unit = {
-    val info = expand(40, task.target.toString)
-    print(info)
-
-    {
-      val machine = new ClassicMix(task.program, HEByCouplingWhistle)
-      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
-
-      try { graphs foreach (_ => ()) } catch { case _: ModelingError => }
-
-      val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
-      print(res)
-    }
-    
-    {
-      val machine = new Multi4(task.program, HEWhistle)
-      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
-
-      try { graphs foreach (_ => ()) } catch { case _: ModelingError => }
-      
-      val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
-      print(res)
-    }
-    
-    {
-      val machine = new Multi1(task.program, HEWhistle)
-      val graphs = CountingGraphProducer(machine, task.target, NoExtra)
-
-      try { graphs foreach (_ => ()) } catch { case _: ModelingError => }
-
-      val res = expandRight(12, graphs.completed + "/" + graphs.unworkable)
-      print(res)
-    }
-
-    println()
-  }
-
-  def testRunTasks(): Unit = {
-
-    testRun(SLLTasks.namedTasks("NaiveFib"))
-    testRun(SLLTasks.namedTasks("FastFib"))
-    testRun(SLLTasks.namedTasks("EqPlus"))
-    testRun(SLLTasks.namedTasks("EqPlusa"))
-    testRun(SLLTasks.namedTasks("EqPlusb"))
-    testRun(SLLTasks.namedTasks("EqPlusc"))
-    testRun(SLLTasks.namedTasks("EqPlus1"))
-    testRun(SLLTasks.namedTasks("EqPlus1a"))
-    testRun(SLLTasks.namedTasks("EqPlus1b"))
-    testRun(SLLTasks.namedTasks("EqPlus1c"))
-    testRun(SLLTasks.namedTasks("OddEven"))
-    testRun(SLLTasks.namedTasks("EvenMult"))
-    testRun(SLLTasks.namedTasks("EvenSqr"))
-    testRun(SLLTasks.namedTasks("NaiveReverse"))
-    testRun(SLLTasks.namedTasks("FastReverse"))
-    testRun(SLLTasks.namedTasks("LastDouble"))
-    testRun(SLLTasks.namedTasks("App"))
-    testRun(SLLTasks.namedTasks("Idle"))
-
-  }
-
   private def expand(n: Int, s: String): String = {
     val init = " " * n
     val tmp = s + init
@@ -260,6 +96,148 @@ object Samples {
     tmp takeRight n
   }
 
+  private def residuateAndCheck(gen: GraphGenerator[Expr, DriveInfo[Expr], Extra[Expr]], task: SLLTask): Unit = {
+    for (g <- gen if g.isComplete) {
+      val t = Transformations.transpose(g)
+      println(t)
+      val res = SLLResiduator.residuate(t)
+      println(PrettySLL.pretty(res))
+      Checker.check(task, Lifting.expr2Task(res))
+    }
+  }
+
+  // just tries classic variants of 
+  // SLL supercompilation
+  def showResidualPrograms(task: SLLTask): Unit = {
+
+    println("************************")
+    println(task.target)
+    println("************************")
+    println()
+
+    {
+      println("**classic+ up:**")
+      val m1 = classic1(HEByCouplingWhistle)(task.program)
+      residuateAndCheck(new GraphGenerator(m1, task.target, NoExtra), task)
+    }
+
+    {
+      println("**classic+ down:**")
+      val m2 = classic2(HEByCouplingWhistle)(task.program)
+      residuateAndCheck(new GraphGenerator(m2, task.target, NoExtra), task)
+
+    }
+
+    println("**others:**")
+
+    {
+      val m3 = classic3(HEByCouplingWhistle)(task.program)
+      residuateAndCheck(new GraphGenerator(m3, task.target, NoExtra), task)
+    }
+
+    {
+      val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
+      residuateAndCheck(new GraphGenerator(m3, task.target, NoExtra), task)
+    }
+
+    println()
+  }
+
+  def showResidualProgramsForTasks(): Unit = {
+
+    showResidualPrograms(SLLTasks.namedTasks("NaiveFib"))
+    showResidualPrograms(SLLTasks.namedTasks("FastFib"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlus"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlusa"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlusb"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlusc"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlus1"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlus1a"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlus1b"))
+    showResidualPrograms(SLLTasks.namedTasks("EqPlus1c"))
+    showResidualPrograms(SLLTasks.namedTasks("OddEven"))
+    showResidualPrograms(SLLTasks.namedTasks("EvenMult"))
+    showResidualPrograms(SLLTasks.namedTasks("EvenSqr"))
+    showResidualPrograms(SLLTasks.namedTasks("NaiveReverse"))
+    showResidualPrograms(SLLTasks.namedTasks("FastReverse"))
+    showResidualPrograms(SLLTasks.namedTasks("LastDouble"))
+    showResidualPrograms(SLLTasks.namedTasks("App"))
+    showResidualPrograms(SLLTasks.namedTasks("Idle"))
+
+  }
+
+  // count graphs
+  def count(gen: GraphGenerator[_, _, _], limit: Integer = 2000): (Integer, Integer) = {
+    var completed = 0
+    var unworkable = 0
+    for (g <- gen) {
+      if (g.isComplete) {
+        completed += 1
+      } else {
+        unworkable += 1
+      }
+      if (completed > limit) {
+        return (-1, -1)
+      }
+    }
+    (completed, unworkable)
+  }
+
+  def countGraphs(task: SLLTask): Unit = {
+    val info = expand(40, task.target.toString)
+    print(info)
+
+    val machines = List(
+      new ClassicMix(task.program, HEByCouplingWhistle),
+      new Multi4(task.program, HEWhistle),
+      new Multi1(task.program, HEWhistle))
+
+    machines foreach { m =>
+      val gen = GraphGenerator(m, task.target, NoExtra)
+      val (completed, unworkable) = count(gen)
+      val res = expandRight(12, completed + "/" + unworkable)
+      print(res)
+    }
+
+    println()
+  }
+
+  def countGraphsForTasks(): Unit = {
+    println("Counting completed graphs")
+    println()
+    val header = expand(40, """Task \ Supercompiler""") + expandRight(12, "1") +
+      expandRight(12, "2") + expandRight(12, "3")
+    println(header)
+    println()
+
+    countGraphs(SLLTasks.namedTasks("NaiveFib"))
+    countGraphs(SLLTasks.namedTasks("FastFib"))
+    countGraphs(SLLTasks.namedTasks("EqPlus"))
+    countGraphs(SLLTasks.namedTasks("EqPlusa"))
+    countGraphs(SLLTasks.namedTasks("EqPlusb"))
+    countGraphs(SLLTasks.namedTasks("EqPlusc"))
+    countGraphs(SLLTasks.namedTasks("EqPlus1"))
+    countGraphs(SLLTasks.namedTasks("EqPlus1a"))
+    countGraphs(SLLTasks.namedTasks("EqPlus1b"))
+    countGraphs(SLLTasks.namedTasks("EqPlus1c"))
+    countGraphs(SLLTasks.namedTasks("OddEven"))
+    countGraphs(SLLTasks.namedTasks("EvenMult"))
+    countGraphs(SLLTasks.namedTasks("EvenSqr"))
+    countGraphs(SLLTasks.namedTasks("NaiveReverse"))
+    countGraphs(SLLTasks.namedTasks("FastReverse"))
+    countGraphs(SLLTasks.namedTasks("LastDouble"))
+    countGraphs(SLLTasks.namedTasks("App"))
+    countGraphs(SLLTasks.namedTasks("Idle"))
+
+    println()
+    println("1 - classic msg mix, he by coupling")
+    println("2 - all gens (up and down by whistle), he")
+    println("3 - always gen, he")
+
+    println()
+    println()
+  }
+
   def main(args: Array[String]): Unit = {
 
     // 85726 completed graphs here:
@@ -267,10 +245,10 @@ object Samples {
 
     // 0 results here (because only UP generalization is allowed)
     // runTask(SLLTasks.namedTasks("FastFib"), multi3(HEByCouplingWhistle)_)
-    
-    preRunTasks()
-    
-    testRunTasks()
+
+    countGraphsForTasks()
+
+    showResidualProgramsForTasks()
 
   }
 
