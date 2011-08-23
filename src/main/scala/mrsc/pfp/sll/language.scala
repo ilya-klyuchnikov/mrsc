@@ -23,6 +23,9 @@ trait SLLSyntax extends PFPSyntax[Expr] {
     SLLSyntax.findSubst(from, to)
 
   override def size(e: Expr) = e.size
+  override val subclass = new SimplePartialOrdering[Expr] {
+    override def lteq(c1: Expr, c2: Expr) = SLLSyntax.instanceOf(c1, c2)
+  }
 
 }
 
