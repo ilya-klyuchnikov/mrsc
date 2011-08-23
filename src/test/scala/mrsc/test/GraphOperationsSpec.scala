@@ -8,7 +8,7 @@ import mrsc.core._
 import mrsc.pfp._
 
 @RunWith(classOf[JUnitRunner])
-class BuilderCommandSpec extends mutable.Specification {
+class GraphOperationsSpec extends mutable.Specification {
   args(sequential = true)
 
   var g1, g2: Graph[Int, String, Extra[String]] = _

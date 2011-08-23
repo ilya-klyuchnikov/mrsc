@@ -1,6 +1,5 @@
 package mrsc.trs.counters
 
-import mrsc.core.SimplePartialOrdering
 import mrsc.trs._
 
 sealed trait Component {

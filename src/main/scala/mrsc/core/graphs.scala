@@ -50,8 +50,7 @@ case class Edge[C, D, E](node: Node[C, D, E], driveInfo: D)
   `E` (extra information) is a type of extra label of a node (extra info). 
   Extra information may be seen as an additional "instrumentation" of SC graph.
  */
-case class TGraph[C, D, E](root: TNode[C, D, E], leaves: List[TNode[C, D, E]],
-    isComplete: Boolean = true, isUnworkable: Boolean = false) {
+case class TGraph[C, D, E](root: TNode[C, D, E], leaves: List[TNode[C, D, E]]) {
   def get(tPath: TPath): TNode[C, D, E] = root.get(tPath)
   override def toString = root.toString
 }
@@ -97,6 +96,86 @@ case class Node[C, D, E](
   override def toString = conf.toString
 }
 
+/*! `Graph[C, D, E]` is a central concept of MRSC.
+ * It may represent (1) a "work in progress" (2) a completed graph and
+ * (3) and unfinished yet unworkable graph.
+ * We know already processed part of an SC graph
+ * (`completeLeaves`, `completeNodes`) and a frontier 
+ * of incomplete part (`incompleteLeaves`).
+ */
+case class Graph[C, D, E](
+  incompleteLeaves: List[Node[C, D, E]],
+  completeLeaves: List[Node[C, D, E]],
+  completeNodes: List[Node[C, D, E]],
+  isUnworkable: Boolean = false) {
+
+  /*! `isUnworkable` = is not good for further processing (for some reason).
+   *  'isComplete` = is finished, there is nothing to do.
+   */
+  val isComplete = incompleteLeaves.isEmpty 
+  def toUnworkable() = this.copy(isUnworkable = true)
+  
+  /*! `current` is the vanguard of the incomplete part. It will be processed next.
+   */
+  val current = if (isComplete) null else incompleteLeaves.head
+  
+  /*! Transformations performed over graphs by driving
+   *  (and some other parts of the supercompiler?)
+   *  Perhaps, they might be exposed via a trait?
+   */
+
+  /*!# Abstract steps
+     Under the hood an abstract machine deals with some kind of semantics of the language.
+     Low-level operations should be translated into high-level abstract operations (or messages) 
+     over SC graphs.
+  */
+
+  /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
+   */
+  def completeCurrentNode() : Graph[C, D, E] = {
+    Graph(incompleteLeaves.tail, current :: completeLeaves, current :: completeNodes)
+  }
+  /*! This step corresponds (mainly) to driving: adds children to the current node. Then
+   *  current node is moved to the complete part and new children are moved into 
+   *  the incomplete part. Also the (co-)path is calculated for any child node.
+   */
+  def addChildNodes(ns: List[(C, D, E)]) = {
+    val deltaLeaves: List[Node[C, D, E]] = ns.zipWithIndex map {
+      case ((conf, dInfo, eInfo), i) =>
+        val in = Edge(current, dInfo)
+        Node(conf, eInfo, in, None, i :: current.path)
+    }
+    // Now it is depth-first traversal. If you change 
+    // deltaLeaves ++ ls -> ls ++ deltaLeaves,
+    // you will have breadth-first traversal
+    Graph(deltaLeaves ++ incompleteLeaves.tail, completeLeaves, current :: completeNodes)
+  }
+  /*! Just folding: creating a loopback and moving the node into the complete part 
+   *  of the SC graph.  
+   */
+  def fold(backPath: Path): Graph[C, D, E] = {
+    val node = current.copy(back = Some(backPath))
+    Graph(incompleteLeaves.tail, node :: completeLeaves, node :: completeNodes)
+  }
+  /*! Replacing the configuration of the current node. 
+   *  The main use case is the rebuilding (generalization) of the active node.
+   */
+  def rebuild(conf: C, extra: E): Graph[C, D, E] = {
+    val node = current.copy(conf = conf, extraInfo = extra)
+    Graph(node :: incompleteLeaves.tail, completeLeaves, completeNodes)
+  }
+  /*! When doing rollback, we also prune all successors of the dangerous node. 
+   */
+  def rollback(dangNode: Node[C, D, E], c: C, eInfo: E) = {
+    def prune_?(n: Node[C, D, E]) = n.tPath.startsWith(dangNode.tPath)
+    val node = dangNode.copy(conf = c, extraInfo = eInfo)
+    val completeNodes1 = completeNodes.remove(prune_?)
+    val completeLeaves1 = completeLeaves.remove(prune_?)
+    val incompleteLeaves1 = incompleteLeaves.tail.remove(prune_?)
+    Graph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
+  }
+}
+
 /*! Auxiliary data for transposing a graph into a transposed graph.
  */
 case class Tmp[C, D, E](node: TNode[C, D, E], in: Edge[C, D, E])
@@ -108,7 +187,7 @@ object Transformations {
    levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
   def transpose[C, D, E](g: Graph[C, D, E]): TGraph[C, D, E] = {
-    //assert(g.isComplete)
+    require(g.isComplete)
     val allLeaves = g.incompleteLeaves ++ g.completeLeaves
     val allNodes = g.incompleteLeaves ++ g.completeNodes
     val orderedNodes = allNodes.sortBy(_.path)(PathOrdering)
@@ -120,7 +199,7 @@ object Transformations {
     val (tNodes, tLeaves) = subTranspose(sortedLevels, leafPathes)
     val nodes = tNodes map { _.node }
     val leaves = tLeaves map { _.node }
-    return TGraph(nodes(0), leaves, g.isComplete, g.isUnworkable)
+    return TGraph(nodes(0), leaves)
   }
 
   // sub-transposes graph into transposed graph level-by-level

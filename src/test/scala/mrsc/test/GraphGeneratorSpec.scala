@@ -8,26 +8,25 @@ import mrsc.core._
 import mrsc.pfp._
 
 object TinyMachine extends Machine[Int, String, Extra[String]] {
-  def steps(g: Graph[Int, String, Extra[String]])
-    : List[Graph[Int, String, Extra[String]]] =
+  def steps(g: Graph[Int, String, Extra[String]]): List[Graph[Int, String, Extra[String]]] =
     g.current.conf match {
-    case 0 =>
-      List(g.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
-    case 1 =>
-      List(g.completeCurrentNode())
-    case 2 =>
-      List(g.rebuild(21, NoExtra))
-    case 21 =>
-      List(g.rollback(g.current.in.node, -1, NoExtra))
-    case -1 =>
-      List(g.addChildNodes(List((11, "-1 -> 11", NoExtra))))
-    case 11 =>
-      List(g.fold(List()))
-  }
+      case 0 =>
+        List(g.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
+      case 1 =>
+        List(g.completeCurrentNode())
+      case 2 =>
+        List(g.rebuild(21, NoExtra))
+      case 21 =>
+        List(g.rollback(g.current.in.node, -1, NoExtra))
+      case -1 =>
+        List(g.addChildNodes(List((11, "-1 -> 11", NoExtra))))
+      case 11 =>
+        List(g.fold(List()))
+    }
 }
 
 @RunWith(classOf[JUnitRunner])
-class ProducerMachineSpec extends mutable.Specification {
+class GraphGeneratorSpec extends mutable.Specification {
   args(sequential = true)
 
   val graph: TGraph[Int, String, Extra[String]] = {
@@ -37,12 +36,10 @@ class ProducerMachineSpec extends mutable.Specification {
     TGraph(root = n0, leaves = List(n1))
   }
 
-  "GraphProducer with deterministic machine" should {    
+  "GraphGenerator with deterministic machine" should {
 
-    val producer = GraphProducer(TinyMachine, 0, NoExtra) map Transformations.transpose
-    val tgraphs = producer.toList
-    //assert(tgraphs == graphs)
-    
+    val tgraphs = GraphGenerator(TinyMachine, 0, NoExtra) map Transformations.transpose toList
+
     "produce just 1 result" in {
       tgraphs.size must_== 1
     }

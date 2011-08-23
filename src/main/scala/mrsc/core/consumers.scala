@@ -8,7 +8,7 @@ case class CountingGraphProducer[C, D, E](
   var completed = 0
   var unworkable = 0
 
-  private val graphs = GraphProducer(machine, conf, info)
+  private val graphs = GraphGenerator(machine, conf, info)
 
   def hasNext: Boolean = graphs.hasNext
 

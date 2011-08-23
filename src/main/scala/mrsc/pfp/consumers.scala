@@ -31,7 +31,7 @@ case class SingleProgramProducer[C](residuator: Residuation[C]) {
   var tgraph: TGraph[C, DriveInfo[C], Extra[C]] = null
 
   def apply(machine: Machine[C, DriveInfo[C], Extra[C]], conf: C, info: Extra[C]): C = {
-    val graphs = GraphProducer(machine, conf, info) filter (_.isComplete)
+    val graphs = GraphGenerator(machine, conf, info) filter (_.isComplete)
     assert(!graphs.isEmpty)
     val g = graphs.next()
     assert(graphs.isEmpty)
