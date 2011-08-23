@@ -2,7 +2,7 @@ package mrsc.core
 
 case class CountingGraphProducer[C, D, E](
   machine: Machine[C, D, E], conf: C, info: E,
-  maxCount: Int = 10000)
+  maxCount: Int = 2000)
   extends Iterator[Graph[C, D, E]] {
 
   var completed = 0

@@ -105,6 +105,7 @@ case class GraphProducer[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
      * and starts with a one-element list of graphs. 
      */
 
+  private var readyGs: List[Graph[C, D, E]] = List()
   private var gs: List[Graph[C, D, E]] = List(initial(conf, info))
 
   private def initial(c: C, e: E): Graph[C, D, E] = {
@@ -114,25 +115,32 @@ case class GraphProducer[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
 
   private def normalize() {
     while (true) {
+      if (!readyGs.isEmpty)
+        return
       if (gs.isEmpty)
         return
       val g = gs.head
-      if (g.isComplete || g.isUnworkable)
-        return
-      gs = machine.steps(g) ++ gs.tail
+      gs = gs.tail
+      for (g1 <- machine.steps(g)) {
+        if (g1.isComplete || g1.isUnworkable) {
+          readyGs = g1 :: readyGs
+        } else {
+          gs = g1 :: gs
+        }
+      }
     }
   }
 
   def hasNext: Boolean = {
     normalize()
-    !gs.isEmpty
+    !readyGs.isEmpty 
   }
 
   def next(): Graph[C, D, E] = {
     if (!hasNext)
       throw new NoSuchElementException("no graph")
-    val g = gs.head
-    gs = gs.tail
+    val g = readyGs.head
+    readyGs = readyGs.tail
     g
   }
 }
