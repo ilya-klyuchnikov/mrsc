@@ -40,13 +40,13 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
   def rebuildings(whistle: Option[Warning], g: G): List[G]
   def mayDiverge(g: G): Option[Warning]
 
-  override def steps(g :G): List[G] =
+  override def steps(g: G): List[G] =
     canFold(g) match {
       case Some(path) =>
         List(g.fold(path))
       case _ =>
         val whistle = mayDiverge(g)
-        val driveSteps = 
+        val driveSteps =
           if (whistle.isEmpty) drive(g) else List(g.toUnworkable())
         val rebuildSteps = rebuildings(whistle, g)
         driveSteps ++ rebuildSteps
@@ -97,7 +97,7 @@ trait AllRebuildings[C] extends PFPMachine[C] with PFPSyntax[C] {
 }
 
 trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[Warning], g:G): List[G] =
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
     whistle match {
       case None    => List()
       case Some(_) => rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
@@ -113,7 +113,7 @@ trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C]
 }
 
 trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuildings(whistle: Option[Warning], g:G): List[G] =
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
     whistle match {
       case None =>
         List()
@@ -126,10 +126,38 @@ trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C
     }
 }
 
+trait LowerAllBinaryGensOnBinaryWhistle[C] extends PFPMachine[C] with MutualGens[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
+    whistle match {
+      case None        => List()
+      case Some(upper) => mutualGens(g.current.conf, upper.conf) map translate map { g.rebuild(_, NoExtra) }
+    }
+}
+
+trait UpperAllBinaryGensOnBinaryWhistle[C] extends PFPMachine[C] with MutualGens[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
+    whistle match {
+      case None        => List()
+      case Some(upper) => mutualGens(upper.conf, g.current.conf) map translate map { g.rollback(upper, _, NoExtra) }
+    }
+}
+
+trait DoubleAllBinaryGensOnBinaryWhistle[C] extends PFPMachine[C] with MutualGens[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
+    whistle match {
+      case None =>
+        List()
+      case Some(upper) =>
+        val rollbacks = mutualGens(upper.conf, g.current.conf) map translate map { g.rollback(upper, _, NoExtra) }
+        val rebuilds = mutualGens(g.current.conf, upper.conf) map translate map { g.rebuild(_, NoExtra) }
+        rollbacks ++ rebuilds
+    }
+}
+
 trait UpperMsgOrLowerMggOnBinaryWhistle[C]
   extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[Warning], g:G): List[G] = {
+  def rebuildings(whistle: Option[Warning], g: G): List[G] = {
     whistle match {
       case Some(upper) =>
         val currentConf = g.current.conf
@@ -153,7 +181,7 @@ trait UpperMsgOrLowerMggOnBinaryWhistle[C]
 // funny: most specific down or most general up
 trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuildings(whistle: Option[Warning], g:G): List[G] = {
+  def rebuildings(whistle: Option[Warning], g: G): List[G] = {
     whistle match {
       case Some(upper) =>
         val currentConf = g.current.conf
