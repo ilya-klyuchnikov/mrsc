@@ -8,7 +8,43 @@ import mrsc.pfp.sll._
 
 case class ScResult(completed: Integer, unworkable: Integer, residuals: Set[Expr])
 
-object Counting {
+object Counting extends App {
+
+  val program: Program =
+    """
+    gApp(Cons(u, us), vs) = Cons(u, gApp(us, vs));
+    gApp(Nil(), vs) = vs;
+    gRev(Cons(x, xs))= gApp(gRev(xs), Cons(x, Nil()));
+    gRev(Nil()) = Nil();
+    gFRev(Cons(x, xs), ys) = gFRev(xs, Cons(x, ys));
+    gFRev(Nil(), ys) = ys;
+    gLast(Cons(x, xs)) = gLast(xs);
+    gLast(Nil()) = Nil(); 
+    """
+
+  val tasks = List(
+
+    SLLTask("gRev(xs)", program),
+    SLLTask("gFRev(xs, Nil())", program),
+
+    SLLTask("gRev(gRev(xs))", program),
+    SLLTask("gFRev(gRev(xs), Nil())", program),
+    SLLTask("gRev(gFRev(xs, Nil()))", program),
+    SLLTask("gFRev(gFRev(xs, Nil()), Nil())", program),
+
+    SLLTask("gLast(gRev(gRev(xs)))", program),
+    SLLTask("gLast(gFRev(gRev(xs), Nil()))", program),
+    SLLTask("gLast(gRev(gFRev(xs, Nil())))", program),
+    SLLTask("gLast(gFRev(gFRev(xs, Nil()), Nil()))", program),
+
+    SLLTask("gApp(xs, ys)", program),
+    SLLTask("gApp(xs, xs)", program),
+    SLLTask("gApp(gRev(xs), ys)", program),
+    SLLTask("gApp(gRev(xs), xs)", program),
+    SLLTask("gApp(xs, gRev(ys))", program),
+    SLLTask("gApp(xs, gRev(xs))", program),
+    SLLTask("gApp(gRev(xs), gRev(ys))", program),
+    SLLTask("gApp(gRev(xs), gRev(xs))", program))
 
   implicit val exprOrdering: Ordering[Expr] = Ordering.by(_.size)
 
@@ -40,48 +76,18 @@ object Counting {
       new ClassicCurrentGen(task.program, whistle),
       new MultiUpperAllBinaryGens(task.program, whistle),
       new MultiLowerAllBinaryGens(task.program, whistle),
-      new MultiDoubleAllBinaryGens(task.program, whistle))
-      //new MultiUpperRebuildings(task.program, whistle),
-      //new MultiLowerRebuildings(task.program, whistle),
-      //new MultiDoubleRebuildingsOnWhistle(task.program, whistle),
-      //new MultiAllRebuildings(task.program, whistle))
-      
+      new MultiDoubleAllBinaryGens(task.program, whistle),
+      new MultiDoubleMsg(task.program, whistle))
+
     machines.foreach { m =>
       val gen = new GraphGenerator(m, task.target, NoExtra)
       val res = sc(gen, limit)
       res match {
-        case Left(res) => println("- " + (res.completed, res.unworkable, res.residuals.size))
+        case Left(res)  => println("- " + (res.completed, res.unworkable, res.residuals.size))
         case Right(res) => println("+ " + (res.completed, res.unworkable, res.residuals.size))
       }
     }
   }
 
-  def main(args: Array[String]): Unit = {
-    val tasks = List(
-      SLLTasks.namedTasks("NaiveReverse"),
-      SLLTasks.namedTasks("FastReverse"),
-      SLLTasks.namedTasks("NaiveFib"),
-      SLLTasks.namedTasks("FastFib"),
-      SLLTasks.namedTasks("EqPlus"),
-      SLLTasks.namedTasks("EqPlusa"),
-      SLLTasks.namedTasks("EqPlusb"),
-      SLLTasks.namedTasks("EqPlusc"),
-      SLLTasks.namedTasks("EqPlus1"),
-      SLLTasks.namedTasks("EqPlus1a"),
-      SLLTasks.namedTasks("EqPlus1b"),
-      SLLTasks.namedTasks("EqPlus1c"),
-      SLLTasks.namedTasks("OddEven"),
-      SLLTasks.namedTasks("LastDouble"),
-      SLLTasks.namedTasks("App"),
-      SLLTasks.namedTasks("EvenMult"),
-      SLLTasks.namedTasks("EvenSqr"),
-      SLLTasks.namedTasks("Idle")
-      )
-
-    
-    tasks.foreach(compareScWithBinaryWhistle(_, HEWhistle, 100000))
-    //tasks.foreach(compareScWithBinaryWhistle(_, HEWithRedexWhistle, 10000))
-    //tasks.foreach(compareScWithBinaryWhistle(_, HEByCouplingWhistle, 15000))
-    //tasks.foreach(compareScWithBinaryWhistle(_, HEByCouplingWithRedexWhistle, 15000))
-  }
+  tasks.foreach(compareScWithBinaryWhistle(_, HEByCouplingWhistle, 100000))
 }
