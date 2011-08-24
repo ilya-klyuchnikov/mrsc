@@ -154,6 +154,35 @@ trait DoubleAllBinaryGensOnBinaryWhistle[C] extends PFPMachine[C] with MutualGen
     }
 }
 
+trait LowerAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPMachine[C] with MutualGens[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
+    whistle match {
+      case None        => List()
+      case Some(upper) => 
+        val rebuilds = mutualGens(g.current.conf, upper.conf) map translate map { g.rebuild(_, NoExtra) }
+        if (rebuilds.isEmpty) {
+          drive(g)
+        } else {
+          rebuilds
+        }
+    }
+}
+
+trait UpperAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPMachine[C] with MutualGens[C] with BinaryWhistle[C] {
+  override def rebuildings(whistle: Option[Warning], g: G): List[G] =
+    whistle match {
+      case None        => List()
+      case Some(upper) => 
+          val rollbacks = mutualGens(upper.conf, g.current.conf) map translate map { g.rollback(upper, _, NoExtra) }
+          if (rollbacks.isEmpty) {
+            drive(g)
+          } else {
+            rollbacks
+          }
+    }
+}
+
+
 trait UpperMsgOrLowerMggOnBinaryWhistle[C]
   extends PFPMachine[C] with MSG[C] with BinaryWhistle[C] {
 
