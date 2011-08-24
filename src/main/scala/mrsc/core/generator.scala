@@ -1,6 +1,8 @@
 package mrsc.core
 
 import scala.annotation.tailrec
+import scala.collection.mutable.Queue
+import scala.collection.mutable.ListBuffer
 
 /*!# Abstract machines
   
@@ -27,7 +29,7 @@ case class GraphGenerator[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
      * and starts with a one-element list of graphs. 
      */
 
-  private var readyGs: List[Graph[C, D, E]] = List()
+  private var readyGs: Queue[Graph[C, D, E]] = Queue()
   private var gs: List[Graph[C, D, E]] = List(initial(conf, info))
 
   private def initial(c: C, e: E): Graph[C, D, E] = {
@@ -38,14 +40,14 @@ case class GraphGenerator[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
   @tailrec
   private def normalize(): Unit =
     if (readyGs.isEmpty && !gs.isEmpty) {
-      val g = gs.head
-      gs = gs.tail
-      for (g1 <- machine.steps(g))
+      val pendingDelta = ListBuffer[Graph[C, D, E]]()
+      for (g1 <- machine.steps(gs.head))
         if (g1.isComplete || g1.isUnworkable) {
-          readyGs = g1 :: readyGs
+          readyGs.enqueue(g1)
         } else {
-          gs = g1 :: gs
+          pendingDelta += g1
         }
+      gs = pendingDelta ++: gs.tail
       normalize()
     }
 
@@ -57,8 +59,6 @@ case class GraphGenerator[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
   def next(): Graph[C, D, E] = {
     if (!hasNext)
       throw new NoSuchElementException("no graph")
-    val g = readyGs.head
-    readyGs = readyGs.tail
-    g
+    readyGs.dequeue()
   }
 }
