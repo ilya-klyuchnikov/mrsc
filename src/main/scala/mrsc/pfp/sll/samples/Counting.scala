@@ -76,8 +76,8 @@ object Counting extends App {
       new ClassicCurrentGen(task.program, whistle),
       new MultiUpperAllBinaryGens(task.program, whistle),
       new MultiLowerAllBinaryGens(task.program, whistle),
-      new MultiDoubleAllBinaryGens(task.program, whistle),
-      new MultiDoubleMsg(task.program, whistle))
+      new MultiDoubleMsg(task.program, whistle),
+      new MultiDoubleAllBinaryGens(task.program, whistle))
 
     machines.foreach { m =>
       val gen = new GraphGenerator(m, task.target, NoExtra)
