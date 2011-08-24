@@ -13,7 +13,18 @@ object SLLRebuilding {
     case _ =>
       // There may be duplicates up to renaming when there are repeated variables.
       // One may filter such duplicates further.
-      rebuild(e, e, Map.empty) filter nonTrivial
+      distinct(rebuild(e, e, Map.empty).filter(nonTrivial))
+  }
+  
+  def distinct(es: List[RawRebuilding[Expr]]): List[RawRebuilding[Expr]] = {
+    import scala.collection.mutable.ListBuffer
+    val ls = ListBuffer[RawRebuilding[Expr]]()
+    for (e <- es) {
+      if (ls.find(e1 => SLLSyntax.equiv(e1._1, e._1)).isEmpty) {
+        ls += e
+      }
+    }
+    ls.toList
   }
 
   private def nonTrivial(rb: RawRebuilding[Expr]): Boolean =
