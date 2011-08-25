@@ -49,6 +49,15 @@ class MultiLowerAllBinaryGens(val program: Program, val ordering: PartialOrderin
   with BinaryWhistle[Expr]
   with LowerAllBinaryGensOnBinaryWhistle[Expr]
 
+class MultiLowerAllBinaryGensOrDrive(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with LowerAllBinaryGensOrDriveOnBinaryWhistle[Expr]
+
 class MultiUpperAllBinaryGens(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
@@ -57,6 +66,15 @@ class MultiUpperAllBinaryGens(val program: Program, val ordering: PartialOrderin
   with RenamingFolding[Expr]
   with BinaryWhistle[Expr]
   with UpperAllBinaryGensOnBinaryWhistle[Expr]
+
+class MultiUpperAllBinaryGensOrDrive(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with UpperAllBinaryGensOrDriveOnBinaryWhistle[Expr]
 
 class MultiDoubleAllBinaryGens(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]

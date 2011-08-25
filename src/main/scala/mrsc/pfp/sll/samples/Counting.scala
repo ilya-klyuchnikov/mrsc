@@ -74,9 +74,11 @@ object Counting extends App {
 
     val machines = List(
       new ClassicCurrentGen(task.program, whistle),
-      new MultiUpperAllBinaryGens(task.program, whistle),
-      new MultiLowerAllBinaryGens(task.program, whistle),
       new MultiDoubleMsg(task.program, whistle),
+      new MultiUpperAllBinaryGens(task.program, whistle),
+      new MultiUpperAllBinaryGensOrDrive(task.program, whistle),
+      new MultiLowerAllBinaryGens(task.program, whistle),
+      new MultiLowerAllBinaryGensOrDrive(task.program, whistle),
       new MultiDoubleAllBinaryGens(task.program, whistle))
 
     machines.foreach { m =>
