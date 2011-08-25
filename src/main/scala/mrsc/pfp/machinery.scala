@@ -49,7 +49,7 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
         val driveSteps =
           if (whistle.isEmpty) drive(g) else List(g.toUnworkable())
         val rebuildSteps = rebuildings(whistle, g)
-        driveSteps ++ rebuildSteps
+        rebuildSteps ++ driveSteps 
     }
 }
 
@@ -122,7 +122,7 @@ trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C
           rebuildings(g.current.conf) map { g.rebuild(_, NoExtra) }
         val rollbacks =
           rebuildings(upper.conf) map { g.rollback(upper, _, NoExtra) }
-        rebuilds ++ rollbacks
+        rollbacks ++ rebuilds 
     }
 }
 
@@ -258,9 +258,9 @@ trait DoubleMsgOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryW
     whistle match {
       case Some(upper) =>
         val current = g.current
-        val replace = msg(current.conf, upper.conf) map { rb => g.rebuild(translate(rb), NoExtra) }
         val rollback = msg(upper.conf, current.conf) map { rb => g.rollback(upper, translate(rb), NoExtra) }
-        rollback.toList ++ replace.toList
+        val rebuild = msg(current.conf, upper.conf) map { rb => g.rebuild(translate(rb), NoExtra) }
+        rollback.toList ++ rebuild.toList
       case None =>
         List()
     }

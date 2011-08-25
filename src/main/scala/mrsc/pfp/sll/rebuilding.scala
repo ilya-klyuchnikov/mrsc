@@ -52,7 +52,7 @@ object SLLRebuilding {
       val fn = newName(e, top)
       List((Var(fn), sub + (fn -> e)))
     }
-    rbs1 ++ rbs2
+    rbs2 ++ rbs1 
   }
 
   private def rebuild1(top: Expr, es: List[Expr], sub: Subst[Expr]): List[(List[Expr], Subst[Expr])] = {
