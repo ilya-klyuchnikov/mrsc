@@ -176,6 +176,92 @@ case class Graph[C, D, E](
   }
 }
 
+/*!# Abstract steps
+   Under the hood an abstract machine deals with some kind of semantics of the language.
+   Low-level operations should be translated into high-level abstract operations (or messages) 
+   over SC graphs.
+*/
+
+sealed trait MachineStep[C, D, E] {
+  type G = Graph[C, D, E]
+  def apply(g: Graph[C, D, E]): Graph[C, D, E]
+}
+
+/*
+trait Machine[C, D, E] {
+  type G = Graph[C, D, E]
+  def steps(g: Graph[C, D, E]): List[MachineStep[C, D, E]]
+}
+*/
+
+/*! Transformations performed over graphs by driving
+ *  (and some other parts of the supercompiler?)
+ *  Perhaps, they might be exposed via a trait?
+ */
+
+/*! Just "completing" the current node - moving it to the complete part of the SC graph. 
+*/
+case class completeCurrentNode[C, D, E]() extends MachineStep[C, D, E] {
+  def apply(g: G): G =
+    Graph(g.incompleteLeaves.tail, g.current :: g.completeLeaves,
+      g.current :: g.completeNodes)
+}
+
+/*! This step corresponds (mainly) to driving: adds children to the current node. Then
+ *  current node is moved to the complete part and new children are moved into 
+ *  the incomplete part. Also the (co-)path is calculated for any child node.
+ */
+case class addChildNodes[C, D, E](ns: List[(C, D, E)]) extends MachineStep[C, D, E] {
+  def apply(g: G): G = {
+    val deltaLeaves: List[Node[C, D, E]] = ns.zipWithIndex map {
+      case ((conf, dInfo, eInfo), i) =>
+        val in = Edge(g.current, dInfo)
+        Node(conf, eInfo, in, None, i :: g.current.path)
+    }
+    // Now it is depth-first traversal. If you change 
+    // deltaLeaves ++ ls -> ls ++ deltaLeaves,
+    // you will have breadth-first traversal
+    Graph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves,
+      g.current :: g.completeNodes)
+  }
+}
+
+/*! Just folding: creating a loopback and moving the node into the complete part 
+ *  of the SC graph.  
+ */
+case class fold[C, D, E](backNode: Node[C, D, E]) extends MachineStep[C, D, E] {
+  def apply(g: G): G = {
+    val node = g.current.copy(back = Some(backNode.path))
+    Graph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
+  }
+}
+
+/*! Replacing the configuration of the current node. 
+ *  The main use case is the rebuilding (generalization) of the active node.
+ */
+case class rebuild[C, D, E](conf: C, extra: E) extends MachineStep[C, D, E] {
+  def apply(g: G): G = {
+    val node = g.current.copy(conf = conf, extraInfo = extra)
+    Graph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes)
+  }
+}
+
+/*! When doing rollback, we also prune all successors of the dangerous node. 
+ */
+case class rollback[C, D, E](dangNode: Node[C, D, E], c: C, info: E)
+  extends MachineStep[C, D, E] {
+  def apply(g: G): G = {
+    def prune_?(n: Node[C, D, E]) = n.tPath.startsWith(dangNode.tPath)
+    val node = dangNode.copy(conf = c, extraInfo = info)
+    val completeNodes1 = g.completeNodes.remove(prune_?)
+    val completeLeaves1 = g.completeLeaves.remove(prune_?)
+    val incompleteLeaves1 = g.incompleteLeaves.tail.remove(prune_?)
+    Graph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
+  }
+}
+
+/* ============================================= */
+
 /*! Auxiliary data for transposing a graph into a transposed graph.
  */
 case class Tmp[C, D, E](node: TNode[C, D, E], in: Edge[C, D, E])
