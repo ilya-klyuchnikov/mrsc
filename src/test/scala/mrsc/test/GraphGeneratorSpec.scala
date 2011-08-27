@@ -7,21 +7,24 @@ import org.specs2.runner.JUnitRunner
 import mrsc.core._
 import mrsc.pfp._
 
-object TinyMachine extends Machine[Int, String, Extra[String]] {
+object TinyMachine
+  extends Machine2[Int, String, Extra[String]]
+  with MachineSteps[Int, String, Extra[String]] {
+
   def steps(g: Graph[Int, String, Extra[String]]): List[S] = {
     g.current.conf match {
       case 0 =>
-        List(AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
+        List(addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
       case 1 =>
-        List(CompleteCurrentNode())
+        List(completeCurrentNode)
       case 2 =>
-        List(Rebuild(21, NoExtra))
+        List(rebuild(21, NoExtra))
       case 21 =>
-        List(Rollback(g.current.in.node, -1, NoExtra))
+        List(rollback(g.current.in.node, -1, NoExtra))
       case -1 =>
-        List(AddChildNodes(List((11, "-1 -> 11", NoExtra))))
+        List(addChildNodes(List((11, "-1 -> 11", NoExtra))))
       case 11 =>
-        List(Fold(g.current.in.node))
+        List(fold(g.current.in.node))
     }
   }
 }
@@ -39,7 +42,7 @@ class GraphGeneratorSpec extends mutable.Specification {
 
   "GraphGenerator with deterministic machine" should {
 
-    val tgraphs = GraphGenerator(TinyMachine, 0, NoExtra) map Transformations.transpose toList
+    val tgraphs = GraphGenerator2(TinyMachine, 0, NoExtra) map Transformations.transpose toList
 
     "produce just 1 result" in {
       tgraphs.size must_== 1
