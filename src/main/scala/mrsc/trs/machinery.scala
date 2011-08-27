@@ -2,7 +2,9 @@ package mrsc.trs
 
 import mrsc.core._
 
-trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
+trait GenericMultiMachine[C, D, E]
+  extends Machine2[C, D, E]
+  with MachineSteps[C, D, E] {
 
   type Warning = Node[C, D, E]
   def unsafe(g: G): Boolean = false
@@ -21,10 +23,10 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
   */
   override def steps(g: G): List[S] =
     if (unsafe(g))
-      List(ToUnworkable())
+      List(toUnworkable)
     else canFold(g) match {
       case Some(node) =>
-        List(Fold(node))
+        List(fold(node))
       case None =>
         val whistle = mayDiverge(g)
         val driveSteps = drive(whistle, g)
@@ -64,7 +66,7 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] w
         List()
       case Some(_) =>
         val rbs = rebuildings(g.current.conf) filterNot dangerous
-        rbs map { Rebuild(_, ()): S }
+        rbs map { rebuild(_, ()) }
     }
   }
 }
@@ -72,7 +74,7 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] w
 trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
   override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[S] = {
     val rbs = rebuildings(g.current.conf) filterNot dangerous
-    rbs map { Rebuild(_, ()): S }
+    rbs map { rebuild(_, ()) }
   }
 }
 
@@ -80,14 +82,14 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int, Unit] with RewriteSeman
   override def drive(whistle: Option[Warning], g: Graph[C, Int, Unit]): List[S] =
     whistle match {
       case Some(_) =>
-        List(ToUnworkable())
+        List(toUnworkable)
       case None =>
         val subSteps =
           for ((next, i) <- drive(g.current.conf).zipWithIndex if next.isDefined)
             yield (next.get, i + 1, ())
         if (subSteps.isEmpty)
-          List(CompleteCurrentNode())
+          List(completeCurrentNode)
         else
-          List(AddChildNodes(subSteps))
+          List(addChildNodes(subSteps))
     }
 }
