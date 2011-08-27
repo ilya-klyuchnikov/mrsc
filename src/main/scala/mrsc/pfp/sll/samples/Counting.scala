@@ -82,7 +82,7 @@ object Counting extends App {
       new MultiDoubleAllBinaryGens(task.program, whistle))
 
     machines.foreach { m =>
-      val gen = new GraphGenerator(m, task.target, NoExtra)
+      val gen = new GraphGenerator2(m, task.target, NoExtra)
       val res = sc(gen, limit)
       res match {
         case Left(res)  => println("- " + (res.completed, res.unworkable, res.residuals.size))
