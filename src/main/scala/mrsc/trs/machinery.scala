@@ -3,7 +3,7 @@ package mrsc.trs
 import mrsc.core._
 
 trait GenericMultiMachine[C, D, E]
-  extends Machine2[C, D, E]
+  extends Machine[C, D, E]
   with MachineSteps[C, D, E] {
 
   type Warning = Node[C, D, E]

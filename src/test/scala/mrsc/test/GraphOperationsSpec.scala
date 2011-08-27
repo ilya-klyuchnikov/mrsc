@@ -70,7 +70,7 @@ class GraphOperationsSpec extends mutable.Specification
 
     "executes RollbackSubGraph command" in {
       val root = g1.current.in.node
-      g1 = Rollback(root, -1, NoExtra)(g1)
+      g1 = rollback(root, -1, NoExtra)(g1)
 
       (g1.current.conf must_== -1) and
         (g1.completeNodes.size must_== 0) and

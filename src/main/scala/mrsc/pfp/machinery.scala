@@ -33,7 +33,7 @@ abstract class Extra[+C]
 case object NoExtra extends Extra[Nothing]
 case class RebuildingInfo[C](from: C) extends Extra[C]
 
-trait PFPMachine[C] extends Machine2[C, DriveInfo[C], Extra[C]]
+trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]]
   with MachineSteps[C, DriveInfo[C], Extra[C]] {
 
   type N = Node[C, DriveInfo[C], Extra[C]]

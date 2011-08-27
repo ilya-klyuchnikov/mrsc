@@ -8,7 +8,7 @@ import mrsc.core._
 import mrsc.pfp._
 
 object TinyMachine
-  extends Machine2[Int, String, Extra[String]]
+  extends Machine[Int, String, Extra[String]]
   with MachineSteps[Int, String, Extra[String]] {
 
   def steps(g: Graph[Int, String, Extra[String]]): List[S] = {
@@ -42,7 +42,7 @@ class GraphGeneratorSpec extends mutable.Specification {
 
   "GraphGenerator with deterministic machine" should {
 
-    val tgraphs = GraphGenerator2(TinyMachine, 0, NoExtra) map Transformations.transpose toList
+    val tgraphs = GraphGenerator(TinyMachine, 0, NoExtra) map Transformations.transpose toList
 
     "produce just 1 result" in {
       tgraphs.size must_== 1

@@ -113,7 +113,7 @@ class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr
   with MSGCurrentOrDriving[Expr]
 
 object Samples {
-  type Machine1 = Machine[Expr, DriveInfo[Expr], Extra[Expr]]
+  //type Machine1 = Machine[Expr, DriveInfo[Expr], Extra[Expr]]
 
   def multi1(w: PartialOrdering[Expr])(p: Program) = new MultiAllRebuildings(p, w)
   def multi2(w: PartialOrdering[Expr])(p: Program) = new MultiLowerRebuildings(p, w)
@@ -135,7 +135,7 @@ object Samples {
     tmp takeRight n
   }
 
-  private def residuateAndCheck(gen: GraphGenerator2[Expr, DriveInfo[Expr], Extra[Expr]], task: SLLTask): Unit = {
+  private def residuateAndCheck(gen: GraphGenerator[Expr, DriveInfo[Expr], Extra[Expr]], task: SLLTask): Unit = {
     for (g <- gen if g.isComplete) {
       val t = Transformations.transpose(g)
       println(t)
@@ -157,13 +157,13 @@ object Samples {
     {
       println("**classic+ up:**")
       val m1 = classic1(HEByCouplingWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator2(m1, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m1, task.target, NoExtra), task)
     }
 
     {
       println("**classic+ down:**")
       val m2 = classic2(HEByCouplingWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator2(m2, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m2, task.target, NoExtra), task)
 
     }
 
@@ -171,12 +171,12 @@ object Samples {
 
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator2(m3, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m3, task.target, NoExtra), task)
     }
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator2(m3, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m3, task.target, NoExtra), task)
     }
 
     println()
@@ -206,7 +206,7 @@ object Samples {
   }
 
   // count graphs
-  def count(gen: GraphGenerator2[_, _, _], limit: Integer = 1800): (Integer, Integer) = {
+  def count(gen: GraphGenerator[_, _, _], limit: Integer = 1800): (Integer, Integer) = {
     var completed = 0
     var unworkable = 0
     for (g <- gen) {
@@ -232,7 +232,7 @@ object Samples {
       new MultiAllRebuildings(task.program, HEWhistle))
 
     machines foreach { m =>
-      val gen = GraphGenerator2(m, task.target, NoExtra)
+      val gen = GraphGenerator(m, task.target, NoExtra)
       val (completed, unworkable) = count(gen)
       val res = expandRight(12, completed + "/" + unworkable)
       print(res)
