@@ -48,7 +48,7 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]] {
       case _ =>
         val whistle = mayDiverge(g)
         val driveSteps =
-          if (whistle.isEmpty) drive(g) else List(ToUnworkable[C, DriveInfo[C], Extra[C]]())
+          if (whistle.isEmpty) drive(g) else List(ToUnworkable(): S)
         val rebuildSteps = rebuildings(whistle, g)
         rebuildSteps ++ driveSteps 
     }
@@ -73,12 +73,12 @@ trait Driving[C] extends PFPMachine[C] with OperationalSemantics[C] {
 }
 
 trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
-  override def canFold(g: G): Option[Node[C, DriveInfo[C], Extra[C]]] =
+  override def canFold(g: G): Option[N] =
     g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) }
 }
 
 trait BinaryWhistle[C] extends PFPMachine[C] {
-  type Warning = Node[C, DriveInfo[C], Extra[C]]
+  type Warning = N
   val ordering: PartialOrdering[C]
   override def mayDiverge(g: G): Option[Warning] =
     g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
@@ -93,7 +93,7 @@ trait UnaryWhistle[C] extends PFPMachine[C] {
 
 trait AllRebuildings[C] extends PFPMachine[C] with PFPSyntax[C] {
   override def rebuildings(whistle: Option[Warning], g: G): List[S] = {
-    rebuildings(g.current.conf) map { Rebuild[C, DriveInfo[C], Extra[C]](_, NoExtra) }
+    rebuildings(g.current.conf) map { Rebuild(_, NoExtra): S }
   }
 }
 
@@ -101,7 +101,7 @@ trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C]
   override def rebuildings(whistle: Option[Warning], g: G): List[S] =
     whistle match {
       case None    => List()
-      case Some(_) => rebuildings(g.current.conf) map { Rebuild[C, DriveInfo[C], Extra[C]](_, NoExtra) }
+      case Some(_) => rebuildings(g.current.conf) map { Rebuild(_, NoExtra): S }
     }
 }
 

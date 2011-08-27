@@ -40,7 +40,7 @@ class GraphOperationsSpec extends mutable.Specification {
     }
 
     "executes AddChildNodes command" in {
-      g1 = AddChildNodes[Int,String,Extra[String]](List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra)))(g1)
+      g1 = (AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))): S)(g1)
 
       (g1.current.conf must_== 1) and
         (g1.completeNodes.size must_== 1) and
@@ -57,7 +57,7 @@ class GraphOperationsSpec extends mutable.Specification {
 
     "executes ReplaceNode command" in {
       val oldActive = g1.current
-      g1 = Rebuild[Int,String,Extra[String]](21, NoExtra)(g1)
+      g1 = (Rebuild(21, NoExtra): S)(g1)
       val newActive = g1.current
 
       (newActive.conf must_== 21) and
