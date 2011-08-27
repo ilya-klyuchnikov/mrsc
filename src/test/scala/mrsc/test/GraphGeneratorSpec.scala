@@ -8,21 +8,22 @@ import mrsc.core._
 import mrsc.pfp._
 
 object TinyMachine extends Machine[Int, String, Extra[String]] {
-  def steps(g: Graph[Int, String, Extra[String]]): List[Graph[Int, String, Extra[String]]] =
+  def steps(g: Graph[Int, String, Extra[String]]): List[S] = {
     g.current.conf match {
       case 0 =>
-        List(g.addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
+        List(AddChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
       case 1 =>
-        List(g.completeCurrentNode())
+        List(CompleteCurrentNode())
       case 2 =>
-        List(g.rebuild(21, NoExtra))
+        List(Rebuild(21, NoExtra))
       case 21 =>
-        List(g.rollback(g.current.in.node, -1, NoExtra))
+        List(Rollback(g.current.in.node, -1, NoExtra))
       case -1 =>
-        List(g.addChildNodes(List((11, "-1 -> 11", NoExtra))))
+        List(AddChildNodes(List((11, "-1 -> 11", NoExtra))))
       case 11 =>
-        List(g.fold(List()))
+        List(Fold(g.current.in.node))
     }
+  }
 }
 
 @RunWith(classOf[JUnitRunner])

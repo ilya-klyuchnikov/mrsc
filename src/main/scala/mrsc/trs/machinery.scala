@@ -6,10 +6,10 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
 
   type Warning = Node[C, D, E]
   def unsafe(g: G): Boolean = false
-  def canFold(g: G): Option[Path]
+  def canFold(g: G): Option[Node[C, D, E]]
   def mayDiverge(g: G): Option[Warning]
-  def drive(whistle: Option[Warning], g: G): List[G]
-  def rebuildings(whistle: Option[Warning], g: G): List[G]
+  def drive(whistle: Option[Warning], g: G): List[S]
+  def rebuildings(whistle: Option[Warning], g: G): List[S]
 
   /*! The logic of this machine is straightforward:
      
@@ -19,12 +19,12 @@ trait GenericMultiMachine[C, D, E] extends Machine[C, D, E] {
     
    Note that the whistle signal is passed to `drive`, `rebuildings` and `tricks`.
   */
-  override def steps(g: G): List[G] =
+  override def steps(g: G): List[S] =
     if (unsafe(g))
-      List(g.toUnworkable())
+      List(ToUnworkable())
     else canFold(g) match {
-      case Some(path) =>
-        List(g.fold(path))
+      case Some(node) =>
+        List(Fold(node))
       case None =>
         val whistle = mayDiverge(g)
         val driveSteps = drive(whistle, g)
@@ -42,13 +42,13 @@ trait SafetyAware[C, D] extends GenericMultiMachine[C, D, Unit] {
 }
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] {
-  override def canFold(g: Graph[C, D, Unit]): Option[Path] =
-    g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
+  override def canFold(g: Graph[C, D, Unit]): Option[Node[C, D, Unit]] =
+    g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) }
 }
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] {
-  override def canFold(g: Graph[C, D, Unit]): Option[Path] =
-    g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) } map { _.path }
+  override def canFold(g: Graph[C, D, Unit]): Option[Node[C, D, Unit]] =
+    g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) }
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] {
@@ -58,36 +58,36 @@ trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] {
 }
 
 trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
+  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[S] = {
     whistle match {
       case None =>
         List()
       case Some(_) =>
         val rbs = rebuildings(g.current.conf) filterNot dangerous
-        rbs map { g.rebuild(_, ()) }
+        rbs map { Rebuild(_, ()): S }
     }
   }
 }
 
 trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D, Unit] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[Graph[C, D, Unit]] = {
+  override def rebuildings(whistle: Option[Warning], g: Graph[C, D, Unit]): List[S] = {
     val rbs = rebuildings(g.current.conf) filterNot dangerous
-    rbs map { g.rebuild(_, ()) }
+    rbs map { Rebuild(_, ()): S }
   }
 }
 
 trait RuleDriving[C] extends GenericMultiMachine[C, Int, Unit] with RewriteSemantics[C] {
-  override def drive(whistle: Option[Warning], g: Graph[C, Int, Unit]): List[Graph[C, Int, Unit]] =
+  override def drive(whistle: Option[Warning], g: Graph[C, Int, Unit]): List[S] =
     whistle match {
       case Some(_) =>
-        List(g.toUnworkable())
+        List(ToUnworkable())
       case None =>
         val subSteps =
           for ((next, i) <- drive(g.current.conf).zipWithIndex if next.isDefined)
             yield (next.get, i + 1, ())
         if (subSteps.isEmpty)
-          List(g.completeCurrentNode())
+          List(CompleteCurrentNode())
         else
-          List(g.addChildNodes(subSteps))
+          List(AddChildNodes(subSteps))
     }
 }
