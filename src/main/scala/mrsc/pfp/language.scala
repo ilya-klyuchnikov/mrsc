@@ -37,10 +37,6 @@ trait PFPSyntax[C] {
   val subclass: PartialOrdering[C]
 }
 
-trait OperationalSemantics[C] {
-  def driveStep(c: C): DriveStep[C]
-}
-
 trait Residuation[C] {
   def residuate(graph: TGraph[C, DriveInfo[C], _]): C
 }

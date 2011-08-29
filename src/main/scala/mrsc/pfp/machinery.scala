@@ -2,36 +2,50 @@ package mrsc.pfp
 
 import mrsc.core._
 
+sealed abstract class Extra[+C]
+case object NoExtra extends Extra[Nothing]
+final case class RebuildingInfo[C](from: C) extends Extra[C]
+
 case class Contraction[+C](v: Name, pat: C) {
   override def toString =
     if (v != null) v + " = " + pat else ""
   def subst() = Map[Name, C](v -> pat)
 }
 
-sealed trait DriveStep[+C]
-case class TransientDriveStep[C](next: C) extends DriveStep[C]
-case object StopDriveStep extends DriveStep[Nothing]
-case class DecomposeDriveStep[C](compose: List[C] => C, parts: List[C]) extends DriveStep[C]
-case class VariantsDriveStep[C](cases: List[(C, Contraction[C])]) extends DriveStep[C]
-
-abstract sealed trait RuleStep[+C]
-case object StopRuleStep extends RuleStep[Nothing]
-case class VariantsRuleStep[C](cases: List[(Name, C)]) extends RuleStep[C]
-
 abstract sealed class DriveInfo[+C]
 case object TransientStepInfo extends DriveInfo[Nothing] {
   override def toString = "->"
 }
-case class DecomposeStepInfo[C](compose: List[C] => C) extends DriveInfo[C] {
+final case class DecomposeStepInfo[C](compose: List[C] => C) extends DriveInfo[C] {
   override def toString = ""
 }
-case class VariantsStepInfo[C](contr: Contraction[C]) extends DriveInfo[C] {
+final case class VariantsStepInfo[C](contr: Contraction[C]) extends DriveInfo[C] {
   override def toString = contr.toString
 }
 
-abstract class Extra[+C]
-case object NoExtra extends Extra[Nothing]
-case class RebuildingInfo[C](from: C) extends Extra[C]
+trait DriveSteps[C]
+  extends MachineSteps[C, DriveInfo[C], Extra[C]] {
+
+  def transientDriveStep(next: C): S = {
+    val subSteps = List((next, TransientStepInfo, NoExtra)): List[(C, DriveInfo[C], Extra[C])]
+    addChildNodes(subSteps)
+  }
+
+  def stopDriveStep: S =
+    completeCurrentNode
+
+  def decomposeDriveStep(compose: List[C] => C, parts: List[C]): S = {
+    val stepInfo = DecomposeStepInfo(compose)
+    val subSteps = parts map { a => (a, stepInfo, NoExtra) }
+    addChildNodes(subSteps)
+  }
+
+  def variantsDriveStep(cases: List[(C, Contraction[C])]): S = {
+    val ns = cases map { v => (v._1, VariantsStepInfo(v._2), NoExtra) }
+    addChildNodes(ns)
+
+  }
+}
 
 trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]]
   with MachineSteps[C, DriveInfo[C], Extra[C]] {
@@ -56,23 +70,12 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]]
     }
 }
 
-trait Driving[C] extends PFPMachine[C] with OperationalSemantics[C] {
-  override def drive(g: G): List[S] =
-    driveStep(g.current.conf) match {
-      case StopDriveStep =>
-        List(completeCurrentNode)
-      case DecomposeDriveStep(compose, args) =>
-        val stepInfo = DecomposeStepInfo(compose)
-        val subSteps = args map { a => (a, stepInfo, NoExtra) }
-        List(addChildNodes(subSteps))
-      case TransientDriveStep(next) =>
-        val subSteps = List((next, TransientStepInfo, NoExtra))
-        List(addChildNodes(subSteps))
-      case VariantsDriveStep(vs) =>
-        val ns = vs map { v => (v._1, VariantsStepInfo(v._2), NoExtra) }
-        List(addChildNodes(ns))
-    }
+trait PFPDriving[C] extends PFPMachine[C]
+  with StepSignature[C, DriveInfo[C], Extra[C]] {
+  def driveConf(c: C): S
+  override def drive(g: G): List[S] = List(driveConf(g.current.conf))
 }
+
 
 trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
   override def canFold(g: G): Option[N] =

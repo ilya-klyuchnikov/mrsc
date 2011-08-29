@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 
-trait StepSignature[C, D, E] {
+trait StepSignature[+C, +D, +E] {
   type G = Graph[C, D, E]
   type S = G => G
 }

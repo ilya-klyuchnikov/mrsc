@@ -39,7 +39,6 @@ import scala.annotation.tailrec
 /*! The labeled directed edge. `N` is a destination node; `D` is driving info.
  */
 case class TEdge[C, D, E](tNode: TNode[C, D, E], driveInfo: D)
-case class Edge[C, D, E](node: Node[C, D, E], driveInfo: D)
 
 /*! `TGraph[C, D, E]`.
  * This is a "transposed" version of the Graph,
@@ -79,9 +78,9 @@ case class TNode[C, D, E](
   override def toString = GraphPrettyPrinter.toString(this)
 }
 
-/*! `Node[C, D, E]` is dual to `TNode[C, D, E]`. 
+/*! `Node[+C, +D, +E]` is dual to `TNode[C, D, E]`. 
  */
-case class Node[C, D, E](
+case class Node[+C, +D, +E](
   conf: C,
   extraInfo: E,
   in: Edge[C, D, E],
@@ -96,6 +95,10 @@ case class Node[C, D, E](
   override def toString = conf.toString
 }
 
+/*! `Edge[+C, +D, +E]` is dual to `TEdge[C, D, E]`. 
+ */
+case class Edge[+C, +D, +E](node: Node[C, D, E], driveInfo: D)
+
 /*! `Graph[C, D, E]` is a central concept of MRSC.
  * It may represent (1) a "work in progress" (2) a completed graph and
  * (3) and unfinished yet unworkable graph.
@@ -103,7 +106,7 @@ case class Node[C, D, E](
  * (`completeLeaves`, `completeNodes`) and a frontier 
  * of incomplete part (`incompleteLeaves`).
  */
-case class Graph[C, D, E](
+case class Graph[+C, +D, +E](
   incompleteLeaves: List[Node[C, D, E]],
   completeLeaves: List[Node[C, D, E]],
   completeNodes: List[Node[C, D, E]],
