@@ -63,7 +63,7 @@ object CountersSyntax extends {
 
 trait CountersSemantics extends RewriteSemantics[OmegaConf] {
   val protocol: Protocol
-  def drive(c: OmegaConf) = protocol.rules.map { _.lift(c) }
+  def driveConf(c: OmegaConf) = protocol.rules.map { _.lift(c) }
 }
 
 trait LWhistle {
