@@ -85,7 +85,7 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int, Unit] with RewriteSeman
         List(toUnworkable)
       case None =>
         val subSteps =
-          for ((next, i) <- drive(g.current.conf).zipWithIndex if next.isDefined)
+          for ((next, i) <- driveConf(g.current.conf).zipWithIndex if next.isDefined)
             yield (next.get, i + 1, ())
         if (subSteps.isEmpty)
           List(completeCurrentNode)
