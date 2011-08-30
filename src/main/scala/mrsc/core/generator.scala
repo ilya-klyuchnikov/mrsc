@@ -10,9 +10,14 @@ import scala.collection.mutable.ListBuffer
   (more precisely, meta-semantics) through operations over SC graphs. 
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
-trait Machine[C, D, E] {
+
+trait StepSignature[+C, +D, +E] {
   type G = Graph[C, D, E]
-  def steps(g: G): List[G]
+  type S = G => G
+}
+
+trait Machine[C, D, E] extends StepSignature[C, D, E] {
+  def steps(g: G): List[S]
 }
 
 /*!# Processing of complete and unworkable graphs
@@ -34,14 +39,16 @@ case class GraphGenerator[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
 
   private def initial(c: C, e: E): Graph[C, D, E] = {
     val initialNode = Node[C, D, E](c, e, null, None, Nil)
-    new Graph(List(initialNode), Nil, Nil)
+    Graph(List(initialNode), Nil, Nil)
   }
 
   @tailrec
   private def normalize(): Unit =
     if (readyGs.isEmpty && !gs.isEmpty) {
       val pendingDelta = ListBuffer[Graph[C, D, E]]()
-      for (g1 <- machine.steps(gs.head))
+      val h = gs.head
+      val newGs = for (buildStep <- machine.steps(h)) yield buildStep(h)
+      for (g1 <- newGs)
         if (g1.isComplete || g1.isUnworkable) {
           readyGs.enqueue(g1)
         } else {

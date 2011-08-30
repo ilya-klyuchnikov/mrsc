@@ -8,5 +8,5 @@ trait TRSSyntax[C] {
 
 // There are n rules. Variants should return a list of length n
 trait RewriteSemantics[C] {
-  def drive(c: C): List[Option[C]]
+  def driveConf(c: C): List[Option[C]]
 }
