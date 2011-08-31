@@ -3,8 +3,7 @@ package mrsc.trs
 import mrsc.core._
 
 trait GenericMultiMachine[C, D]
-  extends Machine[C, D]
-  with MachineSteps[C, D] {
+  extends Machine[C, D] {
 
   type Warning = Node[C, D]
   def unsafe(g: G): Boolean = false
@@ -26,7 +25,7 @@ trait GenericMultiMachine[C, D]
       List()
     else canFold(g) match {
       case Some(node) =>
-        List(fold(node))
+        List(FoldStep(node))
       case None =>
         val whistle = mayDiverge(g)
         val driveSteps = drive(whistle, g)
@@ -66,7 +65,7 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D] with TR
         List()
       case Some(_) =>
         val rbs = rebuildings(g.current.conf) filterNot dangerous
-        rbs map rebuild
+        rbs map {RebuildStep(_): S}
     }
   }
 }
@@ -74,7 +73,7 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D] with TR
 trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
   override def rebuildings(whistle: Option[Warning], g: Graph[C, D]): List[S] = {
     val rbs = rebuildings(g.current.conf) filterNot dangerous
-    rbs map rebuild
+    rbs map {RebuildStep(_): S}
   }
 }
 
@@ -88,8 +87,8 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int] with RewriteSemantics[C
           for ((next, i) <- driveConf(g.current.conf).zipWithIndex if next.isDefined)
             yield (next.get, i + 1)
         if (subSteps.isEmpty)
-          List(completeCurrentNode)
+          List(CompleteCurrentNodeStep())
         else
-          List(addChildNodes(subSteps))
+          List(AddChildNodesStep(subSteps))
     }
 }

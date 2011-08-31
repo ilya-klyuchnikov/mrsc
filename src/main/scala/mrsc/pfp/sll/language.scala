@@ -79,19 +79,18 @@ object SLLSyntax {
 
 }
 
-trait SLLDriving extends PFPDriving[Expr]
-  with DriveSteps[Expr] {
+trait SLLSemantics extends PFPSemantics[Expr] {
   
   val program: Program
 
-  override def driveConf(conf: Expr): S =
+  override def driveConf(conf: Expr): DriveStep[Expr] =
     decompose(conf) match {
 
       case ObservableVar(v) =>
-        stopDriveStep
+        StopDriveStep()
 
       case ObservableCtr(Ctr(cn, args)) =>
-        decomposeDriveStep({ Ctr(cn, _: List[Expr]) }, args)
+        DecomposeDriveStep({ Ctr(cn, _: List[Expr]) }, args)
 
       case DecLet(Let(term, bs)) =>
         val (names, es) = bs.unzip
@@ -100,19 +99,19 @@ trait SLLDriving extends PFPDriving[Expr]
           val sub = (names zip binds).toMap
           subst(in, sub)
         }
-        decomposeDriveStep(compose, term :: es)
+        DecomposeDriveStep(compose, term :: es)
 
       case context @ Context(RedexFCall(FCall(name, args))) =>
         val FFun(_, fargs, body) = program.f(name)
         val fReduced = subst(body, (fargs zip args).toMap)
         val nExpr = context.replaceRedex(fReduced)
-        transientDriveStep(nExpr)
+        TransientDriveStep(nExpr)
 
       case context @ Context(RedexGCallCtr(GCall(name, _ :: args), Ctr(cname, cargs))) =>
         val GFun(_, p, gargs, body) = program.g(name, cname)
         val gReduced = subst(body, ((p.args ++ gargs) zip (cargs ++ args)).toMap)
         val nExpr = context.replaceRedex(gReduced)
-        transientDriveStep(nExpr)
+        TransientDriveStep(nExpr)
 
       case context @ Context(RedexGCallVar(GCall(name, _ :: args), v)) =>
         val cases = program.gs(name) map {
@@ -123,7 +122,7 @@ trait SLLDriving extends PFPDriving[Expr]
             val driven = subst(context.replaceRedex(gReduced), contraction.subst)
             (driven, contraction)
         }
-        variantsDriveStep(cases)
+        VariantsDriveStep(cases)
     }
 
   def instantiate(p: Pat, v: Var): Ctr = {

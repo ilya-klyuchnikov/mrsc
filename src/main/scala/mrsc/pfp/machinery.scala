@@ -12,43 +12,49 @@ case class Contraction[+C](v: Name, pat: C) {
   def subst() = Map[Name, C](v -> pat)
 }
 
-abstract sealed class DriveInfo[+C]
+sealed trait DriveInfo[+C]
 case object TransientStepInfo extends DriveInfo[Nothing] {
   override def toString = "->"
 }
-final case class DecomposeStepInfo[C](compose: List[C] => C) extends DriveInfo[C] {
+case class DecomposeStepInfo[C](compose: List[C] => C) extends DriveInfo[C] {
   override def toString = ""
 }
-final case class VariantsStepInfo[C](contr: Contraction[C]) extends DriveInfo[C] {
+case class VariantsStepInfo[C](contr: Contraction[C]) extends DriveInfo[C] {
   override def toString = contr.toString
 }
 
-trait DriveSteps[C]
-  extends MachineSteps[C, DriveInfo[C]] {
+sealed trait DriveStep[C] {
+  val graphStep: GraphStep[C, DriveInfo[C]]
+}
 
-  def transientDriveStep(next: C): S = {
+case class TransientDriveStep[C](next: C) extends DriveStep[C] {
+  val graphStep = {
     val subSteps = List((next, TransientStepInfo)): List[(C, DriveInfo[C])]
-    addChildNodes(subSteps)
-  }
-
-  def stopDriveStep: S =
-    completeCurrentNode
-
-  def decomposeDriveStep(compose: List[C] => C, parts: List[C]): S = {
-    val stepInfo = DecomposeStepInfo(compose)
-    val subSteps = parts map { a => (a, stepInfo) }
-    addChildNodes(subSteps)
-  }
-
-  def variantsDriveStep(cases: List[(C, Contraction[C])]): S = {
-    val ns = cases map { v => (v._1, VariantsStepInfo(v._2)) }
-    addChildNodes(ns)
-
+    AddChildNodesStep(subSteps)
   }
 }
 
-trait PFPMachine[C] extends Machine[C, DriveInfo[C]]
-  with MachineSteps[C, DriveInfo[C]] {
+case class StopDriveStep[C] extends DriveStep[C] {
+  val graphStep: GraphStep[C, DriveInfo[C]] =
+    CompleteCurrentNodeStep()
+}
+
+case class DecomposeDriveStep[C](compose: List[C] => C, parts: List[C]) extends DriveStep[C] {
+  val graphStep: GraphStep[C, DriveInfo[C]] = {
+    val stepInfo = DecomposeStepInfo(compose)
+    val subSteps = parts map { a => (a, stepInfo) }
+    AddChildNodesStep(subSteps)
+  }
+}
+
+case class VariantsDriveStep[C](cases: List[(C, Contraction[C])]) extends DriveStep[C] {
+  val graphStep: GraphStep[C, DriveInfo[C]] = {
+    val ns = cases map { v => (v._1, VariantsStepInfo(v._2)) }
+    AddChildNodesStep(ns)
+  }
+}
+
+trait PFPMachine[C] extends Machine[C, DriveInfo[C]] {
 
   type N = Node[C, DriveInfo[C]]
   type Warning
@@ -60,7 +66,7 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C]]
   override def steps(g: G): List[S] =
     canFold(g) match {
       case Some(node) =>
-        List(fold(node))
+        List(FoldStep(node))
       case _ =>
         val whistle = mayDiverge(g)
         val driveSteps = if (whistle.isEmpty) drive(g) else List()
@@ -69,10 +75,8 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C]]
     }
 }
 
-trait PFPDriving[C] extends PFPMachine[C]
-  with StepSignature[C, DriveInfo[C]] {
-  def driveConf(c: C): S
-  override def drive(g: G): List[S] = List(driveConf(g.current.conf))
+trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {
+  override def drive(g: G): List[S] = List(driveConf(g.current.conf).graphStep)
 }
 
 trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
@@ -96,7 +100,7 @@ trait UnaryWhistle[C] extends PFPMachine[C] {
 
 trait AllRebuildings[C] extends PFPMachine[C] with PFPSyntax[C] {
   override def rebuildings(whistle: Option[Warning], g: G): List[S] = {
-    rebuildings(g.current.conf) map rebuild
+    rebuildings(g.current.conf) map { RebuildStep(_): S }
   }
 }
 
@@ -104,7 +108,7 @@ trait LowerRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C]
   override def rebuildings(whistle: Option[Warning], g: G): List[S] =
     whistle match {
       case None    => List()
-      case Some(_) => rebuildings(g.current.conf) map rebuild
+      case Some(_) => rebuildings(g.current.conf) map { RebuildStep(_): S }
     }
 }
 
@@ -112,7 +116,7 @@ trait UpperRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C]
   override def rebuildings(whistle: Option[Warning], g: G): List[S] =
     whistle match {
       case None        => List()
-      case Some(upper) => rebuildings(upper.conf) map { rollback(upper, _) }
+      case Some(upper) => rebuildings(upper.conf) map { RollbackStep(upper, _) }
     }
 }
 
@@ -123,9 +127,9 @@ trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPMachine[C] with PFPSyntax[C
         List()
       case Some(upper) =>
         val rebuilds: List[S] =
-          rebuildings(g.current.conf) map rebuild
+          rebuildings(g.current.conf) map { RebuildStep(_): S }
         val rollbacks: List[S] =
-          rebuildings(upper.conf) map { rollback(upper, _) }
+          rebuildings(upper.conf) map { RollbackStep(upper, _) }
         rollbacks ++ rebuilds
     }
 }
@@ -135,7 +139,7 @@ trait LowerAllBinaryGensOnBinaryWhistle[C] extends PFPMachine[C] with MutualGens
     whistle match {
       case None => List()
       case Some(upper) =>
-        mutualGens(g.current.conf, upper.conf) map translate map rebuild
+        mutualGens(g.current.conf, upper.conf) map translate map { RebuildStep(_): S }
     }
 }
 
@@ -144,7 +148,7 @@ trait UpperAllBinaryGensOnBinaryWhistle[C] extends PFPMachine[C] with MutualGens
     whistle match {
       case None => List()
       case Some(upper) =>
-        mutualGens(upper.conf, g.current.conf) map translate map { rollback(upper, _) }
+        mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper, _) }
     }
 }
 
@@ -154,8 +158,8 @@ trait DoubleAllBinaryGensOnBinaryWhistle[C] extends PFPMachine[C] with MutualGen
       case None =>
         List()
       case Some(upper) =>
-        val rollbacks: List[S] = mutualGens(upper.conf, g.current.conf) map translate map { rollback(upper, _) }
-        val rebuilds: List[S] = mutualGens(g.current.conf, upper.conf) map translate map rebuild
+        val rollbacks: List[S] = mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper, _) }
+        val rebuilds: List[S] = mutualGens(g.current.conf, upper.conf) map translate map { RebuildStep(_): S }
         rollbacks ++ rebuilds
     }
 }
@@ -165,7 +169,7 @@ trait LowerAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPMachine[C] with Mut
     whistle match {
       case None => List()
       case Some(upper) =>
-        val rebuilds: List[S] = mutualGens(g.current.conf, upper.conf) map translate map rebuild
+        val rebuilds: List[S] = mutualGens(g.current.conf, upper.conf) map translate map { RebuildStep(_): S }
         if (rebuilds.isEmpty) {
           drive(g)
         } else {
@@ -179,7 +183,7 @@ trait UpperAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPMachine[C] with Mut
     whistle match {
       case None => List()
       case Some(upper) =>
-        val rollbacks = mutualGens(upper.conf, g.current.conf) map translate map { rollback(upper, _) }
+        val rollbacks = mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper, _) }
         if (rollbacks.isEmpty) {
           drive(g)
         } else {
@@ -199,11 +203,11 @@ trait UpperMsgOrLowerMggOnBinaryWhistle[C]
         msg(upperConf, currentConf) match {
           case Some(rb) =>
             val conf1 = translate(rb)
-            List(rollback(upper, conf1))
+            List(RollbackStep(upper, conf1))
           case None =>
             val cands = rawRebuildings(currentConf) filterNot trivialRb(currentConf)
             val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => subclass.lteq(c2, c1) } }
-            mgg.map(translate).map(rebuild).toList
+            mgg.map(translate).map(RebuildStep(_): S).toList
         }
       case None =>
         List()
@@ -222,12 +226,12 @@ trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] wit
         msg(currentConf, upperConf) match {
           case Some(rb) =>
             val conf1 = translate(rb)
-            val replace = rebuild(conf1)
+            val replace = RebuildStep(conf1): S
             List(replace)
           case None =>
             val cands = rawRebuildings(upperConf) filterNot trivialRb(upperConf)
             val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => subclass.lteq(c2, c1) } }
-            mgg.map(translate).map(rollback(upper, _)).toList
+            mgg.map(translate).map(RollbackStep(upper, _)).toList
         }
       case None =>
         List()
@@ -245,7 +249,7 @@ trait MSGCurrentOrDriving[C] extends PFPMachine[C] with MSG[C] with BinaryWhistl
         msg(currentConf, upperConf) match {
           case Some(rb) =>
             val conf1 = translate(rb)
-            val replace = rebuild(conf1)
+            val replace: S = RebuildStep(conf1)
             List(replace)
           case None =>
             drive(g)
@@ -262,8 +266,8 @@ trait DoubleMsgOnBinaryWhistle[C] extends PFPMachine[C] with MSG[C] with BinaryW
     whistle match {
       case Some(upper) =>
         val current = g.current
-        val rollbacks = msg(upper.conf, current.conf) map { rb => rollback(upper, translate(rb)) }
-        val rebuildings = msg(current.conf, upper.conf) map { rb => rebuild(translate(rb)) }
+        val rollbacks = msg(upper.conf, current.conf) map { rb => RollbackStep(upper, translate(rb)) }
+        val rebuildings = msg(current.conf, upper.conf) map { rb => RebuildStep(translate(rb)): S }
         rollbacks.toList ++ rebuildings.toList
       case None =>
         List()

@@ -11,13 +11,10 @@ import scala.collection.mutable.ListBuffer
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 
-trait StepSignature[+C, +D] {
+trait Machine[C, D] {
   type G = Graph[C, D]
-  type S = G => G
-}
-
-trait Machine[C, D] extends StepSignature[C, D] {
-  def steps(g: G): List[S]
+  type S = GraphStep[C, D]
+  def steps(g: G): List[S] 
 }
 
 /*!# Processing of complete and unworkable graphs
@@ -34,7 +31,7 @@ case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
      * and starts with a one-element list of graphs. 
      */
 
-  private var readyGs: Queue[Graph[C, D]] = Queue()
+  private var completeGs: Queue[Graph[C, D]] = Queue()
   private var gs: List[Graph[C, D]] = List(initial(conf))
 
   private def initial(c: C): Graph[C, D] = {
@@ -44,13 +41,13 @@ case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
 
   @tailrec
   private def normalize(): Unit =
-    if (readyGs.isEmpty && !gs.isEmpty) {
+    if (completeGs.isEmpty && !gs.isEmpty) {
       val pendingDelta = ListBuffer[Graph[C, D]]()
       val h = gs.head
-      val newGs = for (buildStep <- machine.steps(h)) yield buildStep(h)
+      val newGs = machine.steps(h) map {_(h)}
       for (g1 <- newGs)
         if (g1.isComplete) {
-          readyGs.enqueue(g1)
+          completeGs.enqueue(g1)
         } else {
           pendingDelta += g1
         }
@@ -60,11 +57,11 @@ case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
 
   def hasNext: Boolean = {
     normalize()
-    !readyGs.isEmpty
+    !completeGs.isEmpty
   }
 
   def next(): Graph[C, D] = {
     if (!hasNext) throw new NoSuchElementException("no graph")
-    readyGs.dequeue()
+    completeGs.dequeue()
   }
 }
