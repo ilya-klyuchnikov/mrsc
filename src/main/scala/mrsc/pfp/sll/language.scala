@@ -104,13 +104,13 @@ trait SLLSemantics extends PFPSemantics[Expr] {
       case context @ Context(RedexFCall(FCall(name, args))) =>
         val FFun(_, fargs, body) = program.f(name)
         val fReduced = subst(body, (fargs zip args).toMap)
-        val nExpr = context.replaceRedex(fReduced)
+        val nExpr = context(fReduced)
         TransientDriveStep(nExpr)
 
       case context @ Context(RedexGCallCtr(GCall(name, _ :: args), Ctr(cname, cargs))) =>
         val GFun(_, p, gargs, body) = program.g(name, cname)
         val gReduced = subst(body, ((p.args ++ gargs) zip (cargs ++ args)).toMap)
-        val nExpr = context.replaceRedex(gReduced)
+        val nExpr = context(gReduced)
         TransientDriveStep(nExpr)
 
       case context @ Context(RedexGCallVar(GCall(name, _ :: args), v)) =>
@@ -119,7 +119,7 @@ trait SLLSemantics extends PFPSemantics[Expr] {
             val ctr = instantiate(p, v)
             val gReduced = subst(body, ((p.args ++ gargs) zip (ctr.args ++ args)).toMap)
             val contraction = Contraction(v.name, Ctr(p.name, ctr.args))
-            val driven = subst(context.replaceRedex(gReduced), contraction.subst)
+            val driven = subst(context(gReduced), contraction.subst)
             (driven, contraction)
         }
         VariantsDriveStep(cases)

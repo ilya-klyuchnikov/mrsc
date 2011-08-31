@@ -7,16 +7,13 @@ object Decomposition {
   case class ObservableCtr(c: Ctr) extends Observable
   case class ObservableVar(v: Var) extends Observable
 
-  // maybe not so good - abstract case class
-  abstract case class Context(red: Redex) extends Dec {
-    def replaceRedex(t: Expr): Expr
-  }
+  abstract case class Context(red: Redex) extends Dec with (Expr => Expr)
   
   private class ContextHole(override val red: Redex) extends Context(red) {
-    def replaceRedex(t: Expr): Expr = t
+    def apply(t: Expr): Expr = t
   }
   private class ContextGCall(gcall: GCall, context: Context) extends Context(context.red) {
-    def replaceRedex(t: Expr): Expr = GCall(gcall.name, context.replaceRedex(t) :: gcall.args.tail)
+    def apply(t: Expr): Expr = GCall(gcall.name, context(t) :: gcall.args.tail)
   }
 
   sealed abstract class Redex(term: Expr)

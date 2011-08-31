@@ -30,11 +30,11 @@ private class SLLInterpreter(program: Program) {
       ctr
     case context @ Context(RedexFCall(FCall(name, args))) =>
       val fReduced = subst(program.f(name).term, Map(program.f(name).args.zip(args): _*))
-      context.replaceRedex(fReduced)
+      context(fReduced)
     case context @ Context(RedexGCallCtr(GCall(name, args), Ctr(cname, cargs))) =>
       val g = program.g(name, cname)
       val gReduced = subst(g.term, Map((g.p.args ::: g.args) zip (cargs ::: args.tail): _*))
-      context.replaceRedex(gReduced)
+      context(gReduced)
     case _ =>
       throw new Error("unexpected expression: " + t)
   }
