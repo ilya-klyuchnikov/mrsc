@@ -38,16 +38,15 @@ import scala.annotation.tailrec
 
 /*! `Node[+C, +D, +E]` is dual to `TNode[C, D, E]`. 
  */
-case class Node[+C, +D, +E](
+case class Node[+C, +D](
   conf: C,
-  extraInfo: E,
-  in: Edge[C, D, E],
+  in: Edge[C, D],
   back: Option[Path],
   path: Path) {
 
   lazy val tPath = path.reverse
 
-  val ancestors: List[Node[C, D, E]] =
+  val ancestors: List[Node[C, D]] =
     if (in == null) List() else in.node :: in.node.ancestors
 
   override def toString = conf.toString
@@ -55,7 +54,7 @@ case class Node[+C, +D, +E](
 
 /*! `Edge[+C, +D, +E]` is dual to `TEdge[C, D, E]`. 
  */
-case class Edge[+C, +D, +E](node: Node[C, D, E], driveInfo: D)
+case class Edge[+C, +D](node: Node[C, D], driveInfo: D)
 
 /*! `Graph[C, D, E]` is a core data structure in MRSC.
  * It may represent (1) a "work in progress" (2) a completed graph and
@@ -69,10 +68,10 @@ case class Edge[+C, +D, +E](node: Node[C, D, E], driveInfo: D)
  *`E` (extra information) is a type of extra label of a node (extra info). 
  * Extra information may be seen as an additional "instrumentation" of SC graph.
  */
-case class Graph[+C, +D, +E](
-  incompleteLeaves: List[Node[C, D, E]],
-  completeLeaves: List[Node[C, D, E]],
-  completeNodes: List[Node[C, D, E]]) {
+case class Graph[+C, +D](
+  incompleteLeaves: List[Node[C, D]],
+  completeLeaves: List[Node[C, D]],
+  completeNodes: List[Node[C, D]]) {
 
   /*! `isUnworkable` = is not good for further processing (for some reason).
    *  'isComplete` = is finished, there is nothing to do.
@@ -94,7 +93,7 @@ case class Graph[+C, +D, +E](
  *  (and some other parts of the supercompiler?).
  */
 
-trait MachineSteps[C, D, E] extends StepSignature[C, D, E] {
+trait MachineSteps[C, D] extends StepSignature[C, D] {
     
   /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
   */
@@ -106,12 +105,12 @@ trait MachineSteps[C, D, E] extends StepSignature[C, D, E] {
    *  current node is moved to the complete part and new children are moved into 
    *  the incomplete part. Also the (co-)path is calculated for any child node.
    */
-  def addChildNodes(ns: List[(C, D, E)]): S =
+  def addChildNodes(ns: List[(C, D)]): S =
     g => {
-      val deltaLeaves: List[Node[C, D, E]] = ns.zipWithIndex map {
-        case ((conf, dInfo, eInfo), i) =>
+      val deltaLeaves: List[Node[C, D]] = ns.zipWithIndex map {
+        case ((conf, dInfo), i) =>
           val in = Edge(g.current, dInfo)
-          Node(conf, eInfo, in, None, i :: g.current.path)
+          Node(conf, in, None, i :: g.current.path)
       }
       // Now it is depth-first traversal. If you change 
       // deltaLeaves ++ ls -> ls ++ deltaLeaves,
@@ -123,7 +122,7 @@ trait MachineSteps[C, D, E] extends StepSignature[C, D, E] {
   /*! Just folding: creating a loopback and moving the node into the complete part 
    *  of the SC graph.  
    */
-  def fold(backNode: Node[C, D, E]): S =
+  def fold(backNode: Node[C, D]): S =
     g => {
       val node = g.current.copy(back = Some(backNode.path))
       Graph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
@@ -132,18 +131,18 @@ trait MachineSteps[C, D, E] extends StepSignature[C, D, E] {
   /*! Replacing the configuration of the current node. 
    *  The main use case is the rebuilding (generalization) of the active node.
    */
-  def rebuild(conf: C, extra: E): S =
+  def rebuild(conf: C): S =
     g => {
-      val node = g.current.copy(conf = conf, extraInfo = extra)
+      val node = g.current.copy(conf = conf)
       Graph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes)
     }
 
   /*! When doing rollback, we also prune all successors of the dangerous node. 
    */
-  def rollback(dangNode: Node[C, D, E], c: C, info: E): S =
+  def rollback(dangNode: Node[C, D], c: C): S =
     g => {
-      def prune_?(n: Node[C, D, E]) = n.tPath.startsWith(dangNode.tPath)
-      val node = dangNode.copy(conf = c, extraInfo = info)
+      def prune_?(n: Node[C, D]) = n.tPath.startsWith(dangNode.tPath)
+      val node = dangNode.copy(conf = c)
       val completeNodes1 = g.completeNodes.remove(prune_?)
       val completeLeaves1 = g.completeLeaves.remove(prune_?)
       val incompleteLeaves1 = g.incompleteLeaves.tail.remove(prune_?)

@@ -123,7 +123,7 @@ object Samples {
     tmp takeRight n
   }
 
-  private def residuateAndCheck(gen: GraphGenerator[Expr, DriveInfo[Expr], Extra[Expr]], task: SLLTask): Unit = {
+  private def residuateAndCheck(gen: GraphGenerator[Expr, DriveInfo[Expr]], task: SLLTask): Unit = {
     for (g <- gen if g.isComplete) {
       val t = Transformations.transpose(g)
       println(t)
@@ -145,13 +145,13 @@ object Samples {
     {
       println("**classic+ up:**")
       val m1 = classic1(HEByCouplingWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator(m1, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m1, task.target), task)
     }
 
     {
       println("**classic+ down:**")
       val m2 = classic2(HEByCouplingWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator(m2, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m2, task.target), task)
 
     }
 
@@ -159,12 +159,12 @@ object Samples {
 
     {
       val m3 = classic3(HEByCouplingWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator(m3, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m3, task.target), task)
     }
 
     {
       val m3 = classic3(HEByCouplingWithRedexWhistle)(task.program)
-      residuateAndCheck(new GraphGenerator(m3, task.target, NoExtra), task)
+      residuateAndCheck(new GraphGenerator(m3, task.target), task)
     }
 
     println()
@@ -194,7 +194,7 @@ object Samples {
   }
 
   // count graphs
-  def count(gen: GraphGenerator[_, _, _], limit: Integer = 1800): (Integer, Integer) = {
+  def count(gen: GraphGenerator[_, _], limit: Integer = 1800): (Integer, Integer) = {
     var completed = 0
     var unworkable = 0
     for (g <- gen) {
@@ -220,7 +220,7 @@ object Samples {
       new MultiAllRebuildings(task.program, HEWhistle))
 
     machines foreach { m =>
-      val gen = GraphGenerator(m, task.target, NoExtra)
+      val gen = GraphGenerator(m, task.target)
       val (completed, unworkable) = count(gen)
       val res = expandRight(12, completed + "/" + unworkable)
       print(res)

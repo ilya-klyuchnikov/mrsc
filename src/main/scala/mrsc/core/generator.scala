@@ -11,12 +11,12 @@ import scala.collection.mutable.ListBuffer
   `Machine` corresponds to a novel (= non-deterministic) supercompiler.
  */
 
-trait StepSignature[+C, +D, +E] {
-  type G = Graph[C, D, E]
+trait StepSignature[+C, +D] {
+  type G = Graph[C, D]
   type S = G => G
 }
 
-trait Machine[C, D, E] extends StepSignature[C, D, E] {
+trait Machine[C, D] extends StepSignature[C, D] {
   def steps(g: G): List[S]
 }
 
@@ -27,25 +27,25 @@ trait Machine[C, D, E] extends StepSignature[C, D, E] {
 
 /*! This class produces iterators producing graphs by demand. */
 
-case class GraphGenerator[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
-  extends Iterator[Graph[C, D, E]] {
+case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
+  extends Iterator[Graph[C, D]] {
 
   /*! It maintains a list of graphs
      * and starts with a one-element list of graphs. 
      */
 
-  private var readyGs: Queue[Graph[C, D, E]] = Queue()
-  private var gs: List[Graph[C, D, E]] = List(initial(conf, info))
+  private var readyGs: Queue[Graph[C, D]] = Queue()
+  private var gs: List[Graph[C, D]] = List(initial(conf))
 
-  private def initial(c: C, e: E): Graph[C, D, E] = {
-    val initialNode = Node[C, D, E](c, e, null, None, Nil)
+  private def initial(c: C): Graph[C, D] = {
+    val initialNode = Node[C, D](c, null, None, Nil)
     Graph(List(initialNode), Nil, Nil)
   }
 
   @tailrec
   private def normalize(): Unit =
     if (readyGs.isEmpty && !gs.isEmpty) {
-      val pendingDelta = ListBuffer[Graph[C, D, E]]()
+      val pendingDelta = ListBuffer[Graph[C, D]]()
       val h = gs.head
       val newGs = for (buildStep <- machine.steps(h)) yield buildStep(h)
       for (g1 <- newGs)
@@ -63,9 +63,8 @@ case class GraphGenerator[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
     !readyGs.isEmpty
   }
 
-  def next(): Graph[C, D, E] = {
-    if (!hasNext)
-      throw new NoSuchElementException("no graph")
+  def next(): Graph[C, D] = {
+    if (!hasNext) throw new NoSuchElementException("no graph")
     readyGs.dequeue()
   }
 }

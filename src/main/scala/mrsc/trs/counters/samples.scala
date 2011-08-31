@@ -36,15 +36,15 @@ case class CounterMultiMachine(val protocol: Protocol, val l: Int)
   with SimpleGensWithUnaryWhistle[OmegaConf, Int]
 
 object CounterSamples extends App {
-  
-  def graphSize(g: TGraph[_, _, _]): Int =
+
+  def graphSize(g: TGraph[_, _]): Int =
     size(g.root)
 
-  def size(n: TNode[_, _, _]): Int = 1 + n.outs.map(out => size(out.tNode)).sum
+  def size(n: TNode[_, _]): Int = 1 + n.outs.map(out => size(out.tNode)).sum
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
     val machine = CounterMachine(protocol, l)
-    val graphs = GraphGenerator(machine, protocol.start, ())
+    val graphs = GraphGenerator(machine, protocol.start)
 
     for (graph <- graphs if graph.isComplete) {
       val tgraph = Transformations.transpose(graph)
@@ -58,7 +58,7 @@ object CounterSamples extends App {
 
   def multiScProtocol(protocol: Protocol, l: Int): Unit = {
     val machine = CounterMultiMachine(protocol, l)
-    val graphs = GraphGenerator(machine, protocol.start, ())
+    val graphs = GraphGenerator(machine, protocol.start)
     val successGraphs = graphs filter (_.isComplete) map Transformations.transpose
     //val successGraphs = tgraphs.filter { g => checkSubTree(protocol.unsafe)(g.root) }
     if (!successGraphs.isEmpty) {
@@ -67,7 +67,7 @@ object CounterSamples extends App {
     }
   }
 
-  def checkSubTree(unsafe: OmegaConf => Boolean)(node: TNode[OmegaConf, _, _]): Boolean =
+  def checkSubTree(unsafe: OmegaConf => Boolean)(node: TNode[OmegaConf, _]): Boolean =
     !unsafe(node.conf) && node.outs.map(_.tNode).forall(checkSubTree(unsafe))
 
   def verifyProtocol(protocol: Protocol, findMinimalProof: Boolean = true): Unit = {

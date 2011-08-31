@@ -8,21 +8,21 @@ import mrsc.core._
 import mrsc.pfp._
 
 object TinyMachine
-  extends Machine[Int, String, Extra[String]]
-  with MachineSteps[Int, String, Extra[String]] {
+  extends Machine[Int, String]
+  with MachineSteps[Int, String] {
 
-  def steps(g: Graph[Int, String, Extra[String]]): List[S] = {
+  def steps(g: Graph[Int, String]): List[S] = {
     g.current.conf match {
       case 0 =>
-        List(addChildNodes(List((1, "0 -> 1", NoExtra), (2, "0 -> 2", NoExtra))))
+        List(addChildNodes(List((1, "0 -> 1"), (2, "0 -> 2"))))
       case 1 =>
         List(completeCurrentNode)
       case 2 =>
-        List(rebuild(21, NoExtra))
+        List(rebuild(21))
       case 21 =>
-        List(rollback(g.current.in.node, -1, NoExtra))
+        List(rollback(g.current.in.node, -1))
       case -1 =>
-        List(addChildNodes(List((11, "-1 -> 11", NoExtra))))
+        List(addChildNodes(List((11, "-1 -> 11"))))
       case 11 =>
         List(fold(g.current.in.node))
     }
@@ -33,16 +33,16 @@ object TinyMachine
 class GraphGeneratorSpec extends mutable.Specification {
   args(sequential = true)
 
-  val graph: TGraph[Int, String, Extra[String]] = {
-    val n1 = TNode[Int, String, Extra[String]](conf = 11, extraInfo = NoExtra, outs = List(), back = Some(List()), tPath = List(0))
-    val e1 = TEdge[Int, String, Extra[String]](n1, "-1 -> 11")
-    val n0 = TNode[Int, String, Extra[String]](conf = -1, extraInfo = NoExtra, outs = List(e1), back = None, tPath = List())
+  val graph: TGraph[Int, String] = {
+    val n1 = TNode[Int, String](conf = 11, outs = List(), back = Some(List()), tPath = List(0))
+    val e1 = TEdge[Int, String](n1, "-1 -> 11")
+    val n0 = TNode[Int, String](conf = -1, outs = List(e1), back = None, tPath = List())
     TGraph(root = n0, leaves = List(n1))
   }
 
   "GraphGenerator with deterministic machine" should {
 
-    val tgraphs = GraphGenerator(TinyMachine, 0, NoExtra) map Transformations.transpose toList
+    val tgraphs = GraphGenerator(TinyMachine, 0) map Transformations.transpose toList
 
     "produce just 1 result" in {
       tgraphs.size must_== 1

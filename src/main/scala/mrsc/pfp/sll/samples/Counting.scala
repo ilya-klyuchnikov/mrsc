@@ -49,7 +49,7 @@ object Counting extends App {
 
   implicit val exprOrdering: Ordering[Expr] = Ordering.by(_.size)
 
-  def sc(gen: Iterator[Graph[Expr, DriveInfo[Expr], Extra[Expr]]], limit: Int): Either[CountingResult, CountingResult] = {
+  def sc(gen: Iterator[Graph[Expr, DriveInfo[Expr]]], limit: Int): Either[CountingResult, CountingResult] = {
     var completed = 0
     var unworkable = 0
     var residuals = TreeSet[Expr]()
@@ -79,7 +79,7 @@ object Counting extends App {
       new MultiDoubleAllBinaryGens(task.program, whistle))
 
     machines.foreach { m =>
-      val gen = new GraphGenerator(m, task.target, NoExtra)
+      val gen = new GraphGenerator(m, task.target)
       val res = sc(gen, limit)
       res match {
         case Left(res)  => print("- " + (res.completed, res.residuals.size))

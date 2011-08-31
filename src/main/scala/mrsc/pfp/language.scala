@@ -38,7 +38,7 @@ trait PFPSyntax[C] {
 }
 
 trait Residuation[C] {
-  def residuate(graph: TGraph[C, DriveInfo[C], _]): C
+  def residuate(graph: TGraph[C, DriveInfo[C]]): C
 }
 
 trait MSG[C] extends PFPSyntax[C] {
