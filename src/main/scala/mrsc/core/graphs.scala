@@ -52,8 +52,6 @@ case class Node[+C, +D](
   override def toString = conf.toString
 }
 
-/*! `Edge[+C, +D, +E]` is dual to `TEdge[C, D, E]`. 
- */
 case class Edge[+C, +D](node: Node[C, D], driveInfo: D)
 
 /*! `Graph[C, D, E]` is a core data structure in MRSC.
@@ -89,12 +87,54 @@ case class Graph[+C, +D](
    over SC graphs.
 */
 
-/*! Transformations performed over Graphs by driving
- *  (and some other parts of the supercompiler?).
- */
+sealed trait GraphStep[C, D] extends (Graph[C, D] => Graph[C, D])
+
+case class CompleteCurrentNodeStep[C, D] extends GraphStep[C, D] {
+  def apply(g: Graph[C, D]) =
+    Graph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes)
+}
+
+case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphStep[C, D] {
+  def apply(g: Graph[C, D]) = {
+    val deltaLeaves: List[Node[C, D]] = ns.zipWithIndex map {
+      case ((conf, dInfo), i) =>
+        val in = Edge(g.current, dInfo)
+        Node(conf, in, None, i :: g.current.path)
+    }
+    // Now it is depth-first traversal. If you change 
+    // deltaLeaves ++ ls -> ls ++ deltaLeaves,
+    // you will have breadth-first traversal
+    Graph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves, g.current :: g.completeNodes)
+  }
+}
+
+case class FoldStep[C, D](baseNode: Node[C, D]) extends GraphStep[C, D] {
+  def apply(g: Graph[C, D]) = {
+    val node = g.current.copy(back = Some(baseNode.path))
+    Graph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
+  }
+}
+
+case class RebuidStep[C, D](c: C) extends GraphStep[C, D] {
+  def apply(g: Graph[C, D]) = {
+    val node = g.current.copy(conf = c)
+    Graph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes)
+  }
+}
+
+case class RollbackStep[C, D](to: Node[C, D], c: C) extends GraphStep[C, D] {
+  def apply(g: Graph[C, D]) = {
+    def prune_?(n: Node[C, D]) = n.tPath.startsWith(to.tPath)
+    val node = to.copy(conf = c)
+    val completeNodes1 = g.completeNodes.remove(prune_?)
+    val completeLeaves1 = g.completeLeaves.remove(prune_?)
+    val incompleteLeaves1 = g.incompleteLeaves.tail.remove(prune_?)
+    Graph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
+  }
+}
 
 trait MachineSteps[C, D] extends StepSignature[C, D] {
-    
+
   /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
   */
   def completeCurrentNode: S =
