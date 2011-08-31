@@ -6,9 +6,9 @@ import mrsc.core._
 import mrsc.pfp._
 import mrsc.pfp.sll._
 
-case class ScResult(completed: Integer, unworkable: Integer, residuals: Set[Expr])
-
 object Counting extends App {
+  
+  case class CountingResult(completed: Integer, unworkable: Integer, residuals: Set[Expr])
 
   val program: Program =
     """
@@ -23,7 +23,10 @@ object Counting extends App {
     """
 
   val tasks = List(
-
+    SLLTask("gApp(xs, ys)", program),
+    SLLTask("gApp(xs, xs)", program),
+    SLLTask("gLast(gApp(xs, xs))", program),
+    
     SLLTask("gRev(xs)", program),
     SLLTask("gFRev(xs, Nil())", program),
 
@@ -37,8 +40,6 @@ object Counting extends App {
     SLLTask("gLast(gRev(gFRev(xs, Nil())))", program),
     SLLTask("gLast(gFRev(gFRev(xs, Nil()), Nil()))", program),
 
-    SLLTask("gApp(xs, ys)", program),
-    SLLTask("gApp(xs, xs)", program),
     SLLTask("gApp(gRev(xs), ys)", program),
     SLLTask("gApp(gRev(xs), xs)", program),
     SLLTask("gApp(xs, gRev(ys))", program),
@@ -48,7 +49,7 @@ object Counting extends App {
 
   implicit val exprOrdering: Ordering[Expr] = Ordering.by(_.size)
 
-  def sc(gen: Iterator[Graph[Expr, DriveInfo[Expr], Extra[Expr]]], limit: Int): Either[ScResult, ScResult] = {
+  def sc(gen: Iterator[Graph[Expr, DriveInfo[Expr], Extra[Expr]]], limit: Int): Either[CountingResult, CountingResult] = {
     var completed = 0
     var unworkable = 0
     var residuals = TreeSet[Expr]()
@@ -62,10 +63,10 @@ object Counting extends App {
         residuals += expr
       }
       if (completed + unworkable > limit) {
-        return Left(ScResult(completed, unworkable, residuals))
+        return Left(CountingResult(completed, unworkable, residuals))
       }
     }
-    Right(ScResult(completed, unworkable, residuals))
+    Right(CountingResult(completed, unworkable, residuals))
   }
 
   def compareScWithBinaryWhistle(task: SLLTask, whistle: PartialOrdering[Expr], limit: Int = 5000): Unit = {
@@ -85,11 +86,19 @@ object Counting extends App {
       val gen = new GraphGenerator(m, task.target, NoExtra)
       val res = sc(gen, limit)
       res match {
-        case Left(res)  => println("- " + (res.completed, res.unworkable, res.residuals.size))
-        case Right(res) => println("+ " + (res.completed, res.unworkable, res.residuals.size))
+        case Left(res)  => print("- " + (res.completed, res.unworkable, res.residuals.size))
+        case Right(res) => print("+ " + (res.completed, res.unworkable, res.residuals.size))
       }
+      println("\t" + m.getClass().getSimpleName())
     }
   }
 
-  tasks.foreach(compareScWithBinaryWhistle(_, HEByCouplingWhistle, 100000))
+  println("======================")
+  println("====   Coupling   ====")
+  println("======================")
+  tasks.foreach(compareScWithBinaryWhistle(_, HEByCouplingWhistle, 1000000))
+  println("======================")
+  println("==== CouplingRedex ====")
+  println("======================")
+  tasks.foreach(compareScWithBinaryWhistle(_, HEByCouplingWithRedexWhistle, 1000000))
 }

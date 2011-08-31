@@ -1,0 +1,351 @@
+This is the result of launching counting experiment.
+It took about 20 minutes to produce these results.
+
+======================
+====   Coupling   ====
+======================
+
+===== gApp(xs, ys) ====
++ (1,0,1)	ClassicCurrentGen
++ (1,0,1)	MultiDoubleMsg
++ (1,0,1)	MultiUpperAllBinaryGens
++ (1,0,1)	MultiUpperAllBinaryGensOrDrive
++ (1,0,1)	MultiLowerAllBinaryGens
++ (1,0,1)	MultiLowerAllBinaryGensOrDrive
++ (1,0,1)	MultiDoubleAllBinaryGens
+
+===== gApp(xs, xs) ====
++ (1,2,1)	ClassicCurrentGen
++ (2,2,1)	MultiDoubleMsg
++ (1,1,1)	MultiUpperAllBinaryGens
++ (1,1,1)	MultiUpperAllBinaryGensOrDrive
++ (0,2,0)	MultiLowerAllBinaryGens
++ (1,2,1)	MultiLowerAllBinaryGensOrDrive
++ (2,2,1)	MultiDoubleAllBinaryGens
+
+===== gLast(gApp(xs, xs)) ====
++ (1,3,1)	ClassicCurrentGen
++ (5,5,2)	MultiDoubleMsg
++ (1,2,1)	MultiUpperAllBinaryGens
++ (1,2,1)	MultiUpperAllBinaryGensOrDrive
++ (2,3,1)	MultiLowerAllBinaryGens
++ (2,3,1)	MultiLowerAllBinaryGensOrDrive
++ (8,5,2)	MultiDoubleAllBinaryGens
+
+===== gRev(xs) ====
++ (1,1,1)	ClassicCurrentGen
++ (2,1,2)	MultiDoubleMsg
++ (3,1,3)	MultiUpperAllBinaryGens
++ (3,1,3)	MultiUpperAllBinaryGensOrDrive
++ (3,1,3)	MultiLowerAllBinaryGens
++ (3,1,3)	MultiLowerAllBinaryGensOrDrive
++ (6,1,6)	MultiDoubleAllBinaryGens
+
+===== gFRev(xs, Nil()) ====
++ (1,2,1)	ClassicCurrentGen
++ (2,3,2)	MultiDoubleMsg
++ (0,2,0)	MultiUpperAllBinaryGens
++ (1,3,1)	MultiUpperAllBinaryGensOrDrive
++ (1,2,1)	MultiLowerAllBinaryGens
++ (1,2,1)	MultiLowerAllBinaryGensOrDrive
++ (2,3,2)	MultiDoubleAllBinaryGens
+
+===== gRev(gRev(xs)) ====
++ (1,3,1)	ClassicCurrentGen
++ (10,9,4)	MultiDoubleMsg
++ (9,5,3)	MultiUpperAllBinaryGens
++ (9,5,3)	MultiUpperAllBinaryGensOrDrive
++ (9,5,3)	MultiLowerAllBinaryGens
++ (9,5,3)	MultiLowerAllBinaryGensOrDrive
++ (162,33,9)	MultiDoubleAllBinaryGens
+
+===== gFRev(gRev(xs), Nil()) ====
++ (1,4,1)	ClassicCurrentGen
++ (10,13,3)	MultiDoubleMsg
++ (0,4,0)	MultiUpperAllBinaryGens
++ (6,8,1)	MultiUpperAllBinaryGensOrDrive
++ (6,6,2)	MultiLowerAllBinaryGens
++ (6,6,2)	MultiLowerAllBinaryGensOrDrive
++ (81,24,3)	MultiDoubleAllBinaryGens
+
+===== gRev(gFRev(xs, Nil())) ====
++ (1,3,1)	ClassicCurrentGen
++ (8,11,8)	MultiDoubleMsg
++ (0,13,0)	MultiUpperAllBinaryGens
++ (6,19,3)	MultiUpperAllBinaryGensOrDrive
++ (30,23,12)	MultiLowerAllBinaryGens
++ (30,23,12)	MultiLowerAllBinaryGensOrDrive
++ (300,143,28)	MultiDoubleAllBinaryGens
+
+===== gFRev(gFRev(xs, Nil()), Nil()) ====
++ (1,4,1)	ClassicCurrentGen
++ (4,9,3)	MultiDoubleMsg
++ (0,10,0)	MultiUpperAllBinaryGens
++ (5,27,1)	MultiUpperAllBinaryGensOrDrive
++ (17,44,8)	MultiLowerAllBinaryGens
++ (17,44,8)	MultiLowerAllBinaryGensOrDrive
++ (111,215,16)	MultiDoubleAllBinaryGens
+
+===== gLast(gRev(gRev(xs))) ====
++ (1,4,1)	ClassicCurrentGen
++ (25,24,3)	MultiDoubleMsg
++ (18,11,1)	MultiUpperAllBinaryGens
++ (18,11,1)	MultiUpperAllBinaryGensOrDrive
++ (141,83,2)	MultiLowerAllBinaryGens
++ (141,83,2)	MultiLowerAllBinaryGensOrDrive
++ (8367,1726,3)	MultiDoubleAllBinaryGens
+
+===== gLast(gFRev(gRev(xs), Nil())) ====
++ (1,4,1)	ClassicCurrentGen
++ (20,23,6)	MultiDoubleMsg
++ (0,12,0)	MultiUpperAllBinaryGens
++ (15,22,1)	MultiUpperAllBinaryGensOrDrive
++ (115,97,6)	MultiLowerAllBinaryGens
++ (115,97,6)	MultiLowerAllBinaryGensOrDrive
++ (3522,911,9)	MultiDoubleAllBinaryGens
+
+===== gLast(gRev(gFRev(xs, Nil()))) ====
++ (1,4,1)	ClassicCurrentGen
++ (20,29,6)	MultiDoubleMsg
++ (0,33,0)	MultiUpperAllBinaryGens
++ (15,48,1)	MultiUpperAllBinaryGensOrDrive
++ (225,183,5)	MultiLowerAllBinaryGens
++ (225,183,5)	MultiLowerAllBinaryGensOrDrive
++ (71064,17037,10)	MultiDoubleAllBinaryGens
+
+===== gLast(gFRev(gFRev(xs, Nil()), Nil())) ====
++ (1,4,1)	ClassicCurrentGen
++ (8,13,6)	MultiDoubleMsg
++ (0,37,0)	MultiUpperAllBinaryGens
++ (16,90,1)	MultiUpperAllBinaryGensOrDrive
++ (972,1188,29)	MultiLowerAllBinaryGens
++ (972,1188,29)	MultiLowerAllBinaryGensOrDrive
++ (40291,40981,35)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), ys) ====
++ (1,2,1)	ClassicCurrentGen
++ (5,4,2)	MultiDoubleMsg
++ (3,2,1)	MultiUpperAllBinaryGens
++ (3,2,1)	MultiUpperAllBinaryGensOrDrive
++ (3,3,2)	MultiLowerAllBinaryGens
++ (3,3,2)	MultiLowerAllBinaryGensOrDrive
++ (21,6,3)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), xs) ====
++ (1,5,1)	ClassicCurrentGen
++ (23,22,3)	MultiDoubleMsg
++ (3,2,1)	MultiUpperAllBinaryGens
++ (3,2,1)	MultiUpperAllBinaryGensOrDrive
++ (4,7,1)	MultiLowerAllBinaryGens
++ (4,7,1)	MultiLowerAllBinaryGensOrDrive
++ (172,50,3)	MultiDoubleAllBinaryGens
+
+===== gApp(xs, gRev(ys)) ====
++ (1,1,1)	ClassicCurrentGen
++ (2,1,2)	MultiDoubleMsg
++ (3,1,3)	MultiUpperAllBinaryGens
++ (3,1,3)	MultiUpperAllBinaryGensOrDrive
++ (3,1,3)	MultiLowerAllBinaryGens
++ (3,1,3)	MultiLowerAllBinaryGensOrDrive
++ (6,1,6)	MultiDoubleAllBinaryGens
+
+===== gApp(xs, gRev(xs)) ====
++ (1,3,1)	ClassicCurrentGen
++ (6,5,3)	MultiDoubleMsg
++ (6,3,4)	MultiUpperAllBinaryGens
++ (6,3,4)	MultiUpperAllBinaryGensOrDrive
++ (6,4,1)	MultiLowerAllBinaryGens
++ (6,4,1)	MultiLowerAllBinaryGensOrDrive
++ (51,11,8)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), gRev(ys)) ====
++ (1,4,1)	ClassicCurrentGen
++ (16,15,5)	MultiDoubleMsg
++ (18,9,4)	MultiUpperAllBinaryGens
++ (18,9,4)	MultiUpperAllBinaryGensOrDrive
++ (54,27,9)	MultiLowerAllBinaryGens
++ (54,27,9)	MultiLowerAllBinaryGensOrDrive
++ (1584,317,24)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), gRev(xs)) ====
++ (1,3,1)	ClassicCurrentGen
++ (10,9,4)	MultiDoubleMsg
++ (9,5,3)	MultiUpperAllBinaryGens
++ (9,5,3)	MultiUpperAllBinaryGensOrDrive
++ (18,9,4)	MultiLowerAllBinaryGens
++ (18,9,4)	MultiLowerAllBinaryGensOrDrive
++ (603,121,10)	MultiDoubleAllBinaryGens
+======================
+==== CouplingRedex ====
+======================
+
+===== gApp(xs, ys) ====
++ (1,0,1)	ClassicCurrentGen
++ (1,0,1)	MultiDoubleMsg
++ (1,0,1)	MultiUpperAllBinaryGens
++ (1,0,1)	MultiUpperAllBinaryGensOrDrive
++ (1,0,1)	MultiLowerAllBinaryGens
++ (1,0,1)	MultiLowerAllBinaryGensOrDrive
++ (1,0,1)	MultiDoubleAllBinaryGens
+
+===== gApp(xs, xs) ====
++ (1,2,1)	ClassicCurrentGen
++ (2,2,1)	MultiDoubleMsg
++ (1,1,1)	MultiUpperAllBinaryGens
++ (1,1,1)	MultiUpperAllBinaryGensOrDrive
++ (0,2,0)	MultiLowerAllBinaryGens
++ (1,2,1)	MultiLowerAllBinaryGensOrDrive
++ (2,2,1)	MultiDoubleAllBinaryGens
+
+===== gLast(gApp(xs, xs)) ====
++ (1,2,1)	ClassicCurrentGen
++ (3,2,2)	MultiDoubleMsg
++ (2,2,2)	MultiUpperAllBinaryGens
++ (2,2,2)	MultiUpperAllBinaryGensOrDrive
++ (3,4,1)	MultiLowerAllBinaryGens
++ (3,4,1)	MultiLowerAllBinaryGensOrDrive
++ (13,8,3)	MultiDoubleAllBinaryGens
+
+===== gRev(xs) ====
++ (1,1,1)	ClassicCurrentGen
++ (2,1,2)	MultiDoubleMsg
++ (3,1,3)	MultiUpperAllBinaryGens
++ (3,1,3)	MultiUpperAllBinaryGensOrDrive
++ (3,1,3)	MultiLowerAllBinaryGens
++ (3,1,3)	MultiLowerAllBinaryGensOrDrive
++ (6,1,6)	MultiDoubleAllBinaryGens
+
+===== gFRev(xs, Nil()) ====
++ (1,2,1)	ClassicCurrentGen
++ (2,3,2)	MultiDoubleMsg
++ (0,2,0)	MultiUpperAllBinaryGens
++ (1,3,1)	MultiUpperAllBinaryGensOrDrive
++ (1,2,1)	MultiLowerAllBinaryGens
++ (1,2,1)	MultiLowerAllBinaryGensOrDrive
++ (2,3,2)	MultiDoubleAllBinaryGens
+
+===== gRev(gRev(xs)) ====
++ (1,3,1)	ClassicCurrentGen
++ (10,9,4)	MultiDoubleMsg
++ (9,5,3)	MultiUpperAllBinaryGens
++ (9,5,3)	MultiUpperAllBinaryGensOrDrive
++ (9,5,3)	MultiLowerAllBinaryGens
++ (9,5,3)	MultiLowerAllBinaryGensOrDrive
++ (162,33,9)	MultiDoubleAllBinaryGens
+
+===== gFRev(gRev(xs), Nil()) ====
++ (1,4,1)	ClassicCurrentGen
++ (10,13,3)	MultiDoubleMsg
++ (0,4,0)	MultiUpperAllBinaryGens
++ (6,8,1)	MultiUpperAllBinaryGensOrDrive
++ (6,6,2)	MultiLowerAllBinaryGens
++ (6,6,2)	MultiLowerAllBinaryGensOrDrive
++ (81,24,3)	MultiDoubleAllBinaryGens
+
+===== gRev(gFRev(xs, Nil())) ====
++ (1,3,1)	ClassicCurrentGen
++ (8,11,8)	MultiDoubleMsg
++ (0,13,0)	MultiUpperAllBinaryGens
++ (6,19,3)	MultiUpperAllBinaryGensOrDrive
++ (30,23,12)	MultiLowerAllBinaryGens
++ (30,23,12)	MultiLowerAllBinaryGensOrDrive
++ (300,143,28)	MultiDoubleAllBinaryGens
+
+===== gFRev(gFRev(xs, Nil()), Nil()) ====
++ (1,4,1)	ClassicCurrentGen
++ (4,9,3)	MultiDoubleMsg
++ (0,10,0)	MultiUpperAllBinaryGens
++ (5,27,1)	MultiUpperAllBinaryGensOrDrive
++ (17,44,8)	MultiLowerAllBinaryGens
++ (17,44,8)	MultiLowerAllBinaryGensOrDrive
++ (111,215,16)	MultiDoubleAllBinaryGens
+
+===== gLast(gRev(gRev(xs))) ====
++ (1,4,1)	ClassicCurrentGen
++ (25,24,3)	MultiDoubleMsg
++ (18,11,1)	MultiUpperAllBinaryGens
++ (18,11,1)	MultiUpperAllBinaryGensOrDrive
++ (489,227,2)	MultiLowerAllBinaryGens
++ (489,227,2)	MultiLowerAllBinaryGensOrDrive
++ (293520,58687,3)	MultiDoubleAllBinaryGens
+
+===== gLast(gFRev(gRev(xs), Nil())) ====
++ (1,4,1)	ClassicCurrentGen
++ (20,23,6)	MultiDoubleMsg
++ (0,12,0)	MultiUpperAllBinaryGens
++ (15,22,1)	MultiUpperAllBinaryGensOrDrive
++ (308,262,6)	MultiLowerAllBinaryGens
++ (308,262,6)	MultiLowerAllBinaryGensOrDrive
++ (15243,4120,9)	MultiDoubleAllBinaryGens
+
+===== gLast(gRev(gFRev(xs, Nil()))) ====
++ (1,4,1)	ClassicCurrentGen
++ (20,29,6)	MultiDoubleMsg
++ (0,33,0)	MultiUpperAllBinaryGens
++ (15,48,1)	MultiUpperAllBinaryGensOrDrive
++ (225,183,5)	MultiLowerAllBinaryGens
++ (225,183,5)	MultiLowerAllBinaryGensOrDrive
++ (71064,17037,10)	MultiDoubleAllBinaryGens
+
+===== gLast(gFRev(gFRev(xs, Nil()), Nil())) ====
++ (1,4,1)	ClassicCurrentGen
++ (8,13,6)	MultiDoubleMsg
++ (0,37,0)	MultiUpperAllBinaryGens
++ (16,90,1)	MultiUpperAllBinaryGensOrDrive
++ (972,1188,29)	MultiLowerAllBinaryGens
++ (972,1188,29)	MultiLowerAllBinaryGensOrDrive
++ (40291,40981,35)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), ys) ====
++ (1,2,1)	ClassicCurrentGen
++ (5,4,2)	MultiDoubleMsg
++ (3,2,1)	MultiUpperAllBinaryGens
++ (3,2,1)	MultiUpperAllBinaryGensOrDrive
++ (3,3,2)	MultiLowerAllBinaryGens
++ (3,3,2)	MultiLowerAllBinaryGensOrDrive
++ (21,6,3)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), xs) ====
++ (1,5,1)	ClassicCurrentGen
++ (23,22,3)	MultiDoubleMsg
++ (3,2,1)	MultiUpperAllBinaryGens
++ (3,2,1)	MultiUpperAllBinaryGensOrDrive
++ (4,7,1)	MultiLowerAllBinaryGens
++ (4,7,1)	MultiLowerAllBinaryGensOrDrive
++ (172,50,3)	MultiDoubleAllBinaryGens
+
+===== gApp(xs, gRev(ys)) ====
++ (1,1,1)	ClassicCurrentGen
++ (2,1,2)	MultiDoubleMsg
++ (3,1,3)	MultiUpperAllBinaryGens
++ (3,1,3)	MultiUpperAllBinaryGensOrDrive
++ (3,1,3)	MultiLowerAllBinaryGens
++ (3,1,3)	MultiLowerAllBinaryGensOrDrive
++ (6,1,6)	MultiDoubleAllBinaryGens
+
+===== gApp(xs, gRev(xs)) ====
++ (1,3,1)	ClassicCurrentGen
++ (6,5,3)	MultiDoubleMsg
++ (6,3,4)	MultiUpperAllBinaryGens
++ (6,3,4)	MultiUpperAllBinaryGensOrDrive
++ (6,4,1)	MultiLowerAllBinaryGens
++ (6,4,1)	MultiLowerAllBinaryGensOrDrive
++ (51,11,8)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), gRev(ys)) ====
++ (1,4,1)	ClassicCurrentGen
++ (16,15,5)	MultiDoubleMsg
++ (18,9,4)	MultiUpperAllBinaryGens
++ (18,9,4)	MultiUpperAllBinaryGensOrDrive
++ (54,27,9)	MultiLowerAllBinaryGens
++ (54,27,9)	MultiLowerAllBinaryGensOrDrive
++ (1584,317,24)	MultiDoubleAllBinaryGens
+
+===== gApp(gRev(xs), gRev(xs)) ====
++ (1,3,1)	ClassicCurrentGen
++ (10,9,4)	MultiDoubleMsg
++ (9,5,3)	MultiUpperAllBinaryGens
++ (9,5,3)	MultiUpperAllBinaryGensOrDrive
++ (18,9,4)	MultiLowerAllBinaryGens
++ (18,9,4)	MultiLowerAllBinaryGensOrDrive
++ (603,121,10)	MultiDoubleAllBinaryGens
