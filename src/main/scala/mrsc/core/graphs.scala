@@ -72,8 +72,7 @@ case class Edge[+C, +D, +E](node: Node[C, D, E], driveInfo: D)
 case class Graph[+C, +D, +E](
   incompleteLeaves: List[Node[C, D, E]],
   completeLeaves: List[Node[C, D, E]],
-  completeNodes: List[Node[C, D, E]],
-  isUnworkable: Boolean = false) {
+  completeNodes: List[Node[C, D, E]]) {
 
   /*! `isUnworkable` = is not good for further processing (for some reason).
    *  'isComplete` = is finished, there is nothing to do.
@@ -96,11 +95,6 @@ case class Graph[+C, +D, +E](
  */
 
 trait MachineSteps[C, D, E] extends StepSignature[C, D, E] {
-
-  /*! Marking the graph as unworkable
-   */
-  def toUnworkable: S =
-    g => g.copy(isUnworkable = true)
     
   /*! Just "completing" the current node - moving it to the complete part of the SC graph. 
   */

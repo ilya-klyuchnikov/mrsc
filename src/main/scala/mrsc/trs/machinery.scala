@@ -23,7 +23,7 @@ trait GenericMultiMachine[C, D, E]
   */
   override def steps(g: G): List[S] =
     if (unsafe(g))
-      List(toUnworkable)
+      List()
     else canFold(g) match {
       case Some(node) =>
         List(fold(node))
@@ -82,7 +82,7 @@ trait RuleDriving[C] extends GenericMultiMachine[C, Int, Unit] with RewriteSeman
   override def drive(whistle: Option[Warning], g: Graph[C, Int, Unit]): List[S] =
     whistle match {
       case Some(_) =>
-        List(toUnworkable)
+        List()
       case None =>
         val subSteps =
           for ((next, i) <- driveConf(g.current.conf).zipWithIndex if next.isDefined)

@@ -63,8 +63,7 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C], Extra[C]]
         List(fold(node))
       case _ =>
         val whistle = mayDiverge(g)
-        val driveSteps =
-          if (whistle.isEmpty) drive(g) else List(toUnworkable)
+        val driveSteps = if (whistle.isEmpty) drive(g) else List()
         val rebuildSteps = rebuildings(whistle, g)
         rebuildSteps ++ driveSteps 
     }

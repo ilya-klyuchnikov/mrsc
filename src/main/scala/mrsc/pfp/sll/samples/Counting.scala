@@ -7,8 +7,8 @@ import mrsc.pfp._
 import mrsc.pfp.sll._
 
 object Counting extends App {
-  
-  case class CountingResult(completed: Integer, unworkable: Integer, residuals: Set[Expr])
+
+  case class CountingResult(completed: Integer, residuals: Set[Expr])
 
   val program: Program =
     """
@@ -26,7 +26,7 @@ object Counting extends App {
     SLLTask("gApp(xs, ys)", program),
     SLLTask("gApp(xs, xs)", program),
     SLLTask("gLast(gApp(xs, xs))", program),
-    
+
     SLLTask("gRev(xs)", program),
     SLLTask("gFRev(xs, Nil())", program),
 
@@ -54,19 +54,15 @@ object Counting extends App {
     var unworkable = 0
     var residuals = TreeSet[Expr]()
     for (g <- gen) {
-      if (g.isUnworkable) {
-        unworkable += 1
-      } else {
-        completed += 1
-        val tg = Transformations.transpose(g)
-        val expr = SLLResiduator.residuate(tg)
-        residuals += expr
-      }
-      if (completed + unworkable > limit) {
-        return Left(CountingResult(completed, unworkable, residuals))
+      completed += 1
+      val tg = Transformations.transpose(g)
+      val expr = SLLResiduator.residuate(tg)
+      residuals += expr
+      if (completed > limit) {
+        return Left(CountingResult(completed, residuals))
       }
     }
-    Right(CountingResult(completed, unworkable, residuals))
+    Right(CountingResult(completed, residuals))
   }
 
   def compareScWithBinaryWhistle(task: SLLTask, whistle: PartialOrdering[Expr], limit: Int = 5000): Unit = {
@@ -86,8 +82,8 @@ object Counting extends App {
       val gen = new GraphGenerator(m, task.target, NoExtra)
       val res = sc(gen, limit)
       res match {
-        case Left(res)  => print("- " + (res.completed, res.unworkable, res.residuals.size))
-        case Right(res) => print("+ " + (res.completed, res.unworkable, res.residuals.size))
+        case Left(res)  => print("- " + (res.completed, res.residuals.size))
+        case Right(res) => print("+ " + (res.completed, res.residuals.size))
       }
       println("\t" + m.getClass().getSimpleName())
     }

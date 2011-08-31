@@ -49,7 +49,7 @@ case class GraphGenerator[C, D, E](machine: Machine[C, D, E], conf: C, info: E)
       val h = gs.head
       val newGs = for (buildStep <- machine.steps(h)) yield buildStep(h)
       for (g1 <- newGs)
-        if (g1.isComplete || g1.isUnworkable) {
+        if (g1.isComplete) {
           readyGs.enqueue(g1)
         } else {
           pendingDelta += g1
