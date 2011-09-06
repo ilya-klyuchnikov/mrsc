@@ -2,7 +2,7 @@ package mrsc.pfp
 
 import mrsc.core._
 
-/*!# Equivalence and instance relations on configurations
+/*!# Equivalence and subclass relations on configurations
   
   If the current configuration is `equivalent` to another configuration labeling
   an ancestor node, the supercompiler can loop back to that ancestor.
@@ -15,14 +15,12 @@ import mrsc.core._
   At the semantic level a configuration c is regarded as a representation of set(c),
   a set of states of a computation process.
   It is assumed that
-    (1) equiv(c1, c2) implies that set(c1) = set(c2);
-    (2) instanceOf(c1, c2) implies set(c1) <= set(c2).
+    (1) subclass.equiv(c1, c2) implies that set(c1) = set(c2);
+    (2) subclass.lteq(c1, c2) implies set(c1) <= set(c2).
     
-  Note that, `equiv` and `instanceOf` are supposed to be computable and total.
-  On the other hand, the relations set(c1) = set(c2) and set(c1) <= set(c2) are,
-  generally, not decidable. For this reason, in the general case,
-  `equiv`  and `instanceOf` are not required to be transitive, and `instanceOf`
-  is not required to be antisymmetric.
+  When considering configurations as sets, the relation subclass in general is undecidable.
+  However, in PFP setting we consider this relation as being total: syntactic approximation
+  is used usually in traditional supercompilers.
  */
 trait PFPSyntax[C] {
   def subst(c: C, sub: Subst[C]): C
