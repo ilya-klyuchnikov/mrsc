@@ -26,11 +26,12 @@ import scala.annotation.tailrec
        
  SC graphs in MRSC are used in two representations:
  
- * `SGraph` - good for easy bottom-up traversals (a node knows about in) and
+ * `SGraph` (stack graph) - good for easy bottom-up traversals (a node knows about in) and
     for using in multi-result supercompilation 
     (graph consists of complete and incomplete parts, 
     and operation to add outs to incomplete nodes is cheap).
- * `TGraph` - good for top-down traversals (a node knows about its outs).
+    This data structure is very similar to "spaghetti stack" - http://en.wikipedia.org/wiki/Spaghetti_stack 
+ * `TGraph` (tree graph) - good for top-down traversals (a node knows about its outs).
  
  The main idea here is to use functional (immutable) data structures in order to support
  multi-results composed of shared data.
@@ -55,8 +56,7 @@ case class SNode[C, D](
 case class SEdge[C, D](node: SNode[C, D], driveInfo: D)
 
 /*! `Graph[C, D, E]` is a core data structure in MRSC.
- * It may represent (1) a "work in progress" (2) a completed graph and
- * (3) unfinished, and yet unworkable graph.
+ * It may represent (1) a "work in progress" and (2) a completed graph.
  * We know already processed part of an SC graph
  * (`completeLeaves`, `completeNodes`) and a frontier 
  * of incomplete part (`incompleteLeaves`).
@@ -161,9 +161,6 @@ case class TNode[C, D](
     case Nil => this
     case i :: rp => outs(i).node.get(rp)
   }
-
-  val isLeaf = outs.isEmpty
-  val isRepeat = base.isDefined
   
   override def toString = GraphPrettyPrinter.toString(this)
 }
