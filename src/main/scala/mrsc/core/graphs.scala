@@ -38,7 +38,7 @@ import scala.annotation.tailrec
 
 /*! `SNode[C, D]` is dual to `TNode[C, D]`. 
  */
-case class SNode[+C, +D](
+case class SNode[C, D](
   conf: C,
   in: SEdge[C, D],
   back: Option[Path],
@@ -52,7 +52,7 @@ case class SNode[+C, +D](
   override def toString = conf.toString
 }
 
-case class SEdge[+C, +D](node: SNode[C, D], driveInfo: D)
+case class SEdge[C, D](node: SNode[C, D], driveInfo: D)
 
 /*! `Graph[C, D, E]` is a core data structure in MRSC.
  * It may represent (1) a "work in progress" (2) a completed graph and
@@ -64,7 +64,7 @@ case class SEdge[+C, +D](node: SNode[C, D], driveInfo: D)
  *`C` (configuration) is a type of node label; 
  *`D` (driving) is a type of edge label (driving info);
  */
-case class SGraph[+C, +D](
+case class SGraph[C, D](
   incompleteLeaves: List[SNode[C, D]],
   completeLeaves: List[SNode[C, D]],
   completeNodes: List[SNode[C, D]]) {
