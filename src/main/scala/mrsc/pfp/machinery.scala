@@ -58,17 +58,17 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C]] {
 
   type N = SNode[C, DriveInfo[C]]
   type Warning
-  def canFold(g: G): Option[N]
+  def findBase(g: G): Option[N]
   def drive(g: G): List[S]
   def rebuildings(whistle: Option[Warning], g: G): List[S]
-  def mayDiverge(g: G): Option[Warning]
+  def inspect(g: G): Option[Warning]
 
   override def steps(g: G): List[S] =
-    canFold(g) match {
+    findBase(g) match {
       case Some(node) =>
         List(FoldStep(node))
       case _ =>
-        val whistle = mayDiverge(g)
+        val whistle = inspect(g)
         val driveSteps = if (whistle.isEmpty) drive(g) else List()
         val rebuildSteps = rebuildings(whistle, g)
         rebuildSteps ++ driveSteps
@@ -80,21 +80,21 @@ trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {
 }
 
 trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
-  override def canFold(g: G): Option[N] =
+  override def findBase(g: G): Option[N] =
     g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) }
 }
 
 trait BinaryWhistle[C] extends PFPMachine[C] {
   type Warning = N
   val ordering: PartialOrdering[C]
-  override def mayDiverge(g: G): Option[Warning] =
+  override def inspect(g: G): Option[Warning] =
     g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
 trait UnaryWhistle[C] extends PFPMachine[C] {
   type Warning = Unit
   def dangerous(c: C): Boolean
-  override def mayDiverge(g: G): Option[Warning] =
+  override def inspect(g: G): Option[Warning] =
     if (dangerous(g.current.conf)) Some(Unit) else None
 }
 

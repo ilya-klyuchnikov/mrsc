@@ -23,9 +23,9 @@ object SLLResiduator extends Residuation[Expr] {
   override def residuate(graph: TGraph[Expr, DriveInfo[Expr]]): Expr =
     SyntaxNormalization.fixNames(fold(graph, graph.root))
 
-  def fold(graph: TGraph[Expr, DriveInfo[Expr]], n: TNode[Expr, DriveInfo[Expr]]): Expr = n.back match {
+  def fold(graph: TGraph[Expr, DriveInfo[Expr]], n: TNode[Expr, DriveInfo[Expr]]): Expr = n.base match {
     // base node
-    case None if (graph.leaves.exists { _.back == Some(n.tPath) }) =>
+    case None if (graph.leaves.exists { _.base == Some(n.tPath) }) =>
       val (f, vars) = signature(n)
       val call = FCall(f, vars)
       val body = build(graph, n)

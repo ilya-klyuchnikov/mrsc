@@ -41,8 +41,8 @@ import scala.annotation.tailrec
 case class SNode[C, D](
   conf: C,
   in: SEdge[C, D],
-  back: Option[Path],
-  sPath: Path) {
+  base: Option[SPath],
+  sPath: SPath) {
 
   lazy val tPath = sPath.reverse
 
@@ -101,7 +101,7 @@ case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphStep[C, D] {
 
 case class FoldStep[C, D](baseNode: SNode[C, D]) extends GraphStep[C, D] {
   def apply(g: SGraph[C, D]) = {
-    val node = g.current.copy(back = Some(baseNode.sPath))
+    val node = g.current.copy(base = Some(baseNode.sPath))
     SGraph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
   }
 }
@@ -151,7 +151,7 @@ case class TGraph[C, D](root: TNode[C, D], leaves: List[TNode[C, D]]) {
 case class TNode[C, D](
   conf: C,
   outs: List[TEdge[C, D]],
-  back: Option[TPath],
+  base: Option[TPath],
   tPath: TPath) {
 
   lazy val sPath = tPath.reverse
@@ -163,7 +163,7 @@ case class TNode[C, D](
   }
 
   val isLeaf = outs.isEmpty
-  val isRepeat = back.isDefined
+  val isRepeat = base.isDefined
   
   override def toString = GraphPrettyPrinter.toString(this)
 }
@@ -205,7 +205,7 @@ object Transformations {
       // leaves only??
       case ns1 :: Nil =>
         val tmpNodes: List[Tmp[C, D]] = ns1 map { n =>
-          val node = TNode[C, D](n.conf, Nil, n.back.map(_.reverse), n.tPath)
+          val node = TNode[C, D](n.conf, Nil, n.base.map(_.reverse), n.tPath)
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp =>
@@ -219,7 +219,7 @@ object Transformations {
         val tmpNodes = ns1 map { n =>
           val children: List[Tmp[C, D]] = allchildren.getOrElse(n.sPath, Nil)
           val edges = children map { tmp => TEdge(tmp.node, tmp.in.driveInfo) }
-          val node = new TNode(n.conf, edges, n.back.map(_.reverse), n.tPath)
+          val node = new TNode(n.conf, edges, n.base.map(_.reverse), n.tPath)
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp => leaves.contains(tmp.node.sPath) }
@@ -233,7 +233,7 @@ object Transformations {
 object GraphPrettyPrinter {
   def toString(node: TNode[_, _], indent: String = ""): String = {
     val sb = new StringBuilder(indent + "|__" + node.conf)
-    if (node.back.isDefined) {
+    if (node.base.isDefined) {
       sb.append("*******")
     }
     for (edge <- node.outs) {

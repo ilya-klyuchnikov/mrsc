@@ -16,9 +16,9 @@ class GraphOperationsSpec extends mutable.Specification {
   var tg1, tg2: TGraph[Int, String] = _
 
   val graph: TGraph[Int, String] = {
-    val n1 = TNode[Int, String](conf = 11, outs = List(), back = Some(List()), tPath = List(0))
+    val n1 = TNode[Int, String](conf = 11, outs = List(), base = Some(List()), tPath = List(0))
     val e1 = TEdge[Int, String](n1, "-1 -> 11")
-    val n0 = TNode[Int, String](conf = -1, outs = List(e1), back = None, tPath = List())
+    val n0 = TNode[Int, String](conf = -1, outs = List(e1), base = None, tPath = List())
     TGraph(root = n0, leaves = List(n1))
   }
 

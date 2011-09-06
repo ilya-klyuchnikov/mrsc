@@ -27,15 +27,15 @@ class GraphSpec extends mutable.Specification {
 
   "Conodes and coedges are created from the top down" in {
 
-    val cn0 = SNode[Int, Int](conf = 0, in = null, back = None, sPath = List())
+    val cn0 = SNode[Int, Int](conf = 0, in = null, base = None, sPath = List())
     val ce1 = SEdge[Int, Int](cn0, 1)
-    val cn1 = SNode[Int, Int](conf = 1, in = ce1, back = None, sPath = List(0))
+    val cn1 = SNode[Int, Int](conf = 1, in = ce1, base = None, sPath = List(0))
     val ce2 = SEdge[Int, Int](cn0, 2)
-    val cn2 = SNode[Int, Int](conf = 2, in = ce2, back = None, sPath = List(1))
+    val cn2 = SNode[Int, Int](conf = 2, in = ce2, base = None, sPath = List(1))
     val ce3 = SEdge[Int, Int](cn1, 3)
-    val cn3 = SNode[Int, Int](conf = 3, in = ce3, back = Some(List(1, 0)), sPath = List(0, 0))
+    val cn3 = SNode[Int, Int](conf = 3, in = ce3, base = Some(List(1, 0)), sPath = List(0, 0))
     val ce4 = SEdge[Int, Int](cn1, 4)
-    val cn4 = SNode[Int, Int](conf = 4, in = ce4, back = Some(List()), sPath = List(1, 0))
+    val cn4 = SNode[Int, Int](conf = 4, in = ce4, base = Some(List()), sPath = List(1, 0))
 
     "the top subtrees can be reused for constructing different co graphs" in {
       graph1 = mkGraph(root = cn0, nodes = List(cn0, cn1, cn2), leaves = List(cn1, cn2))
@@ -52,11 +52,11 @@ class GraphSpec extends mutable.Specification {
   }
 
   "Nodes and edges are created from the bottom up" in {
-    val n2 = TNode[Int, Int](conf = 2, outs = List(), back = None, tPath = List(1))
-    val n1 = TNode[Int, Int](conf = 1, outs = List(), back = None, tPath = List(0))
+    val n2 = TNode[Int, Int](conf = 2, outs = List(), base = None, tPath = List(1))
+    val n1 = TNode[Int, Int](conf = 1, outs = List(), base = None, tPath = List(0))
     val e2 = TEdge[Int, Int](n2, 2)
     val e1 = TEdge[Int, Int](n1, 1)
-    val n0 = TNode[Int, Int](conf = 0, outs = List(e1, e2), back = None, tPath = List())
+    val n0 = TNode[Int, Int](conf = 0, outs = List(e1, e2), base = None, tPath = List())
 
     "graph is contructed by enumerating root and leaves" in {
       tgraph1 = TGraph(root = n0, leaves = List(n1, n2))
@@ -73,15 +73,15 @@ class GraphSpec extends mutable.Specification {
   }
 
   "Top subtrees cannnot be reused in different graphs, so extra top subtrees are created" in {
-    val n4 = TNode[Int, Int](conf = 4, outs = List(), back = Some(List()), tPath = List(0, 1))
-    val n3 = TNode[Int, Int](conf = 3, outs = List(), back = Some(List(0, 1)), tPath = List(0, 0))
+    val n4 = TNode[Int, Int](conf = 4, outs = List(), base = Some(List()), tPath = List(0, 1))
+    val n3 = TNode[Int, Int](conf = 3, outs = List(), base = Some(List(0, 1)), tPath = List(0, 0))
     val e3 = TEdge[Int, Int](n3, 3)
     val e4 = TEdge[Int, Int](n4, 4)
-    val n2 = TNode[Int, Int](conf = 2, outs = List(), back = None, tPath = List(1))
-    val n1 = TNode[Int, Int](conf = 1, outs = List(e3, e4), back = None, tPath = List(0))
+    val n2 = TNode[Int, Int](conf = 2, outs = List(), base = None, tPath = List(1))
+    val n1 = TNode[Int, Int](conf = 1, outs = List(e3, e4), base = None, tPath = List(0))
     val e2 = TEdge[Int, Int](n2, 2)
     val e1 = TEdge[Int, Int](n1, 1)
-    val n0 = TNode[Int, Int](conf = 0, outs = List(e1, e2), back = None, tPath = List())
+    val n0 = TNode[Int, Int](conf = 0, outs = List(e1, e2), base = None, tPath = List())
     TGraph(root = n0, leaves = List(n2, n3, n4))
 
     "graph is contructed by enumerating root and leaves" in {
