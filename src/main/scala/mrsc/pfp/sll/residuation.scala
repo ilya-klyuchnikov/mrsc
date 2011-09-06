@@ -45,15 +45,15 @@ object SLLResiduator extends Residuation[Expr] {
     case Nil => n.conf
     case children @ (n1 :: ns) => n1.driveInfo match {
       case TransientStepInfo =>
-        fold(tree, n1.tNode)
+        fold(tree, n1.node)
       case DecomposeStepInfo(compose) =>
-        compose(children map { _.tNode } map { fold(tree, _) })
+        compose(children map { _.node } map { fold(tree, _) })
       case VariantsStepInfo(_) =>
         val (fname, vs @ (v :: vars1)) = gSignature(n)
         val branches = children map { e =>
           val VariantsStepInfo(Contraction(v, c @ Ctr(cn, _))) = e.driveInfo
           val pat = Pat(cn, vars(c) map { _.name })
-          GFun(fname, pat, vars1 map { _.name }, fold(tree, e.tNode))
+          GFun(fname, pat, vars1 map { _.name }, fold(tree, e.node))
         } sortBy (_.p.name)
         val call = GCall(fname, vs)
         Where(call, branches)

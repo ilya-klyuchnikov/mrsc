@@ -10,7 +10,7 @@ import mrsc.pfp._
 object TinyMachine
   extends Machine[Int, String] {
 
-  def steps(g: Graph[Int, String]): List[S] = {
+  def steps(g: SGraph[Int, String]): List[S] = {
     g.current.conf match {
       case 0 =>
         List(AddChildNodesStep(List((1, "0 -> 1"), (2, "0 -> 2"))))

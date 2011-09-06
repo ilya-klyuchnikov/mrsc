@@ -40,7 +40,7 @@ object CounterSamples extends App {
   def graphSize(g: TGraph[_, _]): Int =
     size(g.root)
 
-  def size(n: TNode[_, _]): Int = 1 + n.outs.map(out => size(out.tNode)).sum
+  def size(n: TNode[_, _]): Int = 1 + n.outs.map(out => size(out.node)).sum
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
     val machine = CounterMachine(protocol, l)
@@ -68,7 +68,7 @@ object CounterSamples extends App {
   }
 
   def checkSubTree(unsafe: OmegaConf => Boolean)(node: TNode[OmegaConf, _]): Boolean =
-    !unsafe(node.conf) && node.outs.map(_.tNode).forall(checkSubTree(unsafe))
+    !unsafe(node.conf) && node.outs.map(_.node).forall(checkSubTree(unsafe))
 
   def verifyProtocol(protocol: Protocol, findMinimalProof: Boolean = true): Unit = {
     println()

@@ -12,7 +12,7 @@ class GraphOperationsSpec extends mutable.Specification {
   
   args(sequential = true)
   
-  var g1, g2: Graph[Int, String] = _
+  var g1, g2: SGraph[Int, String] = _
   var tg1, tg2: TGraph[Int, String] = _
 
   val graph: TGraph[Int, String] = {
@@ -22,9 +22,9 @@ class GraphOperationsSpec extends mutable.Specification {
     TGraph(root = n0, leaves = List(n1))
   }
 
-  def start(c: Int): Graph[Int,String] = {
-    val startNode = Node[Int, String](c, null, None, Nil)
-    Graph(List(startNode), Nil, Nil)
+  def start(c: Int): SGraph[Int,String] = {
+    val startNode = SNode[Int, String](c, null, None, Nil)
+    SGraph(List(startNode), Nil, Nil)
   }
 
   

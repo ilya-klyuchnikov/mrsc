@@ -5,9 +5,9 @@ import mrsc.core._
 trait GenericMultiMachine[C, D]
   extends Machine[C, D] {
 
-  type Warning = Node[C, D]
+  type Warning = SNode[C, D]
   def unsafe(g: G): Boolean = false
-  def canFold(g: G): Option[Node[C, D]]
+  def canFold(g: G): Option[SNode[C, D]]
   def mayDiverge(g: G): Option[Warning]
   def drive(whistle: Option[Warning], g: G): List[S]
   def rebuildings(whistle: Option[Warning], g: G): List[S]
@@ -43,23 +43,23 @@ trait SafetyAware[C, D] extends GenericMultiMachine[C, D] {
 }
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D] with TRSSyntax[C] {
-  override def canFold(g: Graph[C, D]): Option[Node[C, D]] =
+  override def canFold(g: SGraph[C, D]): Option[SNode[C, D]] =
     g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) }
 }
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D] with TRSSyntax[C] {
-  override def canFold(g: Graph[C, D]): Option[Node[C, D]] =
+  override def canFold(g: SGraph[C, D]): Option[SNode[C, D]] =
     g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) }
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D] {
   def dangerous(c: C): Boolean
-  override def mayDiverge(g: Graph[C, D]): Option[Warning] =
+  override def mayDiverge(g: SGraph[C, D]): Option[Warning] =
     if (dangerous(g.current.conf)) Some(g.current) else None
 }
 
 trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[Warning], g: Graph[C, D]): List[S] = {
+  override def rebuildings(whistle: Option[Warning], g: SGraph[C, D]): List[S] = {
     whistle match {
       case None =>
         List()
@@ -71,14 +71,14 @@ trait SimpleCurrentGensOnWhistle[C, D] extends GenericMultiMachine[C, D] with TR
 }
 
 trait SimpleGensWithUnaryWhistle[C, D] extends GenericMultiMachine[C, D] with TRSSyntax[C] with SimpleUnaryWhistle[C, D] {
-  override def rebuildings(whistle: Option[Warning], g: Graph[C, D]): List[S] = {
+  override def rebuildings(whistle: Option[Warning], g: SGraph[C, D]): List[S] = {
     val rbs = rebuildings(g.current.conf) filterNot dangerous
     rbs map {RebuildStep(_): S}
   }
 }
 
 trait RuleDriving[C] extends GenericMultiMachine[C, Int] with RewriteSemantics[C] {
-  override def drive(whistle: Option[Warning], g: Graph[C, Int]): List[S] =
+  override def drive(whistle: Option[Warning], g: SGraph[C, Int]): List[S] =
     whistle match {
       case Some(_) =>
         List()

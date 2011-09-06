@@ -56,7 +56,7 @@ case class VariantsDriveStep[C](cases: List[(C, Contraction[C])]) extends DriveS
 
 trait PFPMachine[C] extends Machine[C, DriveInfo[C]] {
 
-  type N = Node[C, DriveInfo[C]]
+  type N = SNode[C, DriveInfo[C]]
   type Warning
   def canFold(g: G): Option[N]
   def drive(g: G): List[S]

@@ -49,7 +49,7 @@ object Counting extends App {
 
   implicit val exprOrdering: Ordering[Expr] = Ordering.by(_.size)
 
-  def sc(gen: Iterator[Graph[Expr, DriveInfo[Expr]]], limit: Int): Either[CountingResult, CountingResult] = {
+  def sc(gen: Iterator[SGraph[Expr, DriveInfo[Expr]]], limit: Int): Either[CountingResult, CountingResult] = {
     var completed = 0
     var unworkable = 0
     var residuals = TreeSet[Expr]()

@@ -9,10 +9,10 @@ import mrsc.pfp._
 
 object GraphSpec extends mutable.Specification {
 
-  def mkGraph(root: Node[Int, Int] = null,
-      nodes: List[Node[Int, Int]] = List(),
-      leaves: List[Node[Int, Int]] = List()) = {
-    Graph(List(), leaves, nodes)
+  def mkGraph(root: SNode[Int, Int] = null,
+      nodes: List[SNode[Int, Int]] = List(),
+      leaves: List[SNode[Int, Int]] = List()) = {
+    SGraph(List(), leaves, nodes)
   }  
 }
 
@@ -22,20 +22,20 @@ class GraphSpec extends mutable.Specification {
   
   args(sequential = true)
 
-  var graph1, graph1a, graph2, graph2a: Graph[Int, Int] = _
+  var graph1, graph1a, graph2, graph2a: SGraph[Int, Int] = _
   var tgraph1, tgraph2: TGraph[Int, Int] = _
 
   "Conodes and coedges are created from the top down" in {
 
-    val cn0 = Node[Int, Int](conf = 0, in = null, back = None, path = List())
-    val ce1 = Edge[Int, Int](cn0, 1)
-    val cn1 = Node[Int, Int](conf = 1, in = ce1, back = None, path = List(0))
-    val ce2 = Edge[Int, Int](cn0, 2)
-    val cn2 = Node[Int, Int](conf = 2, in = ce2, back = None, path = List(1))
-    val ce3 = Edge[Int, Int](cn1, 3)
-    val cn3 = Node[Int, Int](conf = 3, in = ce3, back = Some(List(1, 0)), path = List(0, 0))
-    val ce4 = Edge[Int, Int](cn1, 4)
-    val cn4 = Node[Int, Int](conf = 4, in = ce4, back = Some(List()), path = List(1, 0))
+    val cn0 = SNode[Int, Int](conf = 0, in = null, back = None, sPath = List())
+    val ce1 = SEdge[Int, Int](cn0, 1)
+    val cn1 = SNode[Int, Int](conf = 1, in = ce1, back = None, sPath = List(0))
+    val ce2 = SEdge[Int, Int](cn0, 2)
+    val cn2 = SNode[Int, Int](conf = 2, in = ce2, back = None, sPath = List(1))
+    val ce3 = SEdge[Int, Int](cn1, 3)
+    val cn3 = SNode[Int, Int](conf = 3, in = ce3, back = Some(List(1, 0)), sPath = List(0, 0))
+    val ce4 = SEdge[Int, Int](cn1, 4)
+    val cn4 = SNode[Int, Int](conf = 4, in = ce4, back = Some(List()), sPath = List(1, 0))
 
     "the top subtrees can be reused for constructing different co graphs" in {
       graph1 = mkGraph(root = cn0, nodes = List(cn0, cn1, cn2), leaves = List(cn1, cn2))

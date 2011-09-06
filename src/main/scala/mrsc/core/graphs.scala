@@ -26,7 +26,7 @@ import scala.annotation.tailrec
        
  SC graphs in MRSC are used in two representations:
  
- * `Graph` - good for easy bottom-up traversals (a node knows about in) and
+ * `SGraph` - good for easy bottom-up traversals (a node knows about in) and
     for using in multi-result supercompilation 
     (graph consists of complete and incomplete parts, 
     and operation to add outs to incomplete nodes is cheap).
@@ -36,23 +36,23 @@ import scala.annotation.tailrec
  multi-results composed of shared data.
  */
 
-/*! `Node[+C, +D, +E]` is dual to `TNode[C, D, E]`. 
+/*! `SNode[C, D]` is dual to `TNode[C, D]`. 
  */
-case class Node[+C, +D](
+case class SNode[+C, +D](
   conf: C,
-  in: Edge[C, D],
+  in: SEdge[C, D],
   back: Option[Path],
-  path: Path) {
+  sPath: Path) {
 
-  lazy val tPath = path.reverse
+  lazy val tPath = sPath.reverse
 
-  val ancestors: List[Node[C, D]] =
+  val ancestors: List[SNode[C, D]] =
     if (in == null) List() else in.node :: in.node.ancestors
 
   override def toString = conf.toString
 }
 
-case class Edge[+C, +D](node: Node[C, D], driveInfo: D)
+case class SEdge[+C, +D](node: SNode[C, D], driveInfo: D)
 
 /*! `Graph[C, D, E]` is a core data structure in MRSC.
  * It may represent (1) a "work in progress" (2) a completed graph and
@@ -63,21 +63,13 @@ case class Edge[+C, +D](node: Node[C, D], driveInfo: D)
  * 
  *`C` (configuration) is a type of node label; 
  *`D` (driving) is a type of edge label (driving info);
- *`E` (extra information) is a type of extra label of a node (extra info). 
- * Extra information may be seen as an additional "instrumentation" of SC graph.
  */
-case class Graph[+C, +D](
-  incompleteLeaves: List[Node[C, D]],
-  completeLeaves: List[Node[C, D]],
-  completeNodes: List[Node[C, D]]) {
-
-  /*! `isUnworkable` = is not good for further processing (for some reason).
-   *  'isComplete` = is finished, there is nothing to do.
-   */
+case class SGraph[+C, +D](
+  incompleteLeaves: List[SNode[C, D]],
+  completeLeaves: List[SNode[C, D]],
+  completeNodes: List[SNode[C, D]]) {
+  
   val isComplete = incompleteLeaves.isEmpty
-
-  /*! `current` is the vanguard of the incomplete part. It will be processed next.
-   */
   val current = if (isComplete) null else incompleteLeaves.head
 }
 
@@ -86,56 +78,55 @@ case class Graph[+C, +D](
    Low-level operations should be translated into high-level abstract operations (or messages) 
    over SC graphs.
 */
-
-sealed trait GraphStep[C, D] extends (Graph[C, D] => Graph[C, D])
+sealed trait GraphStep[C, D] extends (SGraph[C, D] => SGraph[C, D])
 
 case class CompleteCurrentNodeStep[C, D] extends GraphStep[C, D] {
-  def apply(g: Graph[C, D]) =
-    Graph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes)
+  def apply(g: SGraph[C, D]) =
+    SGraph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes)
 }
 
 case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphStep[C, D] {
-  def apply(g: Graph[C, D]) = {
-    val deltaLeaves: List[Node[C, D]] = ns.zipWithIndex map {
+  def apply(g: SGraph[C, D]) = {
+    val deltaLeaves: List[SNode[C, D]] = ns.zipWithIndex map {
       case ((conf, dInfo), i) =>
-        val in = Edge(g.current, dInfo)
-        Node(conf, in, None, i :: g.current.path)
+        val in = SEdge(g.current, dInfo)
+        SNode(conf, in, None, i :: g.current.sPath)
     }
     // Now it is depth-first traversal. If you change 
     // deltaLeaves ++ ls -> ls ++ deltaLeaves,
     // you will have breadth-first traversal
-    Graph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves, g.current :: g.completeNodes)
+    SGraph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves, g.current :: g.completeNodes)
   }
 }
 
-case class FoldStep[C, D](baseNode: Node[C, D]) extends GraphStep[C, D] {
-  def apply(g: Graph[C, D]) = {
-    val node = g.current.copy(back = Some(baseNode.path))
-    Graph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
+case class FoldStep[C, D](baseNode: SNode[C, D]) extends GraphStep[C, D] {
+  def apply(g: SGraph[C, D]) = {
+    val node = g.current.copy(back = Some(baseNode.sPath))
+    SGraph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
   }
 }
 
 case class RebuildStep[C, D](c: C) extends GraphStep[C, D] {
-  def apply(g: Graph[C, D]) = {
+  def apply(g: SGraph[C, D]) = {
     val node = g.current.copy(conf = c)
-    Graph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes)
+    SGraph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes)
   }
 }
 
-case class RollbackStep[C, D](to: Node[C, D], c: C) extends GraphStep[C, D] {
-  def apply(g: Graph[C, D]) = {
-    def prune_?(n: Node[C, D]) = n.tPath.startsWith(to.tPath)
+case class RollbackStep[C, D](to: SNode[C, D], c: C) extends GraphStep[C, D] {
+  def apply(g: SGraph[C, D]) = {
+    def prune_?(n: SNode[C, D]) = n.tPath.startsWith(to.tPath)
     val node = to.copy(conf = c)
     val completeNodes1 = g.completeNodes.remove(prune_?)
     val completeLeaves1 = g.completeLeaves.remove(prune_?)
     val incompleteLeaves1 = g.incompleteLeaves.tail.remove(prune_?)
-    Graph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
+    SGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
   }
 }
 
 /*! The labeled directed edge. `N` is a destination node; `D` is driving info.
  */
-case class TEdge[C, D](tNode: TNode[C, D], driveInfo: D)
+case class TEdge[C, D](node: TNode[C, D], driveInfo: D)
 
 /*! `TGraph[C, D, E]`.
  * `TGraph` is a representation of the graph of configurations
@@ -163,12 +154,12 @@ case class TNode[C, D](
   back: Option[TPath],
   tPath: TPath) {
 
-  lazy val path = tPath.reverse
+  lazy val sPath = tPath.reverse
 
   @tailrec
   final def get(relTPath: TPath): TNode[C, D] = relTPath match {
     case Nil => this
-    case i :: rp => outs(i).tNode.get(rp)
+    case i :: rp => outs(i).node.get(rp)
   }
 
   val isLeaf = outs.isEmpty
@@ -179,7 +170,7 @@ case class TNode[C, D](
 
 /*! Auxiliary data for transposing a graph into a transposed graph.
  */
-case class Tmp[C, D](node: TNode[C, D], in: Edge[C, D])
+case class Tmp[C, D](node: TNode[C, D], in: SEdge[C, D])
 
 /*! A transformer of graphs into transposed graphs.
  */
@@ -187,15 +178,15 @@ object Transformations {
   /*! Transposition is done in the following simple way. Nodes are grouped according to the 
    levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
-  def transpose[C, D, E](g: Graph[C, D]): TGraph[C, D] = {
+  def transpose[C, D, E](g: SGraph[C, D]): TGraph[C, D] = {
     require(g.isComplete)
     val allLeaves = g.incompleteLeaves ++ g.completeLeaves
     val allNodes = g.incompleteLeaves ++ g.completeNodes
-    val orderedNodes = allNodes.sortBy(_.path)(PathOrdering)
+    val orderedNodes = allNodes.sortBy(_.sPath)(PathOrdering)
     val rootNode = orderedNodes.head
 
-    val leafPathes = allLeaves.map(_.path)
-    val levels = orderedNodes.groupBy(_.path.length).toList.sortBy(_._1).map(_._2)
+    val leafPathes = allLeaves.map(_.sPath)
+    val levels = orderedNodes.groupBy(_.sPath.length).toList.sortBy(_._1).map(_._2)
     val sortedLevels = levels.map(_.sortBy(_.tPath)(PathOrdering))
     val (tNodes, tLeaves) = subTranspose(sortedLevels, leafPathes)
     val nodes = tNodes map { _.node }
@@ -205,7 +196,7 @@ object Transformations {
 
   // sub-transposes graph into transposed graph level-by-level
   private def subTranspose[C, D](
-    nodes: List[List[Node[C, D]]],
+    nodes: List[List[SNode[C, D]]],
     leaves: List[TPath]): (List[Tmp[C, D]], List[Tmp[C, D]]) =
     nodes match {
       case Nil =>
@@ -218,20 +209,20 @@ object Transformations {
           Tmp(node, n.in)
         }
         val tmpLeaves = tmpNodes.filter { tmp =>
-          leaves.contains(tmp.node.path)
+          leaves.contains(tmp.node.sPath)
         }
         (tmpNodes, tmpLeaves)
 
       case ns1 :: ns => {
         val (allCh, leaves1) = subTranspose(ns, leaves)
-        val allchildren = allCh.groupBy { _.node.path.tail }
+        val allchildren = allCh.groupBy { _.node.sPath.tail }
         val tmpNodes = ns1 map { n =>
-          val children: List[Tmp[C, D]] = allchildren.getOrElse(n.path, Nil)
+          val children: List[Tmp[C, D]] = allchildren.getOrElse(n.sPath, Nil)
           val edges = children map { tmp => TEdge(tmp.node, tmp.in.driveInfo) }
           val node = new TNode(n.conf, edges, n.back.map(_.reverse), n.tPath)
           Tmp(node, n.in)
         }
-        val tmpLeaves = tmpNodes.filter { tmp => leaves.contains(tmp.node.path) }
+        val tmpLeaves = tmpNodes.filter { tmp => leaves.contains(tmp.node.sPath) }
         (tmpNodes, tmpLeaves ++ leaves1)
       }
     }
@@ -247,7 +238,7 @@ object GraphPrettyPrinter {
     }
     for (edge <- node.outs) {
       sb.append("\n  " + indent + "|" + (if (edge.driveInfo != null) edge.driveInfo else ""))
-      sb.append("\n" + toString(edge.tNode, indent + "  "))
+      sb.append("\n" + toString(edge.node, indent + "  "))
     }
     sb.toString
   }
