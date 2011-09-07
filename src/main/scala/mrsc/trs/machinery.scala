@@ -7,8 +7,8 @@ trait GenericMultiMachine[C, D]
 
   type Warning = SNode[C, D]
   def unsafe(g: G): Boolean = false
-  def canFold(g: G): Option[SNode[C, D]]
-  def mayDiverge(g: G): Option[Warning]
+  def findBase(g: G): Option[SNode[C, D]]
+  def inspect(g: G): Option[Warning]
   def drive(whistle: Option[Warning], g: G): List[S]
   def rebuildings(whistle: Option[Warning], g: G): List[S]
 
@@ -23,11 +23,11 @@ trait GenericMultiMachine[C, D]
   override def steps(g: G): List[S] =
     if (unsafe(g))
       List()
-    else canFold(g) match {
+    else findBase(g) match {
       case Some(node) =>
         List(FoldStep(node))
       case None =>
-        val whistle = mayDiverge(g)
+        val whistle = inspect(g)
         val driveSteps = drive(whistle, g)
         val rebuildSteps = rebuildings(whistle, g)
         driveSteps ++ rebuildSteps
@@ -43,18 +43,18 @@ trait SafetyAware[C, D] extends GenericMultiMachine[C, D] {
 }
 
 trait SimpleInstanceFolding[C, D] extends GenericMultiMachine[C, D] with TRSSyntax[C] {
-  override def canFold(g: SGraph[C, D]): Option[SNode[C, D]] =
+  override def findBase(g: SGraph[C, D]): Option[SNode[C, D]] =
     g.current.ancestors.find { n => instanceOf(g.current.conf, n.conf) }
 }
 
 trait SimpleInstanceFoldingToAny[C, D] extends GenericMultiMachine[C, D] with TRSSyntax[C] {
-  override def canFold(g: SGraph[C, D]): Option[SNode[C, D]] =
+  override def findBase(g: SGraph[C, D]): Option[SNode[C, D]] =
     g.completeNodes.find { n => instanceOf(g.current.conf, n.conf) }
 }
 
 trait SimpleUnaryWhistle[C, D] extends GenericMultiMachine[C, D] {
   def dangerous(c: C): Boolean
-  override def mayDiverge(g: SGraph[C, D]): Option[Warning] =
+  override def inspect(g: SGraph[C, D]): Option[Warning] =
     if (dangerous(g.current.conf)) Some(g.current) else None
 }
 
