@@ -73,27 +73,6 @@ case class SGraph[C, D](
   val current = if (isComplete) null else incompleteLeaves.head
 }
 
-/*! The labeled directed edge. `N` is a destination node; `D` is driving info.
- */
-case class TEdge[C, D](node: TNode[C, D], driveInfo: D)
-
-/*! `TGraph[C, D, E]`.
- * `TGraph` is a representation of the graph of configurations
- * that is good for top-down traversals (a node knows about its outs).
- * 
- * A `TGraph` is a "transposed" representation of a `Graph`,
- * each Node being replaced with TNode,
- * and each Edge being replaced with TEdge.
- *`C` (configuration) is a type of node label; 
- *`D` (driving) is a type of edge label (driving info);
- *`E` (extra information) is a type of extra label of a node (extra info). 
- * Extra information may be seen as an additional "instrumentation" of SC graph.
- */
-case class TGraph[C, D](root: TNode[C, D], leaves: List[TNode[C, D]]) {
-  def get(tPath: TPath): TNode[C, D] = root.get(tPath)
-  override def toString = root.toString
-}
-
 /*! `TNode[C, D, E]` is a very simple and straightforward implementation of
  * a top-down node. 
  */
@@ -114,11 +93,32 @@ case class TNode[C, D](
   override def toString = GraphPrettyPrinter.toString(this)
 }
 
+/*! The labeled directed edge. `node` is a destination node; `D` is driving info.
+ */
+case class TEdge[C, D](node: TNode[C, D], driveInfo: D)
+
+/*! `TGraph[C, D, E]`.
+ * `TGraph` is a representation of the graph of configurations
+ * that is good for top-down traversals (a node knows about its outs).
+ * 
+ * A `TGraph` is a "transposed" representation of a `Graph`,
+ * each Node being replaced with TNode,
+ * and each Edge being replaced with TEdge.
+ *`C` (configuration) is a type of node label; 
+ *`D` (driving) is a type of edge label (driving info);
+ *`E` (extra information) is a type of extra label of a node (extra info). 
+ * Extra information may be seen as an additional "instrumentation" of SC graph.
+ */
+case class TGraph[C, D](root: TNode[C, D], leaves: List[TNode[C, D]]) {
+  def get(tPath: TPath): TNode[C, D] = root.get(tPath)
+  override def toString = root.toString
+}
+
 /*! Auxiliary data for transposing a graph into a transposed graph.
  */
 case class Tmp[C, D](node: TNode[C, D], in: SEdge[C, D])
 
-/*! A transformer of graphs into transposed graphs.
+/*! A transformer of stack graphs into tree graphs.
  */
 object Transformations {
   /*! Transposition is done in the following simple way. Nodes are grouped according to the 
@@ -126,8 +126,8 @@ object Transformations {
    */
   def transpose[C, D, E](g: SGraph[C, D]): TGraph[C, D] = {
     require(g.isComplete)
-    val allLeaves = g.incompleteLeaves ++ g.completeLeaves
-    val allNodes = g.incompleteLeaves ++ g.completeNodes
+    val allLeaves = g.completeLeaves
+    val allNodes = g.completeNodes
     val orderedNodes = allNodes.sortBy(_.sPath)(PathOrdering)
     val rootNode = orderedNodes.head
 
