@@ -14,18 +14,21 @@ object Counting extends App {
     """
     gApp(Cons(u, us), vs) = Cons(u, gApp(us, vs));
     gApp(Nil(), vs) = vs;
+
     gRev(Cons(x, xs))= gApp(gRev(xs), Cons(x, Nil()));
     gRev(Nil()) = Nil();
+
     gFRev(Cons(x, xs), ys) = gFRev(xs, Cons(x, ys));
     gFRev(Nil(), ys) = ys;
-    gLast(Cons(x, xs)) = gLast(xs);
-    gLast(Nil()) = Nil(); 
+
+    gLastNil(Cons(x, xs)) = gLastNil(xs);
+    gLastNil(Nil()) = Nil(); 
     """
 
   val tasks = List(
     SLLTask("gApp(xs, ys)", program),
     SLLTask("gApp(xs, xs)", program),
-    SLLTask("gLast(gApp(xs, xs))", program),
+    SLLTask("gLastNil(gApp(xs, xs))", program),
 
     SLLTask("gRev(xs)", program),
     SLLTask("gFRev(xs, Nil())", program),
@@ -35,10 +38,10 @@ object Counting extends App {
     SLLTask("gRev(gFRev(xs, Nil()))", program),
     SLLTask("gFRev(gFRev(xs, Nil()), Nil())", program),
 
-    SLLTask("gLast(gRev(gRev(xs)))", program),
-    SLLTask("gLast(gFRev(gRev(xs), Nil()))", program),
-    SLLTask("gLast(gRev(gFRev(xs, Nil())))", program),
-    SLLTask("gLast(gFRev(gFRev(xs, Nil()), Nil()))", program),
+    SLLTask("gLastNil(gRev(gRev(xs)))", program),
+    SLLTask("gLastNil(gFRev(gRev(xs), Nil()))", program),
+    SLLTask("gLastNil(gRev(gFRev(xs, Nil())))", program),
+    SLLTask("gLastNil(gFRev(gFRev(xs, Nil()), Nil()))", program),
 
     SLLTask("gApp(gRev(xs), ys)", program),
     SLLTask("gApp(gRev(xs), xs)", program),
