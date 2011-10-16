@@ -10,7 +10,7 @@ class SC1(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with MSGCurrentOrDriving[Expr]
 
@@ -20,7 +20,7 @@ class SC2(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with DoubleMsgOnBinaryWhistle[Expr]
 
@@ -30,7 +30,7 @@ class SC3(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with UpperAllBinaryGensOnBinaryWhistle[Expr]
 
@@ -40,7 +40,7 @@ class SC4(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with UpperAllBinaryGensOrDriveOnBinaryWhistle[Expr]
 
@@ -50,7 +50,7 @@ class SC5(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with LowerAllBinaryGensOnBinaryWhistle[Expr]
 
@@ -60,7 +60,7 @@ class SC6(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with LowerAllBinaryGensOrDriveOnBinaryWhistle[Expr]
 
@@ -70,7 +70,7 @@ class SC7(val program: Program, val ordering: PartialOrdering[Expr])
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with DoubleAllBinaryGensOnBinaryWhistle[Expr]
 
@@ -79,7 +79,7 @@ class MultiAllRebuildings(val program: Program, val ordering: PartialOrdering[Ex
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with AllRebuildings[Expr]
 
@@ -88,7 +88,7 @@ class MultiLowerRebuildings(val program: Program, val ordering: PartialOrdering[
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with LowerRebuildingsOnBinaryWhistle[Expr]
 
@@ -97,7 +97,7 @@ class MultiUpperRebuildings(val program: Program, val ordering: PartialOrdering[
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with UpperRebuildingsOnBinaryWhistle[Expr]
 
@@ -106,7 +106,7 @@ class MultiDoubleRebuildingsOnWhistle(val program: Program, val ordering: Partia
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with DoubleRebuildingsOnBinaryWhistle[Expr]
 
@@ -115,7 +115,7 @@ class ClassicDangerousGen(val program: Program, val ordering: PartialOrdering[Ex
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
-  with RenamingFolding[Expr]
+  with Folding[Expr]
   with BinaryWhistle[Expr]
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 

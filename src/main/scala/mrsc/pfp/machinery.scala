@@ -22,22 +22,25 @@ trait MultiResultSCMachine[C, D] extends Machine[C, D] {
   }
 }
 
-trait PFPMachine[C] extends MultiResultSCMachine[C, DriveInfo[C]] 
+trait PFPMachine[C] extends MultiResultSCMachine[C, DriveInfo[C]]
 
 trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {
-  override def drive(g: G): List[S] = List(driveConf(g.current.conf).graphStep)
+  override def drive(g: G): List[S] =
+    List(driveConf(g.current.conf).graphStep)
 }
 
-trait RenamingFolding[C] extends PFPMachine[C] with PFPSyntax[C] {
+trait Folding[C] extends PFPMachine[C] with PFPSyntax[C] {
   override def findBase(g: G): Option[N] =
-    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) }
+    g.current.ancestors.find 
+      { n => subclass.equiv(g.current.conf, n.conf) }
 }
 
 trait BinaryWhistle[C] extends PFPMachine[C] {
   type Warning = N
   val ordering: PartialOrdering[C]
   override def inspect(g: G): Option[Warning] =
-    g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
+    g.current.ancestors find 
+      { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
 trait UnaryWhistle[C] extends PFPMachine[C] {
