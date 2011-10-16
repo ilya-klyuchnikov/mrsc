@@ -4,6 +4,76 @@ import mrsc.core._
 import mrsc.pfp._
 import mrsc.pfp.sll._
 
+// ClassicCurrentGen
+class SC1(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with MSGCurrentOrDriving[Expr]
+
+// MultiDoubleMsg
+class SC2(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with DoubleMsgOnBinaryWhistle[Expr]
+
+// MultiUpperAllBinaryGens
+class SC3(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with UpperAllBinaryGensOnBinaryWhistle[Expr]
+
+// MultiUpperAllBinaryGensOrDrive
+class SC4(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with UpperAllBinaryGensOrDriveOnBinaryWhistle[Expr]
+
+// MultiLowerAllBinaryGens
+class SC5(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with LowerAllBinaryGensOnBinaryWhistle[Expr]
+
+// MultiLowerAllBinaryGensOrDrive
+class SC6(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with LowerAllBinaryGensOrDriveOnBinaryWhistle[Expr]
+
+// MultiDoubleAllBinaryGens
+class SC7(val program: Program, val ordering: PartialOrdering[Expr])
+  extends PFPMachine[Expr]
+  with SLLSyntax
+  with SLLSemantics
+  with Driving[Expr]
+  with RenamingFolding[Expr]
+  with BinaryWhistle[Expr]
+  with DoubleAllBinaryGensOnBinaryWhistle[Expr]
+
 class MultiAllRebuildings(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
@@ -40,60 +110,6 @@ class MultiDoubleRebuildingsOnWhistle(val program: Program, val ordering: Partia
   with BinaryWhistle[Expr]
   with DoubleRebuildingsOnBinaryWhistle[Expr]
 
-class MultiLowerAllBinaryGens(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with RenamingFolding[Expr]
-  with BinaryWhistle[Expr]
-  with LowerAllBinaryGensOnBinaryWhistle[Expr]
-
-class MultiLowerAllBinaryGensOrDrive(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with RenamingFolding[Expr]
-  with BinaryWhistle[Expr]
-  with LowerAllBinaryGensOrDriveOnBinaryWhistle[Expr]
-
-class MultiUpperAllBinaryGens(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with RenamingFolding[Expr]
-  with BinaryWhistle[Expr]
-  with UpperAllBinaryGensOnBinaryWhistle[Expr]
-
-class MultiUpperAllBinaryGensOrDrive(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with RenamingFolding[Expr]
-  with BinaryWhistle[Expr]
-  with UpperAllBinaryGensOrDriveOnBinaryWhistle[Expr]
-
-class MultiDoubleAllBinaryGens(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with RenamingFolding[Expr]
-  with BinaryWhistle[Expr]
-  with DoubleAllBinaryGensOnBinaryWhistle[Expr]
-
-class MultiDoubleMsg(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with RenamingFolding[Expr]
-  with BinaryWhistle[Expr]
-  with DoubleMsgOnBinaryWhistle[Expr]
-
 class ClassicDangerousGen(val program: Program, val ordering: PartialOrdering[Expr])
   extends PFPMachine[Expr]
   with SLLSyntax
@@ -103,14 +119,6 @@ class ClassicDangerousGen(val program: Program, val ordering: PartialOrdering[Ex
   with BinaryWhistle[Expr]
   with LowerMsgOrUpperMggOnBinaryWhistle[Expr]
 
-class ClassicCurrentGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with RenamingFolding[Expr]
-  with BinaryWhistle[Expr]
-  with MSGCurrentOrDriving[Expr]
 
 object Samples {
   //type Machine1 = Machine[Expr, DriveInfo[Expr], Extra[Expr]]
@@ -120,8 +128,8 @@ object Samples {
   def multi3(w: PartialOrdering[Expr])(p: Program) = new MultiUpperRebuildings(p, w)
   def multi4(w: PartialOrdering[Expr])(p: Program) = new MultiDoubleRebuildingsOnWhistle(p, w)
   def classic1(w: PartialOrdering[Expr])(p: Program) = new ClassicDangerousGen(p, w)
-  def classic2(w: PartialOrdering[Expr])(p: Program) = new ClassicCurrentGen(p, w)
-  def classic3(w: PartialOrdering[Expr])(p: Program) = new MultiDoubleMsg(p, w)
+  def classic2(w: PartialOrdering[Expr])(p: Program) = new SC1(p, w)
+  def classic3(w: PartialOrdering[Expr])(p: Program) = new SC3(p, w)
 
   private def expand(n: Int, s: String): String = {
     val init = " " * n
@@ -227,7 +235,7 @@ object Samples {
     print(info)
 
     val machines = List(
-      new MultiDoubleMsg(task.program, HEByCouplingWhistle),
+      new SC2(task.program, HEByCouplingWhistle),
       new MultiDoubleRebuildingsOnWhistle(task.program, HEWhistle),
       new MultiAllRebuildings(task.program, HEWhistle))
 

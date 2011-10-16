@@ -70,26 +70,28 @@ object Counting extends App {
 
   def compareScWithBinaryWhistle(task: SLLTask, whistle: PartialOrdering[Expr], limit: Int = 5000): Unit = {
     println()
-    println("===== " + task.target + " ====")
+    print(task.target + " ")
 
     val machines = List(
-      new ClassicCurrentGen(task.program, whistle),
-      new MultiDoubleMsg(task.program, whistle),
-      new MultiUpperAllBinaryGens(task.program, whistle),
-      new MultiUpperAllBinaryGensOrDrive(task.program, whistle),
-      new MultiLowerAllBinaryGens(task.program, whistle),
-      new MultiLowerAllBinaryGensOrDrive(task.program, whistle),
-      new MultiDoubleAllBinaryGens(task.program, whistle))
+      new SC1(task.program, whistle),
+      new SC2(task.program, whistle),
+      new SC3(task.program, whistle),
+      new SC4(task.program, whistle),
+      new SC5(task.program, whistle),
+      new SC6(task.program, whistle),
+      new SC7(task.program, whistle))
 
     machines.foreach { m =>
       val gen = new GraphGenerator(m, task.target)
       val res = sc(gen, limit)
       res match {
-        case Left(res)  => print("- " + (res.completed, res.residuals.size))
-        case Right(res) => print("+ " + (res.completed, res.residuals.size))
+        case Left(res) =>
+          print("& " + res.residuals.size + "/" + res.completed)
+        case Right(res) =>
+          print(" & " + res.residuals.size + "/" + res.completed)
       }
-      println("\t" + m.getClass().getSimpleName())
     }
+    println(""" \\""")
   }
 
   println("======================")
