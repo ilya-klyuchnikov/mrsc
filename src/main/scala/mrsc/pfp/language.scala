@@ -28,7 +28,7 @@ trait PFPSyntax[C] {
   def rawRebuildings(c: C): List[RawRebuilding[C]]
   def translate(rebuilding: RawRebuilding[C]): C
   def trivialRb(c: C)(rb: RawRebuilding[C]) =
-    (rb._2.values.toSet + rb._1).exists(subclass.equiv(c, _))
+    (rb._2.values.toSet + rb._1) exists {subclass.equiv(c, _)}
   def rebuildings(c: C): List[C] =
     rawRebuildings(c) filterNot trivialRb(c) map translate
   def size(c: C): Int
