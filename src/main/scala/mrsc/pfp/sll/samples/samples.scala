@@ -4,74 +4,46 @@ import mrsc.core._
 import mrsc.pfp._
 import mrsc.pfp.sll._
 
-// ClassicCurrentGen
-class SC1(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
+trait SC extends PFPMachine[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
   with Folding[Expr]
   with BinaryWhistle[Expr]
-  with MSGCurrentOrDriving[Expr]
+
+// ClassicCurrentGen
+class SC1(val program: Program, val ordering: PartialOrdering[Expr])
+  extends SC
+  with LowerMsgOrDrivingOnBinaryWhistle[Expr]
 
 // MultiDoubleMsg
 class SC2(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with Folding[Expr]
-  with BinaryWhistle[Expr]
+  extends SC
   with DoubleMsgOnBinaryWhistle[Expr]
 
 // MultiUpperAllBinaryGens
 class SC3(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with Folding[Expr]
-  with BinaryWhistle[Expr]
+  extends SC
   with UpperAllBinaryGensOnBinaryWhistle[Expr]
 
 // MultiUpperAllBinaryGensOrDrive
 class SC4(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with Folding[Expr]
-  with BinaryWhistle[Expr]
+  extends SC
   with UpperAllBinaryGensOrDriveOnBinaryWhistle[Expr]
 
 // MultiLowerAllBinaryGens
 class SC5(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with Folding[Expr]
-  with BinaryWhistle[Expr]
+  extends SC
   with LowerAllBinaryGensOnBinaryWhistle[Expr]
 
 // MultiLowerAllBinaryGensOrDrive
 class SC6(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with Folding[Expr]
-  with BinaryWhistle[Expr]
+  extends SC
   with LowerAllBinaryGensOrDriveOnBinaryWhistle[Expr]
 
 // MultiDoubleAllBinaryGens
 class SC7(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
-  with SLLSyntax
-  with SLLSemantics
-  with Driving[Expr]
-  with Folding[Expr]
-  with BinaryWhistle[Expr]
+  extends SC
   with DoubleAllBinaryGensOnBinaryWhistle[Expr]
 
 class MultiAllRebuildings(val program: Program, val ordering: PartialOrdering[Expr])

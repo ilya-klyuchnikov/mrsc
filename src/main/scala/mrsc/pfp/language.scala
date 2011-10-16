@@ -43,17 +43,16 @@ trait Residuation[C] {
   def residuate(graph: TGraph[C, DriveInfo[C]]): C
 }
 
-trait MSG[C] extends PFPSyntax[C] {
-  def msg(c1: C, c2: C): Option[RawRebuilding[C]] = {
-    val nonTrivialRbs = rawRebuildings(c1) filterNot trivialRb(c1)
-    val sharedRbs = nonTrivialRbs filter { rb => subclass.gteq(rb._1, c2) }
-    sharedRbs find { rb => sharedRbs forall { other => subclass.lteq(rb._1, other._1) } }
-  }
-}
-
 trait MutualGens[C] extends PFPSyntax[C] {
   def mutualGens(c1: C, c2: C): List[RawRebuilding[C]] = {
     val nonTrivialRbs = rawRebuildings(c1) filterNot trivialRb(c1)
     nonTrivialRbs filter { rb => subclass.gteq(rb._1, c2) }
+  }
+}
+
+trait MSG[C] extends MutualGens[C] {
+  def msg(c1: C, c2: C): Option[RawRebuilding[C]] = {
+    val mutual = mutualGens(c1, c2)
+    mutual find { rb => mutual forall { other => subclass.lteq(rb._1, other._1) } }
   }
 }
