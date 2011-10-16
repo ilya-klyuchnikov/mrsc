@@ -44,7 +44,7 @@ object SLLResiduator extends Residuation[Expr] {
   def build(tree: TGraph[Expr, DriveInfo[Expr]], n: TNode[Expr, DriveInfo[Expr]]): Expr = n.outs match {
     case Nil => n.conf
     case children @ (n1 :: ns) => n1.driveInfo match {
-      case TransientStepInfo =>
+      case TransientStepInfo() =>
         fold(tree, n1.node)
       case DecomposeStepInfo(compose) =>
         compose(children map { _.node } map { fold(tree, _) })

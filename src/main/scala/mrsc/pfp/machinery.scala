@@ -6,21 +6,21 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C]] {
 
   type N = SNode[C, DriveInfo[C]]
   type Warning
+
   def findBase(g: G): Option[N]
   def drive(g: G): List[S]
-  def rebuildings(whistle: Option[Warning], g: G): List[S]
+  def rebuildings(signal: Option[Warning], g: G): List[S]
   def inspect(g: G): Option[Warning]
 
-  override def steps(g: G): List[S] =
-    findBase(g) match {
-      case Some(node) =>
-        List(FoldStep(node))
-      case _ =>
-        val whistle = inspect(g)
-        val driveSteps = if (whistle.isEmpty) drive(g) else List()
-        val rebuildSteps = rebuildings(whistle, g)
-        rebuildSteps ++ driveSteps
-    }
+  override def steps(g: G): List[S] = findBase(g) match {
+    case Some(node) =>
+      List(FoldStep(node))
+    case None =>
+      val signal = inspect(g)
+      val driveSteps = if (signal.isEmpty) drive(g) else List()
+      val rebuildSteps = rebuildings(signal, g)
+      rebuildSteps ++ driveSteps
+  }
 }
 
 trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {

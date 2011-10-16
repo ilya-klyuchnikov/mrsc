@@ -118,7 +118,7 @@ trait SLLSemantics extends PFPSemantics[Expr] {
           case GFun(_, p, gargs, body) =>
             val ctr = instantiate(p, v)
             val gReduced = subst(body, ((p.args ++ gargs) zip (ctr.args ++ args)).toMap)
-            val contraction = Contraction(v.name, Ctr(p.name, ctr.args))
+            val contraction = Contraction[Expr](v.name, Ctr(p.name, ctr.args))
             val driven = subst(context(gReduced), contraction.subst)
             (driven, contraction)
         }
