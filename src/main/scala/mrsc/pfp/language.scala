@@ -28,7 +28,7 @@ trait PFPSyntax[C] {
   def rawRebuildings(c: C): List[RawRebuilding[C]]
   def translate(rebuilding: RawRebuilding[C]): C
   def trivialRb(c: C)(rb: RawRebuilding[C]) =
-    (rb._2.values.toSet + rb._1) exists {subclass.equiv(c, _)}
+    (rb._2.values.toSet + rb._1) exists { subclass.equiv(c, _) }
   def rebuildings(c: C): List[C] =
     rawRebuildings(c) filterNot trivialRb(c) map translate
   def size(c: C): Int
@@ -55,5 +55,5 @@ trait MutualGens[C] extends PFPSyntax[C] {
   def mutualGens(c1: C, c2: C): List[RawRebuilding[C]] = {
     val nonTrivialRbs = rawRebuildings(c1) filterNot trivialRb(c1)
     nonTrivialRbs filter { rb => subclass.gteq(rb._1, c2) }
-  } 
+  }
 }

@@ -12,6 +12,7 @@ import scala.collection.mutable.ListBuffer
  */
 
 trait Machine[C, D] {
+  type N = SNode[C, D]
   type G = SGraph[C, D]
   type S = GraphStep[C, D]
   def steps(g: G): List[S]

@@ -2,9 +2,8 @@ package mrsc.pfp
 
 import mrsc.core._
 
-trait PFPMachine[C] extends Machine[C, DriveInfo[C]] {
+trait MultiResultSCMachine[C, D] extends Machine[C, D] {
 
-  type N = SNode[C, DriveInfo[C]]
   type Warning
 
   def findBase(g: G): Option[N]
@@ -22,6 +21,8 @@ trait PFPMachine[C] extends Machine[C, DriveInfo[C]] {
       rebuildSteps ++ driveSteps
   }
 }
+
+trait PFPMachine[C] extends MultiResultSCMachine[C, DriveInfo[C]] 
 
 trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {
   override def drive(g: G): List[S] = List(driveConf(g.current.conf).graphStep)
