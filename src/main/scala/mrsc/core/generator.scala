@@ -35,14 +35,10 @@ case class RollbackStep[C, D](to: SNode[C, D], c: C) extends GraphStep[C, D]
  A graph generator knows only how to build a graph using a machine, but not what to do with this graph later.
  */
 
-/*! This class produces iterators producing graphs by demand. */
+/*! This class implements iterator producing graphs by demand. */
 
 case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
   extends Iterator[SGraph[C, D]] {
-
-  /*! It maintains a list of graphs
-     * and starts with a one-element list of graphs. 
-     */
 
   private var completeGs: Queue[SGraph[C, D]] = Queue()
   private var gs: List[SGraph[C, D]] = List(initial(conf))
@@ -52,9 +48,8 @@ case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
     SGraph(List(initialNode), Nil, Nil)
   }
 
-  @tailrec
   private def normalize(): Unit =
-    if (completeGs.isEmpty && !gs.isEmpty) {
+    while (completeGs.isEmpty && !gs.isEmpty) {
       val pendingDelta = ListBuffer[SGraph[C, D]]()
       val h = gs.head
       val newGs = machine.steps(h) map { GraphGenerator.executeStep(_, h) }
@@ -65,7 +60,6 @@ case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
           pendingDelta += g1
         }
       gs = pendingDelta ++: gs.tail
-      normalize()
     }
 
   def hasNext: Boolean = {
