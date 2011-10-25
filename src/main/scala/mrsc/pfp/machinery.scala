@@ -22,7 +22,7 @@ trait MultiResultSCMachine[C, D] extends Machine[C, D] {
   }
 }
 
-trait PFPMachine[C] extends MultiResultSCMachine[C, DriveInfo[C]]
+//trait PFPMachine[C] extends MultiResultSCMachine[C, DriveInfo[C]]
 
 trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {
   override def drive(g: G): List[S] =
