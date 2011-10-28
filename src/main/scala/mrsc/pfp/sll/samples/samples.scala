@@ -120,7 +120,7 @@ object Samples {
       val t = Transformations.transpose(g)
       println(t)
       val res = SLLResiduator.residuate(t)
-      println(PrettySLL.pretty(res))
+      println(res)
       Checker.check(task, Lifting.expr2Task(res))
     }
   }

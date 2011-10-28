@@ -53,13 +53,6 @@
 			<version>1.5</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.googlecode</groupId>
-			<artifactId>kiama_2.9.0-1</artifactId>
-			<version>1.1.0</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
