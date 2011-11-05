@@ -6,12 +6,12 @@ trait MultiResultSCMachine[C, D] extends Machine[C, D] {
 
   type Warning
 
-  def findBase(g: G): Option[N]
+  def findBasic(g: G): Option[N]
   def drive(g: G): List[S]
   def rebuildings(signal: Option[Warning], g: G): List[S]
   def inspect(g: G): Option[Warning]
 
-  override def steps(g: G): List[S] = findBase(g) match {
+  override def steps(g: G): List[S] = findBasic(g) match {
     case Some(node) =>
       List(FoldStep(node))
     case None =>
@@ -28,7 +28,7 @@ trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {
 }
 
 trait Folding[C] extends PFPMachine[C] with PFPSyntax[C] {
-  override def findBase(g: G): Option[N] =
+  override def findBasic(g: G): Option[N] =
     g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) }
 }
 
