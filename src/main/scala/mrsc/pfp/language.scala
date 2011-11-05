@@ -16,7 +16,7 @@ trait PFPSyntax[C] {
 }
 
 trait PFPSemantics[C] {
-  def driveConf(c: C): DriveStep[C]
+  def driveStep(c: C): DriveStep[C]
 }
 
 trait Residuation[C] {

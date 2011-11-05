@@ -83,7 +83,7 @@ trait SLLSemantics extends PFPSemantics[Expr] {
   
   val program: Program
 
-  override def driveConf(conf: Expr): DriveStep[Expr] =
+  override def driveStep(conf: Expr): DriveStep[Expr] =
     decompose(conf) match {
 
       case ObservableVar(v) =>

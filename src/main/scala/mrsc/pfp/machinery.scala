@@ -24,7 +24,7 @@ trait MultiResultSCMachine[C, D] extends Machine[C, D] {
 
 trait Driving[C] extends PFPMachine[C] with PFPSemantics[C] {
   override def drive(g: G): List[S] =
-    List(driveConf(g.current.conf).graphStep)
+    List(driveStep(g.current.conf).graphStep)
 }
 
 trait Folding[C] extends PFPMachine[C] with PFPSyntax[C] {
