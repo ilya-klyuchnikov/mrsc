@@ -7,14 +7,14 @@ trait MultiResultSCRules[C, D] extends GraphRewriteRules[C, D] {
   type Warning
   def inspect(g: G): Option[Warning]
 
-  def fold(g: G): Option[N]
+  def fold(g: G): List[S]
   def drive(g: G): List[S]
   def rebuild(signal: Option[Warning], g: G): List[S]
 
   override def steps(g: G): List[S] = fold(g) match {
-    case Some(node) =>
-      List(FoldStep(node))
-    case None =>
+    case foldSteps if !foldSteps.isEmpty =>
+      foldSteps
+    case _ =>
       val signal = inspect(g)
       val driveSteps = if (signal.isEmpty) drive(g) else List()
       val rebuildSteps = rebuild(signal, g)
@@ -28,8 +28,8 @@ trait Driving[C] extends PFPRules[C] with PFPSemantics[C] {
 }
 
 trait Folding[C] extends PFPRules[C] with PFPSyntax[C] {
-  override def fold(g: G): Option[N] =
-    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) }
+  override def fold(g: G): List[S] =
+    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map {FoldStep(_)} toList
 }
 
 trait BinaryWhistle[C] extends PFPRules[C] {
