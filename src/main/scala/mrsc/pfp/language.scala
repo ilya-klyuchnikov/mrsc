@@ -55,7 +55,7 @@ case class VariantsStepInfo[C](contr: Contraction[C]) extends DriveInfo[C] {
 }
 
 sealed trait DriveStep[C] {
-  val graphStep: GraphStep[C, DriveInfo[C]]
+  val graphStep: GraphRewriteStep[C, DriveInfo[C]]
 }
 
 case class StopDriveStep[C] extends DriveStep[C] {

@@ -7,8 +7,7 @@ import org.specs2.runner.JUnitRunner
 import mrsc.core._
 import mrsc.pfp._
 
-object TinyMachine
-  extends Machine[Int, String] {
+object TinyRules extends GraphRewriteRules[Int, String] {
 
   def steps(g: SGraph[Int, String]): List[S] = {
     g.current.conf match {
@@ -39,9 +38,9 @@ class GraphGeneratorSpec extends mutable.Specification {
     TGraph(root = n0, leaves = List(n1))
   }
 
-  "GraphGenerator with deterministic machine" should {
+  "GraphGenerator with deterministic rules" should {
 
-    val tgraphs = GraphGenerator(TinyMachine, 0) map Transformations.transpose toList
+    val tgraphs = GraphGenerator(TinyRules, 0) map Transformations.transpose toList
 
     "produce just 1 result" in {
       tgraphs.size must_== 1

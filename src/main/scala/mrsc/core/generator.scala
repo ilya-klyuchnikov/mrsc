@@ -1,47 +1,28 @@
 package mrsc.core
 
-import scala.annotation.tailrec
 import scala.collection.mutable.Queue
 import scala.collection.mutable.ListBuffer
 
-/*!# Abstract machines
-  
-  An abstract machine represents the semantics of the object language 
-  (more precisely, meta-semantics) through operations over SC graphs. 
-  `Machine` corresponds to a novel (= non-deterministic) supercompiler.
- */
-
-trait Machine[C, D] {
+trait GraphRewriteRules[C, D] {
   type N = SNode[C, D]
   type G = SGraph[C, D]
-  type S = GraphStep[C, D]
+  type S = GraphRewriteStep[C, D]
+  // TODO: maybe more clear name is `applicableSteps`?
   def steps(g: G): List[S]
 }
 
-/*!# Abstract steps
-   Under the hood an abstract machine deals with some kind of semantics of the language.
-   Low-level operations should be translated into high-level abstract operations (or messages) 
-   over SC graphs.
-*/
-sealed trait GraphStep[C, D]
-case class CompleteCurrentNodeStep[C, D] extends GraphStep[C, D]
-case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphStep[C, D]
-case class FoldStep[C, D](baseNode: SNode[C, D]) extends GraphStep[C, D]
-case class RebuildStep[C, D](c: C) extends GraphStep[C, D]
-case class RollbackStep[C, D](to: SNode[C, D], c: C) extends GraphStep[C, D]
+sealed trait GraphRewriteStep[C, D]
+case class CompleteCurrentNodeStep[C, D] extends GraphRewriteStep[C, D]
+case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphRewriteStep[C, D]
+case class FoldStep[C, D](baseNode: SNode[C, D]) extends GraphRewriteStep[C, D]
+case class RebuildStep[C, D](c: C) extends GraphRewriteStep[C, D]
+case class RollbackStep[C, D](to: SNode[C, D], c: C) extends GraphRewriteStep[C, D]
 
-/*!# Generating graphs.
- 
- A graph generator knows only how to build a graph using a machine, but not what to do with this graph later.
- */
-
-/*! This class implements iterator producing graphs by demand. */
-
-case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
+case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
   extends Iterator[SGraph[C, D]] {
 
   private var completeGs: Queue[SGraph[C, D]] = Queue()
-  private var gs: List[SGraph[C, D]] = List(initial(conf))
+  private var pendingGs: List[SGraph[C, D]] = List(initial(conf))
 
   private def initial(c: C): SGraph[C, D] = {
     val initialNode = SNode[C, D](c, null, None, Nil)
@@ -49,17 +30,17 @@ case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
   }
 
   private def normalize(): Unit =
-    while (completeGs.isEmpty && !gs.isEmpty) {
+    while (completeGs.isEmpty && !pendingGs.isEmpty) {
       val pendingDelta = ListBuffer[SGraph[C, D]]()
-      val h = gs.head
-      val newGs = machine.steps(h) map { GraphGenerator.executeStep(_, h) }
-      for (g1 <- newGs)
+      val g = pendingGs.head
+      val rewrittenGs = rules.steps(g) map { GraphGenerator.executeStep(_, g) }
+      for (g1 <- rewrittenGs)
         if (g1.isComplete) {
           completeGs.enqueue(g1)
         } else {
           pendingDelta += g1
         }
-      gs = pendingDelta ++: gs.tail
+      pendingGs = pendingDelta ++: pendingGs.tail
     }
 
   def hasNext: Boolean = {
@@ -74,7 +55,7 @@ case class GraphGenerator[C, D](machine: Machine[C, D], conf: C)
 }
 
 object GraphGenerator {
-  def executeStep[C, D](step: GraphStep[C, D], g: SGraph[C, D]): SGraph[C, D] = step match {
+  def executeStep[C, D](step: GraphRewriteStep[C, D], g: SGraph[C, D]): SGraph[C, D] = step match {
     case CompleteCurrentNodeStep() =>
       SGraph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes)
     case AddChildNodesStep(ns) =>

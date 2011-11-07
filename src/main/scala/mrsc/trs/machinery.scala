@@ -3,7 +3,7 @@ package mrsc.trs
 import mrsc.core._
 
 trait GenericMultiMachine[C, D]
-  extends Machine[C, D] {
+  extends GraphRewriteRules[C, D] {
 
   type Warning = SNode[C, D]
   def unsafe(g: G): Boolean = false

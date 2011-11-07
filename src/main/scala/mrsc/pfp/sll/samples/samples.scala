@@ -4,7 +4,7 @@ import mrsc.core._
 import mrsc.pfp._
 import mrsc.pfp.sll._
 
-trait SC extends PFPMachine[Expr]
+trait SC extends PFPRules[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -47,7 +47,7 @@ class SC7(val program: Program, val ordering: PartialOrdering[Expr])
   with DoubleAllBinaryGensOnBinaryWhistle[Expr]
 
 class MultiAllRebuildings(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
+  extends PFPRules[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -56,7 +56,7 @@ class MultiAllRebuildings(val program: Program, val ordering: PartialOrdering[Ex
   with AllRebuildings[Expr]
 
 class MultiLowerRebuildings(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
+  extends PFPRules[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -65,7 +65,7 @@ class MultiLowerRebuildings(val program: Program, val ordering: PartialOrdering[
   with LowerRebuildingsOnBinaryWhistle[Expr]
 
 class MultiUpperRebuildings(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
+  extends PFPRules[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -74,7 +74,7 @@ class MultiUpperRebuildings(val program: Program, val ordering: PartialOrdering[
   with UpperRebuildingsOnBinaryWhistle[Expr]
 
 class MultiDoubleRebuildingsOnWhistle(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
+  extends PFPRules[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
@@ -83,7 +83,7 @@ class MultiDoubleRebuildingsOnWhistle(val program: Program, val ordering: Partia
   with DoubleRebuildingsOnBinaryWhistle[Expr]
 
 class ClassicDangerousGen(val program: Program, val ordering: PartialOrdering[Expr])
-  extends PFPMachine[Expr]
+  extends PFPRules[Expr]
   with SLLSyntax
   with SLLSemantics
   with Driving[Expr]
