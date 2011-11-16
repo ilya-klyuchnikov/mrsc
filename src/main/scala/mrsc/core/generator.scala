@@ -7,7 +7,6 @@ trait GraphRewriteRules[C, D] {
   type N = SNode[C, D]
   type G = SGraph[C, D]
   type S = GraphRewriteStep[C, D]
-  // TODO: maybe more clear name is `applicableSteps`?
   def steps(g: G): List[S]
 }
 
