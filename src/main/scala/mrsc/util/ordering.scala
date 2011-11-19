@@ -1,4 +1,4 @@
-package mrsc.core
+package mrsc.util
 
 trait SimplePartialOrdering[T] extends PartialOrdering[T] {
   override def tryCompare(x: T, y: T): Option[Int] = (lteq(x, y), lteq(y, x)) match {

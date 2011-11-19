@@ -1,6 +1,6 @@
 package mrsc.pfp.sll
 
-import mrsc.core.SimplePartialOrdering
+import mrsc.util.SimplePartialOrdering
 import mrsc.pfp._
 
 object HE {

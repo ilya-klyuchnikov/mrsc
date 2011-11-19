@@ -1,6 +1,7 @@
 package mrsc.pfp.sll
 
 import mrsc.core._
+import mrsc.util._
 import mrsc.pfp._
 
 import Decomposition._
