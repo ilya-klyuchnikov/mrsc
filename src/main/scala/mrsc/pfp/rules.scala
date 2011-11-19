@@ -2,58 +2,45 @@ package mrsc.pfp
 
 import mrsc.core._
 
-trait MultiResultSCRules[C, D] extends GraphRewriteRules[C, D] {
+trait PFPRules[C] extends MRSCRules[C, DriveInfo[C]] {
+  type Signal = Option[N]
 
-  type Warning
-  def inspect(g: G): Option[Warning]
-
-  def fold(g: G): List[S]
-  def drive(g: G): List[S]
-  def rebuild(signal: Option[Warning], g: G): List[S]
-
-  override def steps(g: G): List[S] = fold(g) match {
-    case foldSteps if !foldSteps.isEmpty =>
-      foldSteps
-    case _ =>
-      val signal = inspect(g)
-      val driveSteps = if (signal.isEmpty) drive(g) else List()
-      val rebuildSteps = rebuild(signal, g)
-      rebuildSteps ++ driveSteps
+  override def steps(g: G): List[S] = {
+    val signal = inspect(g)
+    fold(signal, g) match {
+      case foldSteps if !foldSteps.isEmpty =>
+        foldSteps
+      case _ =>
+        val driveSteps = if (signal.isEmpty) drive(signal, g) else List()
+        val rebuildSteps = rebuild(signal, g)
+        rebuildSteps ++ driveSteps
+    }
   }
 }
 
 trait Driving[C] extends PFPRules[C] with PFPSemantics[C] {
-  override def drive(g: G): List[S] =
+  override def drive(signal: Signal, g: G): List[S] =
     List(driveStep(g.current.conf).graphStep)
 }
 
 trait Folding[C] extends PFPRules[C] with PFPSyntax[C] {
-  override def fold(g: G): List[S] =
-    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map {FoldStep(_)} toList
+  override def fold(signal: Signal, g: G): List[S] =
+    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map { FoldStep(_) } toList
 }
 
 trait BinaryWhistle[C] extends PFPRules[C] {
-  type Warning = N
   val ordering: PartialOrdering[C]
-  override def inspect(g: G): Option[Warning] =
-    g.current.ancestors find
-      { n => ordering.lteq(n.conf, g.current.conf) }
-}
-
-trait UnaryWhistle[C] extends PFPRules[C] {
-  type Warning = Unit
-  def dangerous(c: C): Boolean
-  override def inspect(g: G): Option[Warning] =
-    if (dangerous(g.current.conf)) Some(Unit) else None
+  override def inspect(g: G): Signal =
+    g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
 trait AllRebuildings[C] extends PFPRules[C] with PFPSyntax[C] {
-  override def rebuild(signal: Option[Warning], g: G) =
+  override def rebuild(signal: Option[N], g: G) =
     rebuildings(g.current.conf) map { RebuildStep(_): S }
 }
 
 trait LowerRebuildingsOnBinaryWhistle[C] extends PFPRules[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G) =
+  override def rebuild(signal: Signal, g: G) =
     signal match {
       case None =>
         List()
@@ -63,17 +50,17 @@ trait LowerRebuildingsOnBinaryWhistle[C] extends PFPRules[C] with PFPSyntax[C] w
 }
 
 trait UpperRebuildingsOnBinaryWhistle[C] extends PFPRules[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G) =
+  override def rebuild(signal: Signal, g: G) =
     signal match {
-      case None        => 
+      case None =>
         List()
-      case Some(upper) => 
+      case Some(upper) =>
         rebuildings(upper.conf) map { RollbackStep(upper, _) }
     }
 }
 
 trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPRules[C] with PFPSyntax[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G) =
+  override def rebuild(signal: Option[N], g: G) =
     signal match {
       case None =>
         List()
@@ -87,7 +74,7 @@ trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPRules[C] with PFPSyntax[C] 
 }
 
 trait LowerAllBinaryGensOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G): List[S] =
+  override def rebuild(signal: Signal, g: G): List[S] =
     signal match {
       case None => List()
       case Some(upper) =>
@@ -96,7 +83,7 @@ trait LowerAllBinaryGensOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C
 }
 
 trait UpperAllBinaryGensOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G): List[S] =
+  override def rebuild(signal: Signal, g: G): List[S] =
     signal match {
       case None => List()
       case Some(upper) =>
@@ -105,28 +92,28 @@ trait UpperAllBinaryGensOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C
 }
 
 trait DoubleAllBinaryGensOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G) = signal match {
+  override def rebuild(signal: Signal, g: G) = signal match {
     case None =>
       List()
     case Some(upper) =>
-      val rollbacks = 
-        mutualGens(upper.conf, g.current.conf) map 
+      val rollbacks =
+        mutualGens(upper.conf, g.current.conf) map
           { c => RollbackStep(upper, translate(c)) }
-      val rebuilds = 
-        mutualGens(g.current.conf, upper.conf) map 
+      val rebuilds =
+        mutualGens(g.current.conf, upper.conf) map
           { c => RebuildStep(translate(c)): S }
       rollbacks ++ rebuilds
   }
 }
 
 trait LowerAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G): List[S] =
+  override def rebuild(signal: Signal, g: G): List[S] =
     signal match {
       case None => List()
       case Some(upper) =>
         val rebuilds: List[S] = mutualGens(g.current.conf, upper.conf) map translate map { RebuildStep(_): S }
         if (rebuilds.isEmpty) {
-          drive(g)
+          drive(signal, g)
         } else {
           rebuilds
         }
@@ -134,13 +121,13 @@ trait LowerAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPRules[C] with Mutua
 }
 
 trait UpperAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C] with BinaryWhistle[C] {
-  override def rebuild(signal: Option[Warning], g: G): List[S] =
+  override def rebuild(signal: Signal, g: G): List[S] =
     signal match {
       case None => List()
       case Some(upper) =>
         val rollbacks = mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper, _) }
         if (rollbacks.isEmpty) {
-          drive(g)
+          drive(signal, g)
         } else {
           rollbacks
         }
@@ -150,7 +137,7 @@ trait UpperAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPRules[C] with Mutua
 trait UpperMsgOrLowerMggOnBinaryWhistle[C]
   extends PFPRules[C] with MSG[C] with BinaryWhistle[C] {
 
-  override def rebuild(signal: Option[Warning], g: G): List[S] = {
+  override def rebuild(signal: Signal, g: G): List[S] = {
     signal match {
       case Some(upper) =>
         val currentConf = g.current.conf
@@ -172,7 +159,7 @@ trait UpperMsgOrLowerMggOnBinaryWhistle[C]
 
 trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with BinaryWhistle[C] {
 
-  override def rebuild(signal: Option[Warning], g: G): List[S] = {
+  override def rebuild(signal: Signal, g: G): List[S] = {
     signal match {
       case Some(upper) =>
         val currentConf = g.current.conf
@@ -195,7 +182,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with 
 
 trait LowerMsgOrDrivingOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with BinaryWhistle[C] {
 
-  override def rebuild(signal: Option[Warning], g: G) = signal match {
+  override def rebuild(signal: Signal, g: G) = signal match {
     case Some(upper) =>
       val lowerConf = g.current.conf
       val upperConf = upper.conf
@@ -203,7 +190,7 @@ trait LowerMsgOrDrivingOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with B
         case Some(rb) =>
           List(RebuildStep(translate(rb)))
         case None =>
-          drive(g)
+          drive(signal, g)
       }
     case None =>
       List()
@@ -212,7 +199,7 @@ trait LowerMsgOrDrivingOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with B
 
 trait DoubleMsgOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with BinaryWhistle[C] {
 
-  def rebuild(signal: Option[Warning], g: G) = signal match {
+  def rebuild(signal: Signal, g: G) = signal match {
     case Some(upper) =>
       val current = g.current
       val rollbacks = msg(upper.conf, current.conf) map { rb => RollbackStep(upper, translate(rb)) }
