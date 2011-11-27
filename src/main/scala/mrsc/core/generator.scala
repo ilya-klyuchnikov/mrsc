@@ -13,7 +13,7 @@ trait GraphRewriteRules[C, D] {
 sealed trait GraphRewriteStep[C, D]
 case class CompleteCurrentNodeStep[C, D] extends GraphRewriteStep[C, D]
 case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphRewriteStep[C, D]
-case class FoldStep[C, D](baseNode: SNode[C, D]) extends GraphRewriteStep[C, D]
+case class FoldStep[C, D](basePath: SPath) extends GraphRewriteStep[C, D]
 case class RebuildStep[C, D](c: C) extends GraphRewriteStep[C, D]
 case class RollbackStep[C, D](to: SNode[C, D], c: C) extends GraphRewriteStep[C, D]
 
@@ -64,8 +64,8 @@ object GraphGenerator {
           SNode(conf, in, None, i :: g.current.sPath)
       }
       SGraph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves, g.current :: g.completeNodes)
-    case FoldStep(baseNode) =>
-      val node = g.current.copy(base = Some(baseNode.sPath))
+    case FoldStep(basePath) =>
+      val node = g.current.copy(base = Some(basePath))
       SGraph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
     case RebuildStep(c) =>
       val node = g.current.copy(conf = c)

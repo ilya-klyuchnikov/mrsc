@@ -25,7 +25,7 @@ trait GenericMultiMachine[C, D]
       List()
     else findBase(g) match {
       case Some(node) =>
-        List(FoldStep(node))
+        List(FoldStep(node.sPath))
       case None =>
         val whistle = inspect(g)
         val driveSteps = drive(whistle, g)

@@ -82,7 +82,7 @@ class GraphOperationsSpec extends mutable.Specification {
 
     "executes Fold command" in {
       val root = g1.current.in.node
-      g1 = GraphGenerator.executeStep(FoldStep(root), g1)
+      g1 = GraphGenerator.executeStep(FoldStep(root.sPath), g1)
 
       (g1.current must_== null) and
         (g1.completeNodes.size must_== 2) and
@@ -109,7 +109,7 @@ class GraphOperationsSpec extends mutable.Specification {
 
     "executes Fold command" in {
       val root = g2.current.in.node
-      g2 = GraphGenerator.executeStep(FoldStep(root), g2)
+      g2 = GraphGenerator.executeStep(FoldStep(root.sPath), g2)
 
       (g1.current must_== null) and
         (g1.completeNodes.size must_== 2) and

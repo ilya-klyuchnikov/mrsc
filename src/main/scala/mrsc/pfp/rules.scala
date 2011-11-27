@@ -25,7 +25,7 @@ trait Driving[C] extends PFPRules[C] with PFPSemantics[C] {
 
 trait Folding[C] extends PFPRules[C] with PFPSyntax[C] {
   override def fold(signal: Signal, g: G): List[S] =
-    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map { FoldStep(_) } toList
+    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S } toList
 }
 
 trait BinaryWhistle[C] extends PFPRules[C] {

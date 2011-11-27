@@ -22,7 +22,7 @@ object TinyRules extends GraphRewriteRules[Int, String] {
       case -1 =>
         List(AddChildNodesStep(List((11, "-1 -> 11"))))
       case 11 =>
-        List(FoldStep(g.current.in.node))
+        List(FoldStep(g.current.in.node.sPath))
     }
   }
 }
