@@ -18,7 +18,7 @@ object TinyRules extends GraphRewriteRules[Int, String] {
       case 2 =>
         List(RebuildStep(21))
       case 21 =>
-        List(RollbackStep(g.current.in.node, -1))
+        List(RollbackStep(g.current.in.node.sPath, -1))
       case -1 =>
         List(AddChildNodesStep(List((11, "-1 -> 11"))))
       case 11 =>

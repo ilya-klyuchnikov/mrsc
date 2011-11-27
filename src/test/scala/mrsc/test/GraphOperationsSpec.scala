@@ -65,7 +65,7 @@ class GraphOperationsSpec extends mutable.Specification {
 
     "executes RollbackSubGraph command" in {
       val root = g1.current.in.node
-      g1 = GraphGenerator.executeStep(RollbackStep(root, -1), g1)
+      g1 = GraphGenerator.executeStep(RollbackStep(root.sPath, -1), g1)
 
       (g1.current.conf must_== -1) and
         (g1.completeNodes.size must_== 0) and

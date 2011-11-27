@@ -55,7 +55,7 @@ trait UpperRebuildingsOnBinaryWhistle[C] extends PFPRules[C] with PFPSyntax[C] w
       case None =>
         List()
       case Some(upper) =>
-        rebuildings(upper.conf) map { RollbackStep(upper, _) }
+        rebuildings(upper.conf) map { RollbackStep(upper.sPath, _): S }
     }
 }
 
@@ -68,7 +68,7 @@ trait DoubleRebuildingsOnBinaryWhistle[C] extends PFPRules[C] with PFPSyntax[C] 
         val rebuilds =
           rebuildings(g.current.conf) map { RebuildStep(_): S }
         val rollbacks =
-          rebuildings(upper.conf) map { RollbackStep(upper, _) }
+          rebuildings(upper.conf) map { RollbackStep(upper.sPath, _): S }
         rollbacks ++ rebuilds
     }
 }
@@ -87,7 +87,7 @@ trait UpperAllBinaryGensOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[C
     signal match {
       case None => List()
       case Some(upper) =>
-        mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper, _) }
+        mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper.sPath, _): S }
     }
 }
 
@@ -98,7 +98,7 @@ trait DoubleAllBinaryGensOnBinaryWhistle[C] extends PFPRules[C] with MutualGens[
     case Some(upper) =>
       val rollbacks =
         mutualGens(upper.conf, g.current.conf) map
-          { c => RollbackStep(upper, translate(c)) }
+          { c => RollbackStep(upper.sPath, translate(c)): S}
       val rebuilds =
         mutualGens(g.current.conf, upper.conf) map
           { c => RebuildStep(translate(c)): S }
@@ -125,7 +125,7 @@ trait UpperAllBinaryGensOrDriveOnBinaryWhistle[C] extends PFPRules[C] with Mutua
     signal match {
       case None => List()
       case Some(upper) =>
-        val rollbacks = mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper, _) }
+        val rollbacks = mutualGens(upper.conf, g.current.conf) map translate map { RollbackStep(upper.sPath, _): S }
         if (rollbacks.isEmpty) {
           drive(signal, g)
         } else {
@@ -145,7 +145,7 @@ trait UpperMsgOrLowerMggOnBinaryWhistle[C]
         msg(upperConf, currentConf) match {
           case Some(rb) =>
             val conf1 = translate(rb)
-            List(RollbackStep(upper, conf1))
+            List(RollbackStep(upper.sPath, conf1): S)
           case None =>
             val cands = rawRebuildings(currentConf) filterNot trivialRb(currentConf)
             val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => subclass.lteq(c2, c1) } }
@@ -172,7 +172,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with 
           case None =>
             val cands = rawRebuildings(upperConf) filterNot trivialRb(upperConf)
             val mgg = cands find { case (c1, _) => cands forall { case (c2, _) => subclass.lteq(c2, c1) } }
-            mgg.map(translate).map(RollbackStep(upper, _)).toList
+            mgg.map(translate).map(RollbackStep(upper.sPath, _): S).toList
         }
       case None =>
         List()
@@ -202,7 +202,7 @@ trait DoubleMsgOnBinaryWhistle[C] extends PFPRules[C] with MSG[C] with BinaryWhi
   def rebuild(signal: Signal, g: G) = signal match {
     case Some(upper) =>
       val current = g.current
-      val rollbacks = msg(upper.conf, current.conf) map { rb => RollbackStep(upper, translate(rb)) }
+      val rollbacks = msg(upper.conf, current.conf) map { rb => RollbackStep(upper.sPath, translate(rb)): S }
       val rebuildings = msg(current.conf, upper.conf) map { rb => RebuildStep(translate(rb)): S }
       rollbacks.toList ++ rebuildings.toList
     case None =>

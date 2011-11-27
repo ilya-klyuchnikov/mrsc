@@ -13,9 +13,9 @@ trait GraphRewriteRules[C, D] {
 sealed trait GraphRewriteStep[C, D]
 case class CompleteCurrentNodeStep[C, D] extends GraphRewriteStep[C, D]
 case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphRewriteStep[C, D]
-case class FoldStep[C, D](basePath: SPath) extends GraphRewriteStep[C, D]
+case class FoldStep[C, D](to: SPath) extends GraphRewriteStep[C, D]
 case class RebuildStep[C, D](c: C) extends GraphRewriteStep[C, D]
-case class RollbackStep[C, D](to: SNode[C, D], c: C) extends GraphRewriteStep[C, D]
+case class RollbackStep[C, D](to: SPath, c: C) extends GraphRewriteStep[C, D]
 
 case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
   extends Iterator[SGraph[C, D]] {
@@ -70,7 +70,9 @@ object GraphGenerator {
     case RebuildStep(c) =>
       val node = g.current.copy(conf = c)
       SGraph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes)
-    case RollbackStep(to, c) =>
+    case RollbackStep(sPath, c) =>
+      // it is possible to optimize this part
+      val to = g.current.ancestors.find(_.sPath == sPath).get
       def prune_?(n: SNode[C, D]) = n.tPath.startsWith(to.tPath)
       val node = to.copy(conf = c)
       val completeNodes1 = g.completeNodes.remove(prune_?)
