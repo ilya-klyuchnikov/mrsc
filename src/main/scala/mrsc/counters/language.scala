@@ -53,11 +53,13 @@ object Configuration {
       for (y <- xs; ys <- product(xss)) yield y :: ys
   }
 
-  def rebuildings(c: OmegaConf) =
-    product(c map genComp) - c
+  def rebuildings(c: OmegaConf): List[OmegaConf] =
+    (0 until c.size).toList.collect { i => c(i) match { case Value(j) if j >= 0 => c.updated(i, Omega) } }
 
   private def genComp(c: Component): List[Component] = c match {
-    case Omega => List(Omega)
-    case value => List(Omega, value)
+    case Omega              => List(Omega)
+    // TODO: -1, -2, ...
+    case Value(i) if i >= 0 => List(Omega, Value(i))
+    case v                  => List(v)
   }
 }

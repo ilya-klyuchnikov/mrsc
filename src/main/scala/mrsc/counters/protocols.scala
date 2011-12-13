@@ -220,7 +220,6 @@ case object Firefly extends Protocol {
 
 case object Futurebus extends Protocol {
   val start: OmegaConf = List(Omega, 0, 0, 0, 0, 0, 0, 0, 0)
-  //val start: OmegaConf = List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)
   val rules: List[TransitionRule] =
     List({ // r2
       case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if i >= 1 && pW === 0 =>
@@ -305,7 +304,7 @@ case object Xerox extends Protocol {
 case object Java extends Protocol {
   // nb 1 = True, nb 0 = False
   // race = 0 = H0, -1 = H1 ,,,
-  val start: OmegaConf = List(1, 0, Omega, 0, 0, 0, 0, 0)
+  val start: OmegaConf = List(1, -1, Omega, 0, 0, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // (get fast)
       case List(nb, race, i, b, o, in, out, w) if nb === 1 && i >= 1 =>
@@ -320,19 +319,19 @@ case object Java extends Protocol {
       case List(nb, race, i, b, o, in, out, w) if nb === 0 && b >= 1 && o >= 1 =>
         List(nb, race, i, b - 1, o - 1, in, out + 1, w)
     }, { // (request)
-      case List(nb, race, i, b, o, in, out, w) if race === 0 && in >= 1 =>
-        List(nb, -1, i, b, o, in - 1, out, w + 1)
+      case List(nb, race, i, b, o, in, out, w) if race === -1 && in >= 1 =>
+        List(nb, -2, i, b, o, in - 1, out, w + 1)
     }, { // (request)
-      case List(nb, race, i, b, o, in, out, w) if race === -2 && in >= 1 =>
-        List(nb, -3, i, b, o, in - 1, out, w + 1)
-    }, { // (release)
-      case List(nb, race, i, b, o, in, out, w) if race === 0 && out >= 1 =>
-        List(nb, -2, i + 1, b, o, in, out - 1, w)
+      case List(nb, race, i, b, o, in, out, w) if race === -3 && in >= 1 =>
+        List(nb, -4, i, b, o, in - 1, out, w + 1)
     }, { // (release)
       case List(nb, race, i, b, o, in, out, w) if race === -1 && out >= 1 =>
         List(nb, -3, i + 1, b, o, in, out - 1, w)
+    }, { // (release)
+      case List(nb, race, i, b, o, in, out, w) if race === -2 && out >= 1 =>
+        List(nb, -4, i + 1, b, o, in, out - 1, w)
     }, { // (go)
-      case List(nb, race, i, b, o, in, out, w) if race === -3 && w >= 1 =>
+      case List(nb, race, i, b, o, in, out, w) if race === -4 && w >= 1 =>
         List(nb, race, i, b, o + 1, in, out, w - 1)
     })
 
