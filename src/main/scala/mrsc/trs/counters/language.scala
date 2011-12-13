@@ -37,7 +37,7 @@ trait CountersSyntax extends TRSSyntax[OmegaConf] {
   def rebuildings(c: OmegaConf) = CountersSyntax.rebuildings(c)
 }
 
-object CountersSyntax extends {
+object CountersSyntax {
   def equiv(c1: OmegaConf, c2: OmegaConf) = c1 == c2
 
   def instanceOf(c1: OmegaConf, c2: OmegaConf): Boolean =
