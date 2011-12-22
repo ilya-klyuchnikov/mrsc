@@ -6,9 +6,9 @@ import mrsc.core._
 // There are some "manual" optimization in this code in order
 // to filter out failures.
 // TODO: make this code more elegant.
-case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[OmegaConf, Int] {
+case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
   def inspect(g: G) = g.current.conf exists {
-    case Value(i) => i >= l
+    case Num(i) => i >= l
     case Omega    => false
   }
 
@@ -32,7 +32,7 @@ case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
       }
     }
 
-  def next(c: OmegaConf) = protocol.rules.map { _.lift(c) }
+  def next(c: Conf) = protocol.rules.map { _.lift(c) }
 
   def rebuild(dangerous: Boolean, g: G): List[S] =
     if (dangerous) {
@@ -56,9 +56,9 @@ case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
 }
 
 // A (not elegant so far) version of single-result supercompiler for counters.
-case class SRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[OmegaConf, Int] {
+case class SRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
   def inspect(g: G) = g.current.conf exists {
-    case Value(i) => i >= l
+    case Num(i) => i >= l
     case Omega    => false
   }
 
@@ -77,7 +77,7 @@ case class SRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
       }
     }
 
-  def next(c: OmegaConf) = protocol.rules.map { _.lift(c) }
+  def next(c: Conf) = protocol.rules.map { _.lift(c) }
 
   def rebuild(dangerous: Boolean, g: G): List[S] =
     if (dangerous) {

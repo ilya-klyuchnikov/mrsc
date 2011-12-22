@@ -1,8 +1,8 @@
 package mrsc
 
 package object counters {
-  type OmegaConf = List[Component]
-  type TransitionRule = PartialFunction[OmegaConf, OmegaConf]
-  implicit def intToComponent(i: Int): Component = Value(i)
+  type Conf = List[Expr]
+  type TransitionRule = PartialFunction[Conf, Conf]
+  implicit def intToExpr(i: Int): Expr = Num(i)
   val ϖ = Omega
 }

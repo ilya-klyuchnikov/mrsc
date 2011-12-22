@@ -1,47 +1,47 @@
 package mrsc.counters
 
 // The language of configurations
-sealed trait Component {
-  def +(comp: Component): Component
-  def -(comp: Component): Component
+sealed trait Expr {
+  def +(comp: Expr): Expr
+  def -(comp: Expr): Expr
   def >=(i: Int): Boolean
   def ===(i: Int): Boolean
 }
 
-case class Value(i: Int) extends Component {
-  override def +(comp: Component) = comp match {
+case class Num(i: Int) extends Expr {
+  override def +(comp: Expr) = comp match {
     case Omega    => Omega
-    case Value(j) => Value(i + j)
+    case Num(j) => Num(i + j)
   }
-  override def -(comp: Component) = comp match {
+  override def -(comp: Expr) = comp match {
     case Omega    => Omega
-    case Value(j) => Value(i - j)
+    case Num(j) => Num(i - j)
   }
   override def ===(j: Int) = i == j
   override def >=(j: Int) = i >= j
   override def toString = i.toString
 }
 
-case object Omega extends Component {
-  def +(comp: Component) = Omega
-  def -(comp: Component) = Omega
+case object Omega extends Expr {
+  def +(comp: Expr) = Omega
+  def -(comp: Expr) = Omega
   def >=(comp: Int) = true
   override def ===(j: Int) = true
   override def toString = "ϖ"
 }
 
 trait Protocol {
-  val start: OmegaConf
+  val start: Conf
   val rules: List[TransitionRule]
-  def unsafe(c: OmegaConf): Boolean
+  def unsafe(c: Conf): Boolean
 }
 
 // the syntax of language of configurations
 object Configuration {
-  def instanceOf(c1: OmegaConf, c2: OmegaConf): Boolean =
+  def instanceOf(c1: Conf, c2: Conf): Boolean =
     (c1, c2).zipped.forall(instanceOf)
 
-  private def instanceOf(c1: Component, c2: Component) = (c1, c2) match {
+  private def instanceOf(c1: Expr, c2: Expr) = (c1, c2) match {
     case (_, Omega) => true
     case (_, _)     => c1 == c2
   }
@@ -53,13 +53,13 @@ object Configuration {
       for (y <- xs; ys <- product(xss)) yield y :: ys
   }
 
-  def rebuildings(c: OmegaConf): List[OmegaConf] =
-    (0 until c.size).toList.collect { i => c(i) match { case Value(j) if j >= 0 => c.updated(i, Omega) } }
+  def rebuildings(c: Conf): List[Conf] =
+    (0 until c.size).toList.collect { i => c(i) match { case Num(j) if j >= 0 => c.updated(i, Omega) } }
 
-  private def genComp(c: Component): List[Component] = c match {
+  private def genComp(c: Expr): List[Expr] = c match {
     case Omega              => List(Omega)
     // TODO: -1, -2, ...
-    case Value(i) if i >= 0 => List(Omega, Value(i))
+    case Num(i) if i >= 0 => List(Omega, Num(i))
     case v                  => List(v)
   }
 }

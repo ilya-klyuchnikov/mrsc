@@ -31,7 +31,7 @@ object CounterSamples extends App {
     val rules = MRCountersRules(protocol, l)
     val graphs = GraphGenerator(rules, protocol.start)
 
-    var minGraph: SGraph[OmegaConf, Int] = null
+    var minGraph: SGraph[Conf, Int] = null
     var size = 1000000
     for (graph <- graphs) {
       if (graph.isComplete) {
@@ -48,7 +48,7 @@ object CounterSamples extends App {
     }
   }
 
-  def checkSubTree(unsafe: OmegaConf => Boolean)(node: TNode[OmegaConf, _]): Boolean =
+  def checkSubTree(unsafe: Conf => Boolean)(node: TNode[Conf, _]): Boolean =
     !unsafe(node.conf) && node.outs.map(_.node).forall(checkSubTree(unsafe))
 
   def verifyProtocol(protocol: Protocol): Unit = {
