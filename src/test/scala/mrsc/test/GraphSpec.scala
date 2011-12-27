@@ -5,7 +5,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
 import mrsc.core._
-import mrsc.pfp._
 
 object GraphSpec extends mutable.Specification {
 
