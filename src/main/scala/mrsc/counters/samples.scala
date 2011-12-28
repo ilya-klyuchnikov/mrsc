@@ -41,6 +41,7 @@ object CounterSamples extends App {
         }
       }
     }
+    
     if (minGraph != null) {
       val tgraph = Transformations.transpose(minGraph)
       println(graphSize(tgraph))
@@ -66,9 +67,11 @@ object CounterSamples extends App {
   verifyProtocol(Illinois)
   verifyProtocol(Berkley)
   verifyProtocol(Firefly)
-  verifyProtocol(Futurebus) // many variants here
+  // many variants here - be patient
+  verifyProtocol(Futurebus) 
   verifyProtocol(Xerox)
-  verifyProtocol(Java) // too many variants here
+  // many variants here - be patient
+  verifyProtocol(Java) 
   verifyProtocol(ReaderWriter)
   verifyProtocol(DataRace)
 }
