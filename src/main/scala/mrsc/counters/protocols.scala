@@ -258,6 +258,29 @@ case object Illinois extends Protocol {
     case List(i, e, d, s) if d >= 2           => true
     case _                                    => false
   }
+
+  override val name = "illinois"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive illinois :: "(nat * nat * nat * nat) => bool" where
+    |  start: "illinois (i, 0, 0, 0)" |
+    |  r2: "illinois (Suc i, 0, 0, 0) ==> illinois (i, Suc 0, 0, 0)" |
+    |  r3: "illinois (Suc i, e, Suc d, s) ==> illinois (i, e, d, Suc (Suc s))" |
+    |  r4a: "illinois (Suc i, Suc e, d, s) ==> illinois (i, 0, d, Suc (s + e))" |
+    |  r4b: "illinois (Suc i, e, d, Suc s) ==> illinois (i, 0, d, Suc (s + e))" |
+    |  r6: "illinois (i, Suc e, d, s) ==> illinois (i, e, Suc d, s)" |
+    |  r7: "illinois (i, e, d, Suc s) ==> illinois (i + s, e, Suc d, 0)" |
+    |  r8: "illinois (Suc i, e, d, s) ==> illinois (i + e + d + s, 0, Suc 0, 0)" |
+    |  r9: "illinois (i, e, Suc d, s) ==> illinois (Suc i, e, d, s)" |
+    |  r10: "illinois (i, e, d, Suc s) ==> illinois (Suc i, e, d, s)" |
+    |  r11: "illinois (i, Suc e, d, s) ==> illinois (Suc i, e, d, s)" 
+    |
+    |fun unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, e, Suc d, Suc s) = True" |
+    |  "unsafe (i, e, Suc (Suc d), s) = True" |
+    |  "unsafe (i, e, d, s) = False" 
+    """.stripMargin
 }
 
 case object Berkley extends Protocol {
@@ -279,6 +302,24 @@ case object Berkley extends Protocol {
     case List(i, n, u, e) if e >= 2               => true
     case _                                        => false
   }
+
+  override val name = "berkley"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive berkley :: "(nat * nat * nat * nat) => bool" where
+    |  start: "berkley (i, 0, 0, 0)" |
+    |  rm: "berkley (Suc i, n, u, e) ==> berkley (i, n + e, Suc u, 0)" |
+    |  wm: "berkley (Suc i, n, u, e) ==> berkley (i + n + u + e, 0, 0, Suc 0)" |
+    |  wh1: "berkley (i, Suc n, u, e) ==> berkley (i + n + u, 0, 0, Suc e)" |
+    |  wh2: "berkley (i, n, Suc u, e) ==> berkley (i + n + u, 0, 0, Suc e)"
+    |
+    |fun unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, Suc n, u, Suc e) = True" |
+    |  "unsafe (i, n, Suc u, Suc e) = True" |
+    |  "unsafe (i, n, u, Suc (Suc e)) = True" |
+    |  "unsafe (i, n, u, e) = False" 
+    """.stripMargin
 }
 
 case object Firefly extends Protocol {
@@ -310,6 +351,29 @@ case object Firefly extends Protocol {
     case List(i, e, s, d) if d >= 2               => true
     case _                                        => false
   }
+
+  override val name = "firefly"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive firefly :: "(nat * nat * nat * nat) => bool" where
+    |  start: "firefly (i, 0, 0, 0)" |
+    |  rm1:  "firefly (Suc i, 0, 0, 0) ==> firefly (i, Suc 0, 0, 0)" |
+    |  rm2:  "firefly (Suc i, e, s, Suc d) ==> firefly (i, e, Suc (Suc s), d)" |
+    |  rm31: "firefly (Suc i, Suc e, s, d) ==> firefly (i, 0, Suc (e + s), d)" |
+    |  rm32: "firefly (Suc i, e, Suc s, d) ==> firefly (i, 0, Suc (e + s), d)" |
+    |  wh2:  "firefly (i, Suc e, s, d) ==> firefly (i, e, s, Suc d)" |
+    |  wh3:  "firefly (i, e, Suc s, d) ==> firefly (i, Suc e, 0, d)" |
+    |  wm:   "firefly (Suc i, e, s, d) ==> firefly (i + e + s + d, 0, 0, Suc 0)" 
+    |
+    |fun unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, Suc e, s, Suc d) = True" |
+    |  "unsafe (i, e, Suc s, Suc d) = True" |
+    |  "unsafe (i, Suc (Suc e), s, d) = True" |
+    |  "unsafe (i, e, s, Suc (Suc d)) = True" |
+    |  "unsafe (i, e, s, d) = False" 
+    """.stripMargin
+
 }
 
 case object Futurebus extends Protocol {
