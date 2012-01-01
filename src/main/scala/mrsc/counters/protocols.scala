@@ -16,9 +16,26 @@ case object Synapse extends Protocol {
 
   def unsafe(c: Conf) = c match {
     case List(i, d, v) if d >= 1 && v >= 1 => true
-    case List(i, d, v) if d >= 2 => true
-    case _ => false
+    case List(i, d, v) if d >= 2           => true
+    case _                                 => false
   }
+
+  override val name = "synapse"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive synapse :: "(nat * nat * nat) => bool" where
+    |  "synapse (i, 0, 0)" |
+    |  "synapse (Suc i, d, v) ==> synapse (i + d, 0, Suc v)" |
+    |  "synapse (i, d, Suc v) ==> synapse (i + d + v, (Suc 0), 0)" |
+    |  "synapse (Suc i, d, v) ==> synapse (i + d + v, (Suc 0), 0)"
+    |
+    |fun unsafe :: "(nat * nat * nat) => bool" where 
+    |  "unsafe (x, Suc y, Suc z) = True" |
+    |  "unsafe (x, Suc (Suc y), z) = True" |
+    |  "unsafe (x, y, z) = False" 
+    """.stripMargin
+
 }
 
 // invalid, modified, shared
@@ -29,8 +46,8 @@ case object MSI extends Protocol {
       case List(i, m, s) if i >= 1 =>
         List(i + m + s - 1, 1, 0)
     }, {
-      case List(i, m, s) if i >= 1 =>
-        List(i, m, s)
+      case List(i, m, s) if s >= 1 =>
+        List(i + m + s - 1, 1, 0)
     }, {
       case List(i, m, s) if i >= 1 =>
         List(i - 1, 0, m + s + 1)
@@ -38,9 +55,26 @@ case object MSI extends Protocol {
 
   def unsafe(c: Conf) = c match {
     case List(i, m, s) if m >= 1 && s >= 1 => true
-    case List(i, m, s) if m >= 2 => true
-    case _ => false
+    case List(i, m, s) if m >= 2           => true
+    case _                                 => false
   }
+
+  override val name = "msi"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive msi :: "(nat * nat * nat) => bool" where
+    |  "msi (i, 0, 0)" |
+    |  "msi (Suc i, m, s) ==> msi (i + m + s, Suc 0, 0)" |
+    |  "msi (i, m, Suc s) ==> msi (i + m + s, Suc 0, 0)" |
+    |  "msi (Suc i, m, s) ==> msi (i, 0, Suc (m + s))"
+    |
+    |fun unsafe :: "(nat * nat * nat) => bool" where 
+    |  "unsafe (x, Suc y, Suc z) = True" |
+    |  "unsafe (x, Suc (Suc y), z) = True" |
+    |  "unsafe (x, y, z) = False" 
+    """.stripMargin
+
 }
 
 // invalid, modified, shared, owned
@@ -71,11 +105,34 @@ case object MOSI extends Protocol {
     })
 
   def unsafe(c: Conf) = c match {
-    case List(i, o, s, m) if o >= 2 => true
-    case List(i, o, s, m) if m >= 2 => true
+    case List(i, o, s, m) if o >= 2           => true
+    case List(i, o, s, m) if m >= 2           => true
     case List(i, o, s, m) if s >= 1 && m >= 1 => true
-    case _ => false
+    case _                                    => false
   }
+
+  override val name = "mosi"
+  
+  // using o as identifier in Isabelle produces errors (why?)
+  // so  we use o' here
+  override val isabelleEncoding: String =
+    """
+    |inductive mosi :: "(nat * nat * nat * nat) => bool" where
+    |  "mosi (i, 0, 0, 0)" |
+    |  "mosi (Suc i, o', s, m) ==> mosi (i, m + o', Suc s, 0)" |
+    |  "mosi (i, Suc o', s, m) ==> mosi (i + o' + s + m, 0, 0, Suc 0)" |
+    |  "mosi (Suc i, o', s, m) ==> mosi (i + o' + s + m, 0, 0, Suc 0)" |
+    |  "mosi (i, o', Suc s, m) ==> mosi (i + o' + s + m, 0, 0, Suc 0)" |
+    |  "mosi (i, o', Suc s, m) ==> mosi (Suc i, o', s, m)" |
+    |  "mosi (i, o', s, Suc m) ==> mosi (Suc i, o', s, m)" |
+    |  "mosi (i, Suc o', s, m) ==> mosi (Suc i, o', s, m)"
+    |
+    |fun unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, Suc (Suc o'), s, m) = True" |
+    |  "unsafe (i, o', s, Suc (Suc m)) = True" |
+    |  "unsafe (i, o', Suc s, Suc m) = True" |
+    |  "unsafe (i, o', s, m) = False" 
+    """.stripMargin
 }
 
 case object MESI extends Protocol {
@@ -96,9 +153,9 @@ case object MESI extends Protocol {
     })
 
   def unsafe(c: Conf) = c match {
-    case List(i, e, s, m) if m >= 2 => true
+    case List(i, e, s, m) if m >= 2           => true
     case List(i, e, s, m) if s >= 1 && m >= 1 => true
-    case _ => false
+    case _                                    => false
   }
 }
 
@@ -161,8 +218,8 @@ case object Illinois extends Protocol {
 
   def unsafe(c: Conf) = c match {
     case List(i, e, d, s) if d >= 1 && s >= 1 => true
-    case List(i, e, d, s) if d >= 2 => true
-    case _ => false
+    case List(i, e, d, s) if d >= 2           => true
+    case _                                    => false
   }
 }
 
@@ -182,8 +239,8 @@ case object Berkley extends Protocol {
 
   def unsafe(c: Conf) = c match {
     case List(i, n, u, e) if e >= 1 && u + n >= 1 => true
-    case List(i, n, u, e) if e >= 2 => true
-    case _ => false
+    case List(i, n, u, e) if e >= 2               => true
+    case _                                        => false
   }
 }
 
@@ -212,9 +269,9 @@ case object Firefly extends Protocol {
 
   def unsafe(c: Conf) = c match {
     case List(i, e, s, d) if d >= 1 && s + e >= 1 => true
-    case List(i, e, s, d) if e >= 2 => true
-    case List(i, e, s, d) if d >= 2 => true
-    case _ => false
+    case List(i, e, s, d) if e >= 2               => true
+    case List(i, e, s, d) if d >= 2               => true
+    case _                                        => false
   }
 }
 
@@ -389,6 +446,6 @@ case object DataRace extends Protocol {
 
   def unsafe(c: Conf) = c match {
     case List(out, cs, scs) if cs >= 1 && scs >= 1 => true
-    case _ => false
+    case _                                         => false
   }
 }
