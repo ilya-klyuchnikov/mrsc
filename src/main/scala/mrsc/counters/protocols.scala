@@ -112,7 +112,7 @@ case object MOSI extends Protocol {
   }
 
   override val name = "mosi"
-  
+
   // using o as identifier in Isabelle produces errors (why?)
   // so  we use o' here
   override val isabelleEncoding: String =
@@ -157,6 +157,23 @@ case object MESI extends Protocol {
     case List(i, e, s, m) if s >= 1 && m >= 1 => true
     case _                                    => false
   }
+
+  override val name = "mesi"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive mesi :: "(nat * nat * nat * nat) => bool" where
+    |  "mesi (i, 0, 0, 0)" |
+    |  "mesi (Suc i, e, s, m) ==> mesi (i, 0, Suc (s + e + m), 0)" |
+    |  "mesi (i, Suc e, s, m) ==> mesi (i, e, s, Suc m)" |
+    |  "mesi (i, e, Suc s, m) ==> mesi (i + e + s + m, Suc 0, 0, 0)" |
+    |  "mesi (Suc i, e, s, m) ==> mesi (i + e + s + m, Suc 0, 0, 0)"
+    |
+    |fun unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, e, s, Suc (Suc m)) = True" |
+    |  "unsafe (i, e, Suc s, Suc m) = True" |
+    |  "unsafe (i, e, s, m) = False" 
+    """.stripMargin
 }
 
 case object MOESI extends Protocol {
@@ -182,6 +199,26 @@ case object MOESI extends Protocol {
     case List(i, m, s, e, o) if e >= 2 => true
     case _ => false
   }
+
+  override val name = "moesi"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive moesi :: "(nat * nat * nat * nat * nat) => bool" where
+    |  "moesi (i, 0, 0, 0, 0)" |
+    |  "moesi (Suc i, m, s, e, o') ==> moesi (i, 0, Suc (s + e), 0, m + o')" |
+    |  "moesi (i, m, s, Suc e, o') ==> moesi (i, Suc m, s, e, o')" |
+    |  "moesi (i, m, Suc s, e, o') ==> moesi (i + m + s + e + o', 0, 0, Suc 0, 0)" |
+    |  "moesi (Suc i, m, s, e, o') ==> moesi (i + m + s + e + o', 0, 0, Suc 0, 0)"
+    |
+    |fun unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, Suc m, Suc s, e, o') = True" |
+    |  "unsafe (i, Suc m, s, Suc e, o') = True" |
+    |  "unsafe (i, Suc m, s, e, Suc o') = True" |
+    |  "unsafe (i, Suc (Suc m), s, e, o') = True" |
+    |  "unsafe (i, m, s, Suc (Suc e), o') = True" |
+    |  "unsafe (i, e, s, m, o') = False" 
+    """.stripMargin
 }
 
 case object Illinois extends Protocol {
