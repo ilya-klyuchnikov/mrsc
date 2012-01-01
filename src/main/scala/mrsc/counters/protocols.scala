@@ -418,6 +418,35 @@ case object Futurebus extends Protocol {
     case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pW >= 2 => true
     case _ => false
   }
+  
+  override val name = "futurebus"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive futurebus :: "(nat * nat * nat * nat * nat * nat * nat * nat * nat) => bool" where
+    |  start: "futurebus (i, 0, 0, 0, 0, 0, 0, 0, 0)" |
+    |  r2:   "futurebus (Suc i, sU, eU, eM, pR, 0, pEMR, pEMW, pSU) ==> futurebus (i, 0, 0, 0, Suc pR, 0, pEMR + eM, pEMW, pSU + sU + eU)" |
+    |  r3:   "futurebus (i, sU, eU, eM, pR, pW, Suc pEMR, pEMW, pSU) ==> futurebus (i, Suc (sU + pR), eU, eM, 0, pW, pEMR, pEMW, pSU)" |
+    |  r4:   "futurebus (i, sU, eU, eM, pR, pW, pEMR, pEMW, Suc pSU) ==> futurebus (i, Suc (sU + pR + pSU), eU, eM, 0, pW, pEMR, pEMW, 0)" |
+    |  r5:   "futurebus (i, sU, eU, eM, Suc (Suc pR), pW, 0, pEMW, 0) ==> futurebus (i, Suc (Suc (sU + pR)), eU, eM, 0, pW, 0, pEMW, 0)" |
+    |  r6:   "futurebus (i, sU, eU, eM, Suc (Suc 0), pW, 0, pEMW, 0) ==> futurebus (i, sU, Suc eU, eM, 0, pW, 0, pEMW, 0)" |
+    |  wm1:  "futurebus (Suc i, sU, eU, eM, pR, 0, pEMR, pEMW, pSU) ==> futurebus (i + eU + sU + pSU + pR + pEMR, 0, 0, 0, 0, Suc 0, 0, pEMW + eM, 0)" |
+    |  wm2:  "futurebus (i, sU, eU, eM, pR, pW, pEMR, Suc pEMW, pSU) ==> futurebus (Suc i, sU, eU, eM + pW, pR, 0, pEMR, pEMW, pSU)" |
+    |  wm3:  "futurebus (i, sU, eU, eM, pR, pW, pEMR, 0, pSU) ==> futurebus (i, sU, eU, eM + pW, pR, 0, pEMR, 0, pSU)" |
+    |  wh2:  "futurebus (i, sU, Suc eU, eM, pR, pW, pEMR, pEMW, pSU) ==> futurebus (i, sU, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)" |
+    |  wh3:  "futurebus (i, Suc sU, eU, eM, pR, pW, pEMR, pEMW, pSU) ==> futurebus (i + sU, 0, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)"
+    |
+    |fun unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, Suc sU, Suc eU, eM, pR, pW, pEMR, pEMW, pSU) = True" |
+    |  "unsafe (i, Suc sU, eU, Suc eM, pR, pW, pEMR, pEMW, pSU) = True" |
+    |  "unsafe (i, sU, Suc (Suc eU), eM, pR, pW, pEMR, pEMW, pSU) = True" |
+    |  "unsafe (i, sU, eU, Suc (Suc eM), pR, pW, pEMR, pEMW, pSU) = True" |
+    |  "unsafe (i, sU, Suc eU, Suc eM, pR, pW, pEMR, pEMW, pSU) = True" |
+    |  "unsafe (i, sU, eU, eM, Suc pR, Suc pW, pEMR, pEMW, pSU) = True" |
+    |  "unsafe (i, sU, eU, eM, pR, Suc (Suc pW), pEMR, pEMW, pSU) = True" |
+    |  "unsafe (i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) = False"
+     
+    """.stripMargin
 }
 
 //invalid ≥ 1, dirty = 0, shared_clean = 0, shared_dirty = 0, exclusive = 0 —>
