@@ -418,7 +418,7 @@ case object Futurebus extends Protocol {
     case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pW >= 2 => true
     case _ => false
   }
-  
+
   override val name = "futurebus"
 
   override val isabelleEncoding: String =
@@ -467,7 +467,7 @@ case object Xerox extends Protocol {
         List(i - 1, sc + e + 1 + sd + d, sd, 0, 0)
     }, { // (5) wh1
       case List(i, sc, sd, d, e) if d >= 1 =>
-        List(i + 1, d - 1, sc, sd, d, e)
+        List(i + 1, sc, sd, d - 1, e)
     }, { // (6) wh2
       case List(i, sc, sd, d, e) if sc >= 1 =>
         List(i + 1, sc - 1, sd, d, e)
@@ -486,11 +486,43 @@ case object Xerox extends Protocol {
     case List(i, sc, sd, d, e) if e >= 2 => true
     case _ => false
   }
+
+  override val name = "xerox"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive xerox :: "(nat * nat * nat * nat * nat) => bool" where
+    |  start: "xerox (i, 0, 0, 0, 0)" |
+    |  rm1:  "xerox (Suc i, 0, 0, 0, 0) ==> xerox (i, 0, 0, 0, Suc 0)" |
+    |  rm2a: "xerox (Suc i, Suc sc, sd, d, e) ==> xerox (i, Suc (sc + e), sd + d, 0, 0)" |
+    |  rm2b: "xerox (Suc i, sc, Suc sd, d, e) ==> xerox (i, Suc (sc + e), sd + d, 0, 0)" |
+    |  rm2c: "xerox (Suc i, sc, sd, Suc d, e) ==> xerox (i, Suc (sc + e), sd + d, 0, 0)" |
+    |  rm2d: "xerox (Suc i, sc, sd, d, Suc e) ==> xerox (i, Suc (sc + e), sd + d, 0, 0)" |
+    |  wm1:  "xerox (Suc i, 0, 0, 0, 0) ==> xerox (i, 0, 0, Suc 0, 0)" |
+    |  wm2a: "xerox (Suc i, Suc sc, sd, d, e) ==> xerox (i, Suc (sc + d + sd), sd, 0, 0)" |
+    |  wm2b: "xerox (Suc i, sc, Suc sd, d, e) ==> xerox (i, Suc (sc + d + sd), sd, 0, 0)" |
+    |  wm2c: "xerox (Suc i, sc, sd, Suc d, e) ==> xerox (i, Suc (sc + d + sd), sd, 0, 0)" |
+    |  wm2d: "xerox (Suc i, sc, sd, d, Suc e) ==> xerox (i, Suc (sc + d + sd), sd, 0, 0)" |
+    |  wh1:  "xerox (i, sc, sd, Suc d, e) ==> xerox (Suc i, sc, sd, d, e)" |
+    |  wh2:  "xerox (i, Suc sc, sd, d, e) ==> xerox (Suc i, sc, sd, d, e)" |
+    |  wh3:  "xerox (i, sc, Suc sd, d, e) ==> xerox (Suc i, sc, sd, d, e)" |
+    |  wh4:  "xerox (i, sc, sd, d, Suc e) ==> xerox (Suc i, sc, sd, d, e)"
+    |
+    |fun unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
+    |  "unsafe (i, Suc sc, sd, Suc d, e) = True" |
+    |  "unsafe (i, sc, Suc sd, Suc d, e) = True" |
+    |  "unsafe (i, sc, sd, Suc d, Suc e) = True" |
+    |  "unsafe (i, Suc sc, sd, d, Suc e) = True" |
+    |  "unsafe (i, sc, Suc sd, d, Suc e) = True" |
+    |  "unsafe (i, sc, sd, Suc (Suc d), e) = True" |
+    |  "unsafe (i, sc, sd, d, Suc (Suc e)) = True" |
+    |  "unsafe (i, sc, sd, d, e) = False" 
+    """.stripMargin
 }
 
 case object Java extends Protocol {
   // nb 1 = True, nb 0 = False
-  // race = 0 = H0, -1 = H1 ,,,
+  // race = -1 = H0, -2 = H1 ,,,
   val start: Conf = List(1, -1, Omega, 0, 0, 0, 0, 0)
   val rules: List[TransitionRule] =
     List({ // (get fast)
@@ -526,6 +558,29 @@ case object Java extends Protocol {
     case List(nb, race, i, b, o, in, out, w) if o + out >= 2 => true
     case _ => false
   }
+
+  override val name = "java"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive java :: "(nat * nat * nat * nat * nat * nat * nat * nat) => bool" where
+    |  start:  "java (Suc 0, Suc 0, i, 0, 0, 0, 0, 0)" |
+    |  getf:  "java (Suc 0, race, Suc i, b, o', in', out, w) ==> java (0, race, i, 0, Suc o', in', out, w)" |
+    |  putf:  "java (0, race, i, 0, Suc o', in', out, w) ==> java (Suc 0, race, Suc i, 0, o', in', out, w)" |
+    |  gets:  "java (0, race, Suc i, b, o', in', out, w) ==> java (0, race, i, Suc b, o', Suc in', out, w)" |
+    |  puts:  "java (0, race, i, Suc b, Suc o', in', out, w) ==> java (0, race, i, b, o', in', Suc out, w)" |
+    |  req1:  "java (nb, Suc 0, i, b, o', Suc in', out, w) ==> java (nb, Suc (Suc 0), i, b, o', in', out, Suc w)" |
+    |  req2:  "java (nb, Suc (Suc (Suc 0)), i, b, o', Suc in', out, w) ==> java (nb, Suc (Suc (Suc (Suc 0))), i, b, o', in', out, Suc w)" |
+    |  rel1:  "java (nb, Suc 0, i, b, o', in', Suc out, w) ==> java (nb, Suc (Suc (Suc 0)), Suc i, b, o', in', out, w)" |
+    |  rel2:  "java (nb, Suc (Suc 0), i, b, o', in', Suc out, w) ==> java (nb, Suc (Suc (Suc (Suc 0))), Suc i, b, o', in', out, w)" |
+    |  go:  "java (nb, Suc (Suc (Suc (Suc 0))), i, b, o', in', out, Suc w) ==> java (nb, Suc (Suc (Suc (Suc 0))), Suc i, b, Suc o', in', out, w)"
+    |
+    |fun unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
+    |  "unsafe (nb, race, i, b, Suc (Suc o'), in', out, w) = True" |
+    |  "unsafe (nb, race, i, b, Suc o', in', Suc out, w) = True" |
+    |  "unsafe (nb, race, i, b, o', in', Suc (Suc out), w) = True" |
+    |  "unsafe (nb, race, i, b, o', in', out, w) = False" 
+    """.stripMargin
 }
 
 case object ReaderWriter extends Protocol {
@@ -555,6 +610,24 @@ case object ReaderWriter extends Protocol {
     case List(x2, x3, x4, x5, x6, x7) if x3 >= 1 && x4 >= 1 => true
     case _ => false
   }
+
+  override val name = "rw"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive rw :: "(nat * nat * nat * nat * nat * nat) => bool" where
+    |  start:  "rw (Suc 0, 0, 0, x5, 0, 0)" |
+    |  r1: "rw (Suc x2, x3, 0, x5, x6, Suc x7) ==> rw (x2, Suc x3, 0, x5, x6, Suc x7)" |
+    |  r2: "rw (Suc x2, x3, x4, x5, Suc x6, x7) ==> rw (Suc x2, x3, Suc x4, x5, x6, x7)" |
+    |  r3: "rw (x2, Suc x3, x4, x5, x6, x7) ==> rw (Suc x2, x3, x4, Suc x5, x6, x7)" |
+    |  r4: "rw (x2, x3, Suc x4, x5, x6, x7) ==> rw (x2, x3, x4, Suc x5, x6, x7)" |
+    |  r5: "rw (x2, x3, x4, Suc x5, x6, x7) ==> rw (x2, x3, x4, x5, Suc x6, x7)" |
+    |  r6: "rw (x2, x3, x4, Suc x5, x6, x7) ==> rw (x2, x3, x4, x5, x6, Suc x7)" 
+    |
+    |fun unsafe :: "(nat * nat * nat * nat * nat * nat) => bool" where 
+    |  "unsafe (x2, Suc x3, Suc x4, x5, x6, x7) = True" |    
+    |  "unsafe (x2, x3, x4, x5, x6, x7) = False"
+    """.stripMargin
 }
 
 case object DataRace extends Protocol {
@@ -578,4 +651,21 @@ case object DataRace extends Protocol {
     case List(out, cs, scs) if cs >= 1 && scs >= 1 => true
     case _                                         => false
   }
+
+  override val name = "datarace"
+
+  override val isabelleEncoding: String =
+    """
+    |inductive datarace :: "(nat * nat * nat) => bool" where
+    |  "datarace (out, 0, 0)" |
+    |  "datarace (Suc out, 0, 0) ==> datarace (out, Suc 0, 0)" |
+    |  "datarace (Suc out, 0, scs) ==> datarace (out, 0, Suc scs)" |
+    |  "datarace (out, Suc cs, scs) ==> datarace (Suc out, cs, scs)" |
+    |  "datarace (out, cs, Suc scs) ==> datarace (Suc out, cs, scs)"
+    |
+    |fun unsafe :: "(nat * nat * nat) => bool" where 
+    |  "unsafe (out, Suc cs, Suc scs) = True" |    
+    |  "unsafe (out, cs, scs) = False"
+    """.stripMargin
+
 }
