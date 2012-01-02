@@ -5,6 +5,7 @@ import mrsc.core._
 // There are some optimizations in this code in order to filter out failures
 // and reduce the number of alternatives.
 case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
+  var maxSize: Int = Int.MaxValue
   def inspect(g: G) = g.current.conf exists {
     case Num(i) => i >= l
     case Omega  => false
@@ -37,16 +38,19 @@ case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
 
   override def steps(g: G): List[S] =
     // SIC: optimization
-    if (protocol.unsafe(g.current.conf)) {
+    if (protocol.unsafe(g.current.conf) || size(g) > maxSize) {
       List()
     } else {
       fold(g) match {
         case Some(s) => List(s)
         case None =>
           val signal = inspect(g)
-          drive(signal, g) ++ rebuild(signal, g)
+           rebuild(signal, g) ++ drive(signal, g)
       }
     }
+  
+  private def size(g: G) =
+    g.completeNodes.size + g.incompleteLeaves.size
 }
 
 // A (not elegant so far) version of single-result supercompiler for counters.

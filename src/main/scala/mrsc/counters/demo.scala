@@ -39,6 +39,7 @@ object Demo extends App {
         if (graphSize(graph) < size) {
           minGraph = graph
           size = graphSize(graph)
+          rules.maxSize = size
         }
       }
     }
