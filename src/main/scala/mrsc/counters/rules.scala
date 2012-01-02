@@ -33,11 +33,7 @@ case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
   def next(c: Conf) = protocol.rules.map { _.lift(c) }
 
   def rebuild(dangerous: Boolean, g: G): List[S] =
-    if (dangerous) {
-      List()
-    } else {
-      Conf.oneStepRebuildings(g.current.conf) filter { !protocol.unsafe(_) } map { RebuildStep(_): S }
-    }
+    Conf.oneStepRebuildings(g.current.conf) filter { !protocol.unsafe(_) } map { RebuildStep(_): S }
 
   override def steps(g: G): List[S] =
     // SIC: optimization
