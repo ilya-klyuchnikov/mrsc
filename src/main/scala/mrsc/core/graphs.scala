@@ -180,7 +180,7 @@ object GraphPrettyPrinter {
   def toString(node: TNode[_, _], indent: String = ""): String = {
     val sb = new StringBuilder(indent + "|__" + node.conf)
     if (node.base.isDefined) {
-      sb.append("*******")
+      sb.append("*")
     }
     for (edge <- node.outs) {
       sb.append("\n  " + indent + "|" + (if (edge.driveInfo != null) edge.driveInfo else ""))

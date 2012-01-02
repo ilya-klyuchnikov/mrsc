@@ -2,18 +2,16 @@ package mrsc.counters
 
 import mrsc.core._
 
-// The very first iteration: multi-result version
-// There are some "manual" optimization in this code in order
-// to filter out failures.
-// TODO: make this code more elegant.
+// There are some optimizations in this code in order to filter out failures
+// and reduce the number of alternatives.
 case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
   def inspect(g: G) = g.current.conf exists {
     case Num(i) => i >= l
-    case Omega    => false
+    case Omega  => false
   }
 
   def fold(g: G): Option[S] =
-    g.completeNodes.find { n => Configuration.instanceOf(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S }
+    g.completeNodes.find { n => Conf.instanceOf(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S }
 
   def drive(dangerous: Boolean, g: G): List[S] =
     if (dangerous) {
@@ -38,7 +36,7 @@ case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
     if (dangerous) {
       List()
     } else {
-      Configuration.rebuildings(g.current.conf) filter { !protocol.unsafe(_) } map { RebuildStep(_): S }
+      Conf.oneStepRebuildings(g.current.conf) filter { !protocol.unsafe(_) } map { RebuildStep(_): S }
     }
 
   override def steps(g: G): List[S] =
@@ -59,11 +57,11 @@ case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
 case class SRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
   def inspect(g: G) = g.current.conf exists {
     case Num(i) => i >= l
-    case Omega    => false
+    case Omega  => false
   }
 
   def fold(g: G): Option[S] =
-    g.completeNodes.find { n => Configuration.instanceOf(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S }
+    g.completeNodes.find { n => Conf.instanceOf(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S }
 
   def drive(dangerous: Boolean, g: G): List[S] =
     if (dangerous) {
