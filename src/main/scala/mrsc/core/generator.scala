@@ -20,6 +20,11 @@ case class RollbackStep[C, D](to: SPath, c: C) extends GraphRewriteStep[C, D]
 case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
   extends Iterator[SGraph[C, D]] {
 
+  // the number of graphs consumed by a client
+  var consumed: Int = 0
+  // the number of dead graphs so far
+  var pruned: Int = 0
+  
   private var completeGs: Queue[SGraph[C, D]] = Queue()
   private var pendingGs: List[SGraph[C, D]] = List(initial(conf))
 
@@ -33,6 +38,9 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
       val pendingDelta = ListBuffer[SGraph[C, D]]()
       val g = pendingGs.head
       val rewrittenGs = rules.steps(g) map { GraphGenerator.executeStep(_, g) }
+      if (rewrittenGs.isEmpty) {
+        pruned += 1
+      }
       for (g1 <- rewrittenGs)
         if (g1.isComplete) {
           completeGs.enqueue(g1)
@@ -49,6 +57,7 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
 
   def next(): SGraph[C, D] = {
     if (!hasNext) throw new NoSuchElementException("no graph")
+    consumed += 1
     completeGs.dequeue()
   }
 }

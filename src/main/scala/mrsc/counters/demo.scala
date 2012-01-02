@@ -50,11 +50,9 @@ object Demo extends App {
       println("* The size of graph: " + graphSize(tgraph) + " *")
       println("* The graph is evidence of proof: true *")
       println(tgraph)
-      println()
-      println("* The proof of safety of protocol for Isabelle: *")
-      println(ProofGenerator.generate(protocol, minGraph))
-      println()
     }
+    
+    println((graphs.consumed, graphs.pruned))
   }
 
   def checkSubTree(unsafe: Conf => Boolean)(node: TNode[Conf, _]): Boolean =
