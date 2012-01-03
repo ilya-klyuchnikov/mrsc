@@ -24,6 +24,8 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
   var consumed: Int = 0
   // the number of dead graphs so far
   var pruned: Int = 0
+  // the number of steps executed
+  var stepsDone: Int = 0
   
   private var completeGs: Queue[SGraph[C, D]] = Queue()
   private var pendingGs: List[SGraph[C, D]] = List(initial(conf))
@@ -37,7 +39,12 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
     while (completeGs.isEmpty && !pendingGs.isEmpty) {
       val pendingDelta = ListBuffer[SGraph[C, D]]()
       val g = pendingGs.head
-      val rewrittenGs = rules.steps(g) map { GraphGenerator.executeStep(_, g) }
+      
+      val rewrittenGs = rules.steps(g) map {
+        stepsDone += 1
+        GraphGenerator.executeStep(_, g) 
+      }
+      
       if (rewrittenGs.isEmpty) {
         pruned += 1
       }
