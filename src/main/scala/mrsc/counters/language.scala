@@ -23,16 +23,16 @@ sealed trait Expr {
 }
 
 case class Num(i: Int) extends Expr {
-  override def +(comp: Expr) = comp match {
+  def +(comp: Expr) = comp match {
     case Omega  => Omega
     case Num(j) => Num(i + j)
   }
-  override def -(comp: Expr) = comp match {
+  def -(comp: Expr) = comp match {
     case Omega  => Omega
     case Num(j) => Num(i - j)
   }
-  override def ===(j: Int) = i == j
-  override def >=(j: Int) = i >= j
+  def ===(j: Int) = i == j
+  def >=(j: Int) = i >= j
   override def toString = i.toString
 }
 
@@ -40,7 +40,7 @@ case object Omega extends Expr {
   def +(comp: Expr) = Omega
   def -(comp: Expr) = Omega
   def >=(comp: Int) = true
-  override def ===(j: Int) = true
+  def ===(j: Int) = true
   override def toString = "ϖ"
 }
 
