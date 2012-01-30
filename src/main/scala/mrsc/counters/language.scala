@@ -41,7 +41,7 @@ case object Omega extends Expr {
   def -(comp: Expr) = Omega
   def >=(comp: Int) = true
   def ===(j: Int) = true
-  override def toString = "ϖ"
+  override def toString = "ω"
 }
 
 // The "syntax" of language of configurations.

@@ -34,12 +34,12 @@ object ProofGenerator {
       |
       |lemma safety: "%s' c ==> ~unsafe c"
       |  apply(erule %s'.cases)
-      |  apply(auto)
+      |  apply(erule unsafe.cases | auto)+
       |done
       |
-      |theorem valid:
-      |  assumes A: "%s c" shows "~unsafe c"
-      |  using A inclusion safety by (auto)
+      |theorem valid: "%s c ==> ~unsafe c"
+      |  apply(insert inclusion safety, simp)
+      |done
       |
       |end
       """.stripMargin.replace("%s", protocol.name)

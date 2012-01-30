@@ -5,43 +5,43 @@
 
 The size of graph: __11__.
 
-	|__List(ϖ, 0, 0)
+	|__List(ω, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 1)
+	  |__List(ω, 0, 1)
 	    |1
-	    |__List(ϖ, 0, ϖ)
+	    |__List(ω, 0, ω)
 	      |1
-	      |__List(ϖ, 0, ϖ)*
+	      |__List(ω, 0, ω)*
 	      |2
-	      |__List(ϖ, 1, 0)
+	      |__List(ω, 1, 0)
 	        |1
-	        |__List(ϖ, 0, 1)*
+	        |__List(ω, 0, 1)*
 	        |3
-	        |__List(ϖ, 1, 0)*
+	        |__List(ω, 1, 0)*
 	      |3
-	      |__List(ϖ, 1, 0)*
+	      |__List(ω, 1, 0)*
 	    |2
-	    |__List(ϖ, 1, 0)*
+	    |__List(ω, 1, 0)*
 	    |3
-	    |__List(ϖ, 1, 0)*
+	    |__List(ω, 1, 0)*
 	  |3
-	  |__List(ϖ, 1, 0)*
+	  |__List(ω, 1, 0)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __6__.
 
-	|__List(ϖ, 0, ϖ)
+	|__List(ω, 0, ω)
 	  |1
-	  |__List(ϖ, 0, ϖ)*
+	  |__List(ω, 0, ω)*
 	  |2
-	  |__List(ϖ, 1, 0)
+	  |__List(ω, 1, 0)
 	    |1
-	    |__List(ϖ, 0, 1)*
+	    |__List(ω, 0, 1)*
 	    |3
-	    |__List(ϖ, 1, 0)*
+	    |__List(ω, 1, 0)*
 	  |3
-	  |__List(ϖ, 1, 0)*
+	  |__List(ω, 1, 0)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -56,10 +56,9 @@ The size of graph: __6__.
 	  "synapse (i, d, Suc v) ==> synapse (i + d + v, (Suc 0), 0)" |
 	  "synapse (Suc i, d, v) ==> synapse (i + d + v, (Suc 0), 0)"
 	
-	fun unsafe :: "(nat * nat * nat) => bool" where 
-	  "unsafe (x, Suc y, Suc z) = True" |
-	  "unsafe (x, Suc (Suc y), z) = True" |
-	  "unsafe (x, y, z) = False" 
+	inductive unsafe :: "(nat * nat * nat) => bool" where 
+	  "unsafe (x, Suc y, Suc z)" |
+	  "unsafe (x, Suc (Suc y), z)"
 	    
 	      
 	inductive synapse' :: "(nat * nat * nat) => bool" where
@@ -73,12 +72,12 @@ The size of graph: __6__.
 	
 	lemma safety: "synapse' c ==> ~unsafe c"
 	  apply(erule synapse'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "synapse c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "synapse c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -90,37 +89,37 @@ The size of graph: __6__.
 
 The size of graph: __8__.
 
-	|__List(ϖ, 0, 0)
+	|__List(ω, 0, 0)
 	  |1
-	  |__List(ϖ, 1, 0)
+	  |__List(ω, 1, 0)
 	    |1
-	    |__List(ϖ, 1, 0)*
+	    |__List(ω, 1, 0)*
 	    |3
-	    |__List(ϖ, 0, ϖ)
+	    |__List(ω, 0, ω)
 	      |1
-	      |__List(ϖ, 1, 0)*
+	      |__List(ω, 1, 0)*
 	      |2
-	      |__List(ϖ, 1, 0)*
+	      |__List(ω, 1, 0)*
 	      |3
-	      |__List(ϖ, 0, ϖ)*
+	      |__List(ω, 0, ω)*
 	  |3
-	  |__List(ϖ, 0, 1)*
+	  |__List(ω, 0, 1)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __6__.
 
-	|__List(ϖ, 0, ϖ)
+	|__List(ω, 0, ω)
 	  |1
-	  |__List(ϖ, 1, 0)
+	  |__List(ω, 1, 0)
 	    |1
-	    |__List(ϖ, 1, 0)*
+	    |__List(ω, 1, 0)*
 	    |3
-	    |__List(ϖ, 0, 2)*
+	    |__List(ω, 0, 2)*
 	  |2
-	  |__List(ϖ, 1, 0)*
+	  |__List(ω, 1, 0)*
 	  |3
-	  |__List(ϖ, 0, ϖ)*
+	  |__List(ω, 0, ω)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -135,10 +134,9 @@ The size of graph: __6__.
 	  "msi (i, m, Suc s) ==> msi (i + m + s, Suc 0, 0)" |
 	  "msi (Suc i, m, s) ==> msi (i, 0, Suc (m + s))"
 	
-	fun unsafe :: "(nat * nat * nat) => bool" where 
-	  "unsafe (x, Suc y, Suc z) = True" |
-	  "unsafe (x, Suc (Suc y), z) = True" |
-	  "unsafe (x, y, z) = False" 
+	inductive unsafe :: "(nat * nat * nat) => bool" where 
+	  "unsafe (x, Suc y, Suc z)" |
+	  "unsafe (x, Suc (Suc y), z)"
 	    
 	      
 	inductive msi' :: "(nat * nat * nat) => bool" where
@@ -152,12 +150,12 @@ The size of graph: __6__.
 	
 	lemma safety: "msi' c ==> ~unsafe c"
 	  apply(erule msi'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "msi c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "msi c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -169,89 +167,89 @@ The size of graph: __6__.
 
 The size of graph: __26__.
 
-	|__List(ϖ, 0, 0, 0)
+	|__List(ω, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 1, 0)
+	  |__List(ω, 0, 1, 0)
 	    |1
-	    |__List(ϖ, 0, ϖ, 0)
+	    |__List(ω, 0, ω, 0)
 	      |1
-	      |__List(ϖ, 0, ϖ, 0)*
+	      |__List(ω, 0, ω, 0)*
 	      |3
-	      |__List(ϖ, 0, 0, 1)
+	      |__List(ω, 0, 0, 1)
 	        |1
-	        |__List(ϖ, 1, 1, 0)
+	        |__List(ω, 1, 1, 0)
 	          |1
-	          |__List(ϖ, 1, ϖ, 0)
+	          |__List(ω, 1, ω, 0)
 	            |1
-	            |__List(ϖ, 1, ϖ, 0)*
+	            |__List(ω, 1, ω, 0)*
 	            |2
-	            |__List(ϖ, 0, 0, 1)*
+	            |__List(ω, 0, 0, 1)*
 	            |3
-	            |__List(ϖ, 0, 0, 1)*
+	            |__List(ω, 0, 0, 1)*
 	            |4
-	            |__List(ϖ, 0, 0, 1)*
+	            |__List(ω, 0, 0, 1)*
 	            |5
-	            |__List(ϖ, 1, ϖ, 0)*
+	            |__List(ω, 1, ω, 0)*
 	            |7
-	            |__List(ϖ, 0, ϖ, 0)*
+	            |__List(ω, 0, ω, 0)*
 	          |2
-	          |__List(ϖ, 0, 0, 1)*
+	          |__List(ω, 0, 0, 1)*
 	          |3
-	          |__List(ϖ, 0, 0, 1)*
+	          |__List(ω, 0, 0, 1)*
 	          |4
-	          |__List(ϖ, 0, 0, 1)*
+	          |__List(ω, 0, 0, 1)*
 	          |5
-	          |__List(ϖ, 1, 0, 0)*
+	          |__List(ω, 1, 0, 0)*
 	          |7
-	          |__List(ϖ, 0, 1, 0)*
+	          |__List(ω, 0, 1, 0)*
 	        |3
-	        |__List(ϖ, 0, 0, 1)*
+	        |__List(ω, 0, 0, 1)*
 	        |6
-	        |__List(ϖ, 0, 0, 0)*
+	        |__List(ω, 0, 0, 0)*
 	      |4
-	      |__List(ϖ, 0, 0, 1)*
+	      |__List(ω, 0, 0, 1)*
 	      |5
-	      |__List(ϖ, 0, ϖ, 0)*
+	      |__List(ω, 0, ω, 0)*
 	    |3
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	    |4
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	    |5
-	    |__List(ϖ, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0)*
 	  |3
-	  |__List(ϖ, 0, 0, 1)*
+	  |__List(ω, 0, 0, 1)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __14__.
 
-	|__List(ϖ, 0, ϖ, 0)
+	|__List(ω, 0, ω, 0)
 	  |1
-	  |__List(ϖ, 0, ϖ, 0)*
+	  |__List(ω, 0, ω, 0)*
 	  |3
-	  |__List(ϖ, 0, 0, 1)
+	  |__List(ω, 0, 0, 1)
 	    |1
-	    |__List(ϖ, 1, ϖ, 0)
+	    |__List(ω, 1, ω, 0)
 	      |1
-	      |__List(ϖ, 1, ϖ, 0)*
+	      |__List(ω, 1, ω, 0)*
 	      |2
-	      |__List(ϖ, 0, 0, 1)*
+	      |__List(ω, 0, 0, 1)*
 	      |3
-	      |__List(ϖ, 0, 0, 1)*
+	      |__List(ω, 0, 0, 1)*
 	      |4
-	      |__List(ϖ, 0, 0, 1)*
+	      |__List(ω, 0, 0, 1)*
 	      |5
-	      |__List(ϖ, 1, ϖ, 0)*
+	      |__List(ω, 1, ω, 0)*
 	      |7
-	      |__List(ϖ, 0, ϖ, 0)*
+	      |__List(ω, 0, ω, 0)*
 	    |3
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	    |6
-	    |__List(ϖ, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0)*
 	  |4
-	  |__List(ϖ, 0, 0, 1)*
+	  |__List(ω, 0, 0, 1)*
 	  |5
-	  |__List(ϖ, 0, ϖ, 0)*
+	  |__List(ω, 0, ω, 0)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -270,11 +268,10 @@ The size of graph: __14__.
 	  "mosi (i, o', s, Suc m) ==> mosi (Suc i, o', s, m)" |
 	  "mosi (i, Suc o', s, m) ==> mosi (Suc i, o', s, m)"
 	
-	fun unsafe :: "(nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, Suc (Suc o'), s, m) = True" |
-	  "unsafe (i, o', s, Suc (Suc m)) = True" |
-	  "unsafe (i, o', Suc s, Suc m) = True" |
-	  "unsafe (i, o', s, m) = False" 
+	inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, Suc (Suc o'), s, m)" |
+	  "unsafe (i, o', s, Suc (Suc m))" |
+	  "unsafe (i, o', Suc s, Suc m)" 
 	    
 	      
 	inductive mosi' :: "(nat * nat * nat * nat) => bool" where
@@ -289,12 +286,12 @@ The size of graph: __14__.
 	
 	lemma safety: "mosi' c ==> ~unsafe c"
 	  apply(erule mosi'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "mosi c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "mosi c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -306,55 +303,55 @@ The size of graph: __14__.
 
 The size of graph: __14__.
 
-	|__List(ϖ, 0, 0, 0)
+	|__List(ω, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 1, 0)
+	  |__List(ω, 0, 1, 0)
 	    |1
-	    |__List(ϖ, 0, ϖ, 0)
+	    |__List(ω, 0, ω, 0)
 	      |1
-	      |__List(ϖ, 0, ϖ, 0)*
+	      |__List(ω, 0, ω, 0)*
 	      |3
-	      |__List(ϖ, 1, 0, 0)
+	      |__List(ω, 1, 0, 0)
 	        |1
-	        |__List(ϖ, 0, 2, 0)*
+	        |__List(ω, 0, 2, 0)*
 	        |2
-	        |__List(ϖ, 0, 0, 1)
+	        |__List(ω, 0, 0, 1)
 	          |1
-	          |__List(ϖ, 0, 2, 0)*
+	          |__List(ω, 0, 2, 0)*
 	          |4
-	          |__List(ϖ, 1, 0, 0)*
+	          |__List(ω, 1, 0, 0)*
 	        |4
-	        |__List(ϖ, 1, 0, 0)*
+	        |__List(ω, 1, 0, 0)*
 	      |4
-	      |__List(ϖ, 1, 0, 0)*
+	      |__List(ω, 1, 0, 0)*
 	    |3
-	    |__List(ϖ, 1, 0, 0)*
+	    |__List(ω, 1, 0, 0)*
 	    |4
-	    |__List(ϖ, 1, 0, 0)*
+	    |__List(ω, 1, 0, 0)*
 	  |4
-	  |__List(ϖ, 1, 0, 0)*
+	  |__List(ω, 1, 0, 0)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __9__.
 
-	|__List(ϖ, 0, ϖ, 0)
+	|__List(ω, 0, ω, 0)
 	  |1
-	  |__List(ϖ, 0, ϖ, 0)*
+	  |__List(ω, 0, ω, 0)*
 	  |3
-	  |__List(ϖ, 1, 0, 0)
+	  |__List(ω, 1, 0, 0)
 	    |1
-	    |__List(ϖ, 0, 2, 0)*
+	    |__List(ω, 0, 2, 0)*
 	    |2
-	    |__List(ϖ, 0, 0, 1)
+	    |__List(ω, 0, 0, 1)
 	      |1
-	      |__List(ϖ, 0, 2, 0)*
+	      |__List(ω, 0, 2, 0)*
 	      |4
-	      |__List(ϖ, 1, 0, 0)*
+	      |__List(ω, 1, 0, 0)*
 	    |4
-	    |__List(ϖ, 1, 0, 0)*
+	    |__List(ω, 1, 0, 0)*
 	  |4
-	  |__List(ϖ, 1, 0, 0)*
+	  |__List(ω, 1, 0, 0)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -370,10 +367,9 @@ The size of graph: __9__.
 	  "mesi (i, e, Suc s, m) ==> mesi (i + e + s + m, Suc 0, 0, 0)" |
 	  "mesi (Suc i, e, s, m) ==> mesi (i + e + s + m, Suc 0, 0, 0)"
 	
-	fun unsafe :: "(nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, e, s, Suc (Suc m)) = True" |
-	  "unsafe (i, e, Suc s, Suc m) = True" |
-	  "unsafe (i, e, s, m) = False" 
+	inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, e, s, Suc (Suc m))" |
+	  "unsafe (i, e, Suc s, Suc m)" 
 	    
 	      
 	inductive mesi' :: "(nat * nat * nat * nat) => bool" where
@@ -388,12 +384,12 @@ The size of graph: __9__.
 	
 	lemma safety: "mesi' c ==> ~unsafe c"
 	  apply(erule mesi'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "mesi c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "mesi c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -405,67 +401,67 @@ The size of graph: __9__.
 
 The size of graph: __20__.
 
-	|__List(ϖ, 0, 0, 0, 0)
+	|__List(ω, 0, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 1, 0, 0)
+	  |__List(ω, 0, 1, 0, 0)
 	    |1
-	    |__List(ϖ, 0, ϖ, 0, 0)
+	    |__List(ω, 0, ω, 0, 0)
 	      |1
-	      |__List(ϖ, 0, ϖ, 0, 0)*
+	      |__List(ω, 0, ω, 0, 0)*
 	      |3
-	      |__List(ϖ, 0, 0, 1, 0)
+	      |__List(ω, 0, 0, 1, 0)
 	        |1
-	        |__List(ϖ, 0, 2, 0, 0)*
+	        |__List(ω, 0, 2, 0, 0)*
 	        |2
-	        |__List(ϖ, 1, 0, 0, 0)
+	        |__List(ω, 1, 0, 0, 0)
 	          |1
-	          |__List(ϖ, 0, 1, 0, 1)
+	          |__List(ω, 0, 1, 0, 1)
 	            |1
-	            |__List(ϖ, 0, ϖ, 0, 1)
+	            |__List(ω, 0, ω, 0, 1)
 	              |1
-	              |__List(ϖ, 0, ϖ, 0, 1)*
+	              |__List(ω, 0, ω, 0, 1)*
 	              |3
-	              |__List(ϖ, 0, 0, 1, 0)*
+	              |__List(ω, 0, 0, 1, 0)*
 	              |4
-	              |__List(ϖ, 0, 0, 1, 0)*
+	              |__List(ω, 0, 0, 1, 0)*
 	            |3
-	            |__List(ϖ, 0, 0, 1, 0)*
+	            |__List(ω, 0, 0, 1, 0)*
 	            |4
-	            |__List(ϖ, 0, 0, 1, 0)*
+	            |__List(ω, 0, 0, 1, 0)*
 	          |4
-	          |__List(ϖ, 0, 0, 1, 0)*
+	          |__List(ω, 0, 0, 1, 0)*
 	        |4
-	        |__List(ϖ, 0, 0, 1, 0)*
+	        |__List(ω, 0, 0, 1, 0)*
 	      |4
-	      |__List(ϖ, 0, 0, 1, 0)*
+	      |__List(ω, 0, 0, 1, 0)*
 	    |3
-	    |__List(ϖ, 0, 0, 1, 0)*
+	    |__List(ω, 0, 0, 1, 0)*
 	    |4
-	    |__List(ϖ, 0, 0, 1, 0)*
+	    |__List(ω, 0, 0, 1, 0)*
 	  |4
-	  |__List(ϖ, 0, 0, 1, 0)*
+	  |__List(ω, 0, 0, 1, 0)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __9__.
 
-	|__List(ϖ, 0, ϖ, 0, ϖ)
+	|__List(ω, 0, ω, 0, ω)
 	  |1
-	  |__List(ϖ, 0, ϖ, 0, ϖ)*
+	  |__List(ω, 0, ω, 0, ω)*
 	  |3
-	  |__List(ϖ, 0, 0, 1, 0)
+	  |__List(ω, 0, 0, 1, 0)
 	    |1
-	    |__List(ϖ, 0, 2, 0, 0)*
+	    |__List(ω, 0, 2, 0, 0)*
 	    |2
-	    |__List(ϖ, 1, 0, 0, 0)
+	    |__List(ω, 1, 0, 0, 0)
 	      |1
-	      |__List(ϖ, 0, 1, 0, 1)*
+	      |__List(ω, 0, 1, 0, 1)*
 	      |4
-	      |__List(ϖ, 0, 0, 1, 0)*
+	      |__List(ω, 0, 0, 1, 0)*
 	    |4
-	    |__List(ϖ, 0, 0, 1, 0)*
+	    |__List(ω, 0, 0, 1, 0)*
 	  |4
-	  |__List(ϖ, 0, 0, 1, 0)*
+	  |__List(ω, 0, 0, 1, 0)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -481,13 +477,12 @@ The size of graph: __9__.
 	  "moesi (i, m, Suc s, e, o') ==> moesi (i + m + s + e + o', 0, 0, Suc 0, 0)" |
 	  "moesi (Suc i, m, s, e, o') ==> moesi (i + m + s + e + o', 0, 0, Suc 0, 0)"
 	
-	fun unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, Suc m, Suc s, e, o') = True" |
-	  "unsafe (i, Suc m, s, Suc e, o') = True" |
-	  "unsafe (i, Suc m, s, e, Suc o') = True" |
-	  "unsafe (i, Suc (Suc m), s, e, o') = True" |
-	  "unsafe (i, m, s, Suc (Suc e), o') = True" |
-	  "unsafe (i, e, s, m, o') = False" 
+	inductive unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, Suc m, Suc s, e, o')" |
+	  "unsafe (i, Suc m, s, Suc e, o')" |
+	  "unsafe (i, Suc m, s, e, Suc o')" |
+	  "unsafe (i, Suc (Suc m), s, e, o')" |
+	  "unsafe (i, m, s, Suc (Suc e), o')"
 	    
 	      
 	inductive moesi' :: "(nat * nat * nat * nat * nat) => bool" where
@@ -502,12 +497,12 @@ The size of graph: __9__.
 	
 	lemma safety: "moesi' c ==> ~unsafe c"
 	  apply(erule moesi'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "moesi c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "moesi c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -519,65 +514,65 @@ The size of graph: __9__.
 
 The size of graph: __15__.
 
-	|__List(ϖ, 0, 0, 0)
+	|__List(ω, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 1, 0, 0)
+	  |__List(ω, 1, 0, 0)
 	    |3
-	    |__List(ϖ, 0, 0, ϖ)
+	    |__List(ω, 0, 0, ω)
 	      |1
-	      |__List(ϖ, 1, 0, 0)*
+	      |__List(ω, 1, 0, 0)*
 	      |3
-	      |__List(ϖ, 0, 0, ϖ)*
+	      |__List(ω, 0, 0, ω)*
 	      |5
-	      |__List(ϖ, 0, 1, 0)
+	      |__List(ω, 0, 1, 0)
 	        |2
-	        |__List(ϖ, 0, 0, 2)*
+	        |__List(ω, 0, 0, 2)*
 	        |6
-	        |__List(ϖ, 0, 1, 0)*
+	        |__List(ω, 0, 1, 0)*
 	        |7
-	        |__List(ϖ, 0, 0, 0)*
+	        |__List(ω, 0, 0, 0)*
 	      |6
-	      |__List(ϖ, 0, 1, 0)*
+	      |__List(ω, 0, 1, 0)*
 	      |8
-	      |__List(ϖ, 0, 0, ϖ)*
+	      |__List(ω, 0, 0, ω)*
 	    |4
-	    |__List(ϖ, 0, 1, 0)*
+	    |__List(ω, 0, 1, 0)*
 	    |6
-	    |__List(ϖ, 0, 1, 0)*
+	    |__List(ω, 0, 1, 0)*
 	    |9
-	    |__List(ϖ, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0)*
 	  |6
-	  |__List(ϖ, 0, 1, 0)*
+	  |__List(ω, 0, 1, 0)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __13__.
 
-	|__List(ϖ, 0, 0, ϖ)
+	|__List(ω, 0, 0, ω)
 	  |1
-	  |__List(ϖ, 1, 0, 0)
+	  |__List(ω, 1, 0, 0)
 	    |3
-	    |__List(ϖ, 0, 0, 2)*
+	    |__List(ω, 0, 0, 2)*
 	    |4
-	    |__List(ϖ, 0, 1, 0)
+	    |__List(ω, 0, 1, 0)
 	      |2
-	      |__List(ϖ, 0, 0, 2)*
+	      |__List(ω, 0, 0, 2)*
 	      |6
-	      |__List(ϖ, 0, 1, 0)*
+	      |__List(ω, 0, 1, 0)*
 	      |7
-	      |__List(ϖ, 0, 0, 0)*
+	      |__List(ω, 0, 0, 0)*
 	    |6
-	    |__List(ϖ, 0, 1, 0)*
+	    |__List(ω, 0, 1, 0)*
 	    |9
-	    |__List(ϖ, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0)*
 	  |3
-	  |__List(ϖ, 0, 0, ϖ)*
+	  |__List(ω, 0, 0, ω)*
 	  |5
-	  |__List(ϖ, 0, 1, 0)*
+	  |__List(ω, 0, 1, 0)*
 	  |6
-	  |__List(ϖ, 0, 1, 0)*
+	  |__List(ω, 0, 1, 0)*
 	  |8
-	  |__List(ϖ, 0, 0, ϖ)*
+	  |__List(ω, 0, 0, ω)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -599,10 +594,9 @@ The size of graph: __13__.
 	  r10: "illinois (i, e, d, Suc s) ==> illinois (Suc i, e, d, s)" |
 	  r11: "illinois (i, Suc e, d, s) ==> illinois (Suc i, e, d, s)" 
 	
-	fun unsafe :: "(nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, e, Suc d, Suc s) = True" |
-	  "unsafe (i, e, Suc (Suc d), s) = True" |
-	  "unsafe (i, e, d, s) = False" 
+	inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, e, Suc d, Suc s)" |
+	  "unsafe (i, e, Suc (Suc d), s)"
 	    
 	      
 	inductive illinois' :: "(nat * nat * nat * nat) => bool" where
@@ -617,12 +611,12 @@ The size of graph: __13__.
 	
 	lemma safety: "illinois' c ==> ~unsafe c"
 	  apply(erule illinois'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "illinois c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "illinois c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -634,55 +628,55 @@ The size of graph: __13__.
 
 The size of graph: __17__.
 
-	|__List(ϖ, 0, 0, 0)
+	|__List(ω, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 1, 0)
+	  |__List(ω, 0, 1, 0)
 	    |1
-	    |__List(ϖ, 0, ϖ, 0)
+	    |__List(ω, 0, ω, 0)
 	      |1
-	      |__List(ϖ, 0, ϖ, 0)*
+	      |__List(ω, 0, ω, 0)*
 	      |2
-	      |__List(ϖ, 0, 0, 1)
+	      |__List(ω, 0, 0, 1)
 	        |1
-	        |__List(ϖ, 1, 1, 0)
+	        |__List(ω, 1, 1, 0)
 	          |1
-	          |__List(ϖ, 1, ϖ, 0)
+	          |__List(ω, 1, ω, 0)
 	            |1
-	            |__List(ϖ, 1, ϖ, 0)*
+	            |__List(ω, 1, ω, 0)*
 	            |2
-	            |__List(ϖ, 0, 0, 1)*
+	            |__List(ω, 0, 0, 1)*
 	            |3
-	            |__List(ϖ, 0, 0, 1)*
+	            |__List(ω, 0, 0, 1)*
 	          |2
-	          |__List(ϖ, 0, 0, 1)*
+	          |__List(ω, 0, 0, 1)*
 	          |3
-	          |__List(ϖ, 0, 0, 1)*
+	          |__List(ω, 0, 0, 1)*
 	        |2
-	        |__List(ϖ, 0, 0, 1)*
+	        |__List(ω, 0, 0, 1)*
 	      |3
-	      |__List(ϖ, 0, 0, 1)*
+	      |__List(ω, 0, 0, 1)*
 	    |2
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	    |3
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	  |2
-	  |__List(ϖ, 0, 0, 1)*
+	  |__List(ω, 0, 0, 1)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __6__.
 
-	|__List(ϖ, ϖ, ϖ, 0)
+	|__List(ω, ω, ω, 0)
 	  |1
-	  |__List(ϖ, ϖ, ϖ, 0)*
+	  |__List(ω, ω, ω, 0)*
 	  |2
-	  |__List(ϖ, 0, 0, 1)
+	  |__List(ω, 0, 0, 1)
 	    |1
-	    |__List(ϖ, 1, 1, 0)*
+	    |__List(ω, 1, 1, 0)*
 	    |2
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	  |3
-	  |__List(ϖ, 0, 0, 1)*
+	  |__List(ω, 0, 0, 1)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -698,11 +692,10 @@ The size of graph: __6__.
 	  wh1: "berkley (i, Suc n, u, e) ==> berkley (i + n + u, 0, 0, Suc e)" |
 	  wh2: "berkley (i, n, Suc u, e) ==> berkley (i + n + u, 0, 0, Suc e)"
 	
-	fun unsafe :: "(nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, Suc n, u, Suc e) = True" |
-	  "unsafe (i, n, Suc u, Suc e) = True" |
-	  "unsafe (i, n, u, Suc (Suc e)) = True" |
-	  "unsafe (i, n, u, e) = False" 
+	inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, Suc n, u, Suc e)" |
+	  "unsafe (i, n, Suc u, Suc e)" |
+	  "unsafe (i, n, u, Suc (Suc e))"
 	    
 	      
 	inductive berkley' :: "(nat * nat * nat * nat) => bool" where
@@ -716,12 +709,12 @@ The size of graph: __6__.
 	
 	lemma safety: "berkley' c ==> ~unsafe c"
 	  apply(erule berkley'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "berkley c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "berkley c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -733,53 +726,53 @@ The size of graph: __6__.
 
 The size of graph: __12__.
 
-	|__List(ϖ, 0, 0, 0)
+	|__List(ω, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 1, 0, 0)
+	  |__List(ω, 1, 0, 0)
 	    |3
-	    |__List(ϖ, 0, ϖ, 0)
+	    |__List(ω, 0, ω, 0)
 	      |1
-	      |__List(ϖ, 1, 0, 0)*
+	      |__List(ω, 1, 0, 0)*
 	      |3
-	      |__List(ϖ, 0, ϖ, 0)*
+	      |__List(ω, 0, ω, 0)*
 	      |5
-	      |__List(ϖ, 1, 0, 0)*
+	      |__List(ω, 1, 0, 0)*
 	      |6
-	      |__List(ϖ, 0, 0, 1)
+	      |__List(ω, 0, 0, 1)
 	        |2
-	        |__List(ϖ, 0, 2, 0)*
+	        |__List(ω, 0, 2, 0)*
 	        |6
-	        |__List(ϖ, 0, 0, 1)*
+	        |__List(ω, 0, 0, 1)*
 	    |4
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	    |6
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	  |6
-	  |__List(ϖ, 0, 0, 1)*
+	  |__List(ω, 0, 0, 1)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __10__.
 
-	|__List(ϖ, 0, ϖ, 0)
+	|__List(ω, 0, ω, 0)
 	  |1
-	  |__List(ϖ, 1, 0, 0)
+	  |__List(ω, 1, 0, 0)
 	    |3
-	    |__List(ϖ, 0, 2, 0)*
+	    |__List(ω, 0, 2, 0)*
 	    |4
-	    |__List(ϖ, 0, 0, 1)
+	    |__List(ω, 0, 0, 1)
 	      |2
-	      |__List(ϖ, 0, 2, 0)*
+	      |__List(ω, 0, 2, 0)*
 	      |6
-	      |__List(ϖ, 0, 0, 1)*
+	      |__List(ω, 0, 0, 1)*
 	    |6
-	    |__List(ϖ, 0, 0, 1)*
+	    |__List(ω, 0, 0, 1)*
 	  |3
-	  |__List(ϖ, 0, ϖ, 0)*
+	  |__List(ω, 0, ω, 0)*
 	  |5
-	  |__List(ϖ, 1, 0, 0)*
+	  |__List(ω, 1, 0, 0)*
 	  |6
-	  |__List(ϖ, 0, 0, 1)*
+	  |__List(ω, 0, 0, 1)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -798,12 +791,11 @@ The size of graph: __10__.
 	  wh3:  "firefly (i, e, Suc s, d) ==> firefly (i, Suc e, 0, d)" |
 	  wm:   "firefly (Suc i, e, s, d) ==> firefly (i + e + s + d, 0, 0, Suc 0)" 
 	
-	fun unsafe :: "(nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, Suc e, s, Suc d) = True" |
-	  "unsafe (i, e, Suc s, Suc d) = True" |
-	  "unsafe (i, Suc (Suc e), s, d) = True" |
-	  "unsafe (i, e, s, Suc (Suc d)) = True" |
-	  "unsafe (i, e, s, d) = False" 
+	inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, Suc e, s, Suc d)" |
+	  "unsafe (i, e, Suc s, Suc d)" |
+	  "unsafe (i, Suc (Suc e), s, d)" |
+	  "unsafe (i, e, s, Suc (Suc d))"
 	    
 	      
 	inductive firefly' :: "(nat * nat * nat * nat) => bool" where
@@ -818,12 +810,12 @@ The size of graph: __10__.
 	
 	lemma safety: "firefly' c ==> ~unsafe c"
 	  apply(erule firefly'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "firefly c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "firefly c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -835,147 +827,147 @@ The size of graph: __10__.
 
 The size of graph: __45__.
 
-	|__List(ϖ, 0, 0, 0, 0, 0, 0, 0, 0)
+	|__List(ω, 0, 0, 0, 0, 0, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 0, 0, 1, 0, 0, 0, 0)
+	  |__List(ω, 0, 0, 0, 1, 0, 0, 0, 0)
 	    |1
-	    |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, 0)
+	    |__List(ω, 0, 0, 0, ω, 0, 0, 0, 0)
 	      |1
-	      |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, 0)*
+	      |__List(ω, 0, 0, 0, ω, 0, 0, 0, 0)*
 	      |4
-	      |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)
+	      |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)
 	        |1
-	        |__List(ϖ, 0, 0, 0, 1, 0, 0, 0, ϖ)
+	        |__List(ω, 0, 0, 0, 1, 0, 0, 0, ω)
 	          |1
-	          |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)
+	          |__List(ω, 0, 0, 0, ω, 0, 0, 0, ω)
 	            |1
-	            |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)*
+	            |__List(ω, 0, 0, 0, ω, 0, 0, 0, ω)*
 	            |3
-	            |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	            |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	            |4
-	            |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	            |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	            |5
-	            |__List(ϖ, 0, 1, 0, 0, 0, 0, 0, 0)
+	            |__List(ω, 0, 1, 0, 0, 0, 0, 0, 0)
 	              |1
-	              |__List(ϖ, 0, 0, 0, 1, 0, 0, 0, 1)*
+	              |__List(ω, 0, 0, 0, 1, 0, 0, 0, 1)*
 	              |6
-	              |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)
+	              |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)
 	                |8
-	                |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)
+	                |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)
 	                  |1
-	                  |__List(ϖ, 0, 0, 0, 1, 0, 1, 0, 0)
+	                  |__List(ω, 0, 0, 0, 1, 0, 1, 0, 0)
 	                    |1
-	                    |__List(ϖ, 0, 0, 0, ϖ, 0, 1, 0, 0)
+	                    |__List(ω, 0, 0, 0, ω, 0, 1, 0, 0)
 	                      |1
-	                      |__List(ϖ, 0, 0, 0, ϖ, 0, 1, 0, 0)*
+	                      |__List(ω, 0, 0, 0, ω, 0, 1, 0, 0)*
 	                      |2
-	                      |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	                      |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	                      |6
-	                      |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	                      |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	                      |8
-	                      |__List(ϖ, 0, 0, 0, ϖ, 0, 1, 0, 0)*
+	                      |__List(ω, 0, 0, 0, ω, 0, 1, 0, 0)*
 	                    |2
-	                    |__List(ϖ, 2, 0, 0, 0, 0, 0, 0, 0)*
+	                    |__List(ω, 2, 0, 0, 0, 0, 0, 0, 0)*
 	                    |6
-	                    |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	                    |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	                    |8
-	                    |__List(ϖ, 0, 0, 0, 1, 0, 1, 0, 0)*
+	                    |__List(ω, 0, 0, 0, 1, 0, 1, 0, 0)*
 	                  |6
-	                  |__List(ϖ, 0, 0, 0, 0, 1, 0, 1, 0)
+	                  |__List(ω, 0, 0, 0, 0, 1, 0, 1, 0)
 	                    |7
-	                    |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	                    |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 	                  |8
-	                  |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	                  |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 	              |8
-	              |__List(ϖ, 0, 1, 0, 0, 0, 0, 0, 0)*
+	              |__List(ω, 0, 1, 0, 0, 0, 0, 0, 0)*
 	              |9
-	              |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	              |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 	            |6
-	            |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	            |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	            |8
-	            |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)*
+	            |__List(ω, 0, 0, 0, ω, 0, 0, 0, ω)*
 	          |3
-	          |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	          |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	          |5
-	          |__List(ϖ, 0, 1, 0, 0, 0, 0, 0, 0)*
+	          |__List(ω, 0, 1, 0, 0, 0, 0, 0, 0)*
 	          |6
-	          |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	          |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	          |8
-	          |__List(ϖ, 0, 0, 0, 1, 0, 0, 0, ϖ)*
+	          |__List(ω, 0, 0, 0, 1, 0, 0, 0, ω)*
 	        |6
-	        |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	        |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	        |8
-	        |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	        |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	        |10
-	        |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	        |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 	      |5
-	      |__List(ϖ, 0, 1, 0, 0, 0, 0, 0, 0)*
+	      |__List(ω, 0, 1, 0, 0, 0, 0, 0, 0)*
 	      |6
-	      |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	      |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	      |8
-	      |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, 0)*
+	      |__List(ω, 0, 0, 0, ω, 0, 0, 0, 0)*
 	    |5
-	    |__List(ϖ, 0, 1, 0, 0, 0, 0, 0, 0)*
+	    |__List(ω, 0, 1, 0, 0, 0, 0, 0, 0)*
 	    |6
-	    |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	    |8
-	    |__List(ϖ, 0, 0, 0, 1, 0, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0, 1, 0, 0, 0, 0)*
 	  |6
-	  |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	  |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	  |8
-	  |__List(ϖ, 0, 0, 0, 0, 0, 0, 0, 0)*
+	  |__List(ω, 0, 0, 0, 0, 0, 0, 0, 0)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __24__.
 
-	|__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)
+	|__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)
+	  |__List(ω, 0, 0, 0, ω, 0, 0, 0, ω)
 	    |1
-	    |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)*
+	    |__List(ω, 0, 0, 0, ω, 0, 0, 0, ω)*
 	    |3
-	    |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	    |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	    |4
-	    |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	    |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	    |5
-	    |__List(ϖ, 0, 1, 0, 0, 0, 0, 0, 0)
+	    |__List(ω, 0, 1, 0, 0, 0, 0, 0, 0)
 	      |1
-	      |__List(ϖ, 0, 0, 0, 1, 0, 0, 0, 1)*
+	      |__List(ω, 0, 0, 0, 1, 0, 0, 0, 1)*
 	      |6
-	      |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)
+	      |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)
 	        |8
-	        |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)
+	        |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)
 	          |1
-	          |__List(ϖ, 0, 0, 0, ϖ, 0, 1, 0, 0)
+	          |__List(ω, 0, 0, 0, ω, 0, 1, 0, 0)
 	            |1
-	            |__List(ϖ, 0, 0, 0, ϖ, 0, 1, 0, 0)*
+	            |__List(ω, 0, 0, 0, ω, 0, 1, 0, 0)*
 	            |2
-	            |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	            |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	            |6
-	            |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	            |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	            |8
-	            |__List(ϖ, 0, 0, 0, ϖ, 0, 1, 0, 0)*
+	            |__List(ω, 0, 0, 0, ω, 0, 1, 0, 0)*
 	          |6
-	          |__List(ϖ, 0, 0, 0, 0, 1, 0, 1, 0)
+	          |__List(ω, 0, 0, 0, 0, 1, 0, 1, 0)
 	            |7
-	            |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	            |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 	          |8
-	          |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	          |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 	      |8
-	      |__List(ϖ, 0, 1, 0, 0, 0, 0, 0, 0)*
+	      |__List(ω, 0, 1, 0, 0, 0, 0, 0, 0)*
 	      |9
-	      |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	      |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 	    |6
-	    |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	    |8
-	    |__List(ϖ, 0, 0, 0, ϖ, 0, 0, 0, ϖ)*
+	    |__List(ω, 0, 0, 0, ω, 0, 0, 0, ω)*
 	  |6
-	  |__List(ϖ, 0, 0, 0, 0, 1, 0, 0, 0)*
+	  |__List(ω, 0, 0, 0, 0, 1, 0, 0, 0)*
 	  |8
-	  |__List(ϖ, ϖ, 0, 0, 0, 0, 0, 0, 0)*
+	  |__List(ω, ω, 0, 0, 0, 0, 0, 0, 0)*
 	  |10
-	  |__List(ϖ, 0, 0, 1, 0, 0, 0, 0, 0)*
+	  |__List(ω, 0, 0, 1, 0, 0, 0, 0, 0)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -997,16 +989,15 @@ The size of graph: __24__.
 	  wh2:  "futurebus (i, sU, Suc eU, eM, pR, pW, pEMR, pEMW, pSU) ==> futurebus (i, sU, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)" |
 	  wh3:  "futurebus (i, Suc sU, eU, eM, pR, pW, pEMR, pEMW, pSU) ==> futurebus (i + sU, 0, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)"
 	
-	fun unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, Suc sU, Suc eU, eM, pR, pW, pEMR, pEMW, pSU) = True" |
-	  "unsafe (i, Suc sU, eU, Suc eM, pR, pW, pEMR, pEMW, pSU) = True" |
-	  "unsafe (i, sU, Suc (Suc eU), eM, pR, pW, pEMR, pEMW, pSU) = True" |
-	  "unsafe (i, sU, eU, Suc (Suc eM), pR, pW, pEMR, pEMW, pSU) = True" |
-	  "unsafe (i, sU, Suc eU, Suc eM, pR, pW, pEMR, pEMW, pSU) = True" |
-	  "unsafe (i, sU, eU, eM, Suc pR, Suc pW, pEMR, pEMW, pSU) = True" |
-	  "unsafe (i, sU, eU, eM, pR, Suc (Suc pW), pEMR, pEMW, pSU) = True" |
-	  "unsafe (i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) = False"
-	     
+	inductive unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, Suc sU, Suc eU, eM, pR, pW, pEMR, pEMW, pSU)" |
+	  "unsafe (i, Suc sU, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)" |
+	  "unsafe (i, sU, Suc (Suc eU), eM, pR, pW, pEMR, pEMW, pSU)" |
+	  "unsafe (i, sU, eU, Suc (Suc eM), pR, pW, pEMR, pEMW, pSU)" |
+	  "unsafe (i, sU, Suc eU, Suc eM, pR, pW, pEMR, pEMW, pSU)" |
+	  "unsafe (i, sU, eU, eM, Suc pR, Suc pW, pEMR, pEMW, pSU)" |
+	  "unsafe (i, sU, eU, eM, pR, Suc (Suc pW), pEMR, pEMW, pSU)"
+	
 	    
 	      
 	inductive futurebus' :: "(nat * nat * nat * nat * nat * nat * nat * nat * nat) => bool" where
@@ -1025,12 +1016,12 @@ The size of graph: __24__.
 	
 	lemma safety: "futurebus' c ==> ~unsafe c"
 	  apply(erule futurebus'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "futurebus c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "futurebus c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -1042,79 +1033,79 @@ The size of graph: __24__.
 
 The size of graph: __22__.
 
-	|__List(ϖ, 0, 0, 0, 0)
+	|__List(ω, 0, 0, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 0, 0, 1)
+	  |__List(ω, 0, 0, 0, 1)
 	    |2
-	    |__List(ϖ, ϖ, 0, 0, 0)
+	    |__List(ω, ω, 0, 0, 0)
 	      |1
-	      |__List(ϖ, 0, 0, 0, 1)*
+	      |__List(ω, 0, 0, 0, 1)*
 	      |2
-	      |__List(ϖ, ϖ, 0, 0, 0)*
+	      |__List(ω, ω, 0, 0, 0)*
 	      |3
-	      |__List(ϖ, 0, 0, 1, 0)
+	      |__List(ω, 0, 0, 1, 0)
 	        |2
-	        |__List(ϖ, 1, 1, 0, 0)
+	        |__List(ω, 1, 1, 0, 0)
 	          |2
-	          |__List(ϖ, ϖ, 1, 0, 0)
+	          |__List(ω, ω, 1, 0, 0)
 	            |2
-	            |__List(ϖ, ϖ, 1, 0, 0)*
+	            |__List(ω, ω, 1, 0, 0)*
 	            |4
-	            |__List(ϖ, ϖ, 1, 0, 0)*
+	            |__List(ω, ω, 1, 0, 0)*
 	            |6
-	            |__List(ϖ, ϖ, 1, 0, 0)*
+	            |__List(ω, ω, 1, 0, 0)*
 	            |7
-	            |__List(ϖ, ϖ, 0, 0, 0)*
+	            |__List(ω, ω, 0, 0, 0)*
 	          |4
-	          |__List(ϖ, 3, 1, 0, 0)*
+	          |__List(ω, 3, 1, 0, 0)*
 	          |6
-	          |__List(ϖ, 0, 1, 0, 0)*
+	          |__List(ω, 0, 1, 0, 0)*
 	          |7
-	          |__List(ϖ, 1, 0, 0, 0)*
+	          |__List(ω, 1, 0, 0, 0)*
 	        |4
-	        |__List(ϖ, 2, 0, 0, 0)*
+	        |__List(ω, 2, 0, 0, 0)*
 	        |5
-	        |__List(ϖ, 0, 0, 0, 0)*
+	        |__List(ω, 0, 0, 0, 0)*
 	      |4
-	      |__List(ϖ, ϖ, 0, 0, 0)*
+	      |__List(ω, ω, 0, 0, 0)*
 	      |6
-	      |__List(ϖ, ϖ, 0, 0, 0)*
+	      |__List(ω, ω, 0, 0, 0)*
 	    |4
-	    |__List(ϖ, 2, 0, 0, 0)*
+	    |__List(ω, 2, 0, 0, 0)*
 	    |8
-	    |__List(ϖ, 0, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0, 0)*
 	  |3
-	  |__List(ϖ, 0, 0, 1, 0)*
+	  |__List(ω, 0, 0, 1, 0)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __13__.
 
-	|__List(ϖ, ϖ, ϖ, 0, 0)
+	|__List(ω, ω, ω, 0, 0)
 	  |1
-	  |__List(ϖ, 0, 0, 0, 1)
+	  |__List(ω, 0, 0, 0, 1)
 	    |2
-	    |__List(ϖ, 2, 0, 0, 0)*
+	    |__List(ω, 2, 0, 0, 0)*
 	    |4
-	    |__List(ϖ, 2, 0, 0, 0)*
+	    |__List(ω, 2, 0, 0, 0)*
 	    |8
-	    |__List(ϖ, 0, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0, 0)*
 	  |2
-	  |__List(ϖ, ϖ, ϖ, 0, 0)*
+	  |__List(ω, ω, ω, 0, 0)*
 	  |3
-	  |__List(ϖ, 0, 0, 1, 0)
+	  |__List(ω, 0, 0, 1, 0)
 	    |2
-	    |__List(ϖ, 1, 1, 0, 0)*
+	    |__List(ω, 1, 1, 0, 0)*
 	    |4
-	    |__List(ϖ, 2, 0, 0, 0)*
+	    |__List(ω, 2, 0, 0, 0)*
 	    |5
-	    |__List(ϖ, 0, 0, 0, 0)*
+	    |__List(ω, 0, 0, 0, 0)*
 	  |4
-	  |__List(ϖ, ϖ, ϖ, 0, 0)*
+	  |__List(ω, ω, ω, 0, 0)*
 	  |6
-	  |__List(ϖ, ϖ, ϖ, 0, 0)*
+	  |__List(ω, ω, ω, 0, 0)*
 	  |7
-	  |__List(ϖ, ϖ, ϖ, 0, 0)*
+	  |__List(ω, ω, ω, 0, 0)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -1140,15 +1131,14 @@ The size of graph: __13__.
 	  wh3:  "xerox (i, sc, Suc sd, d, e) ==> xerox (Suc i, sc, sd, d, e)" |
 	  wh4:  "xerox (i, sc, sd, d, Suc e) ==> xerox (Suc i, sc, sd, d, e)"
 	
-	fun unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
-	  "unsafe (i, Suc sc, sd, Suc d, e) = True" |
-	  "unsafe (i, sc, Suc sd, Suc d, e) = True" |
-	  "unsafe (i, sc, sd, Suc d, Suc e) = True" |
-	  "unsafe (i, Suc sc, sd, d, Suc e) = True" |
-	  "unsafe (i, sc, Suc sd, d, Suc e) = True" |
-	  "unsafe (i, sc, sd, Suc (Suc d), e) = True" |
-	  "unsafe (i, sc, sd, d, Suc (Suc e)) = True" |
-	  "unsafe (i, sc, sd, d, e) = False" 
+	inductive unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
+	  "unsafe (i, Suc sc, sd, Suc d, e)" |
+	  "unsafe (i, sc, Suc sd, Suc d, e)" |
+	  "unsafe (i, sc, sd, Suc d, Suc e)" |
+	  "unsafe (i, Suc sc, sd, d, Suc e)" |
+	  "unsafe (i, sc, Suc sd, d, Suc e)" |
+	  "unsafe (i, sc, sd, Suc (Suc d), e)" |
+	  "unsafe (i, sc, sd, d, Suc (Suc e))" 
 	    
 	      
 	inductive xerox' :: "(nat * nat * nat * nat * nat) => bool" where
@@ -1163,12 +1153,12 @@ The size of graph: __13__.
 	
 	lemma safety: "xerox' c ==> ~unsafe c"
 	  apply(erule xerox'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "xerox c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "xerox c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -1180,129 +1170,129 @@ The size of graph: __13__.
 
 The size of graph: __35__.
 
-	|__List(1, -1, ϖ, 0, 0, 0, 0, 0)
+	|__List(1, -1, ω, 0, 0, 0, 0, 0)
 	  |1
-	  |__List(0, -1, ϖ, 0, 1, 0, 0, 0)
+	  |__List(0, -1, ω, 0, 1, 0, 0, 0)
 	    |2
-	    |__List(1, -1, ϖ, 0, 0, 0, 0, 0)*
+	    |__List(1, -1, ω, 0, 0, 0, 0, 0)*
 	    |3
-	    |__List(0, -1, ϖ, 1, 1, 1, 0, 0)
+	    |__List(0, -1, ω, 1, 1, 1, 0, 0)
 	      |3
-	      |__List(0, -1, ϖ, ϖ, 1, ϖ, 0, 0)
+	      |__List(0, -1, ω, ω, 1, ω, 0, 0)
 	        |2
-	        |__List(1, -1, ϖ, ϖ, 0, ϖ, 0, 0)
+	        |__List(1, -1, ω, ω, 0, ω, 0, 0)
 	          |1
-	          |__List(0, -1, ϖ, 0, 1, ϖ, 0, 0)*
+	          |__List(0, -1, ω, 0, 1, ω, 0, 0)*
 	          |5
-	          |__List(1, -2, ϖ, ϖ, 0, ϖ, 0, 1)
+	          |__List(1, -2, ω, ω, 0, ω, 0, 1)
 	            |1
-	            |__List(0, -2, ϖ, 0, 1, ϖ, 0, 1)
+	            |__List(0, -2, ω, 0, 1, ω, 0, 1)
 	              |2
-	              |__List(1, -2, ϖ, 0, 0, ϖ, 0, 1)*
+	              |__List(1, -2, ω, 0, 0, ω, 0, 1)*
 	              |3
-	              |__List(0, -2, ϖ, 1, 1, ϖ, 0, 1)
+	              |__List(0, -2, ω, 1, 1, ω, 0, 1)
 	                |3
-	                |__List(0, -2, ϖ, ϖ, 1, ϖ, 0, 1)
+	                |__List(0, -2, ω, ω, 1, ω, 0, 1)
 	                  |2
-	                  |__List(1, -2, ϖ, ϖ, 0, ϖ, 0, 1)*
+	                  |__List(1, -2, ω, ω, 0, ω, 0, 1)*
 	                  |3
-	                  |__List(0, -2, ϖ, ϖ, 1, ϖ, 0, 1)*
+	                  |__List(0, -2, ω, ω, 1, ω, 0, 1)*
 	                  |4
-	                  |__List(0, -2, ϖ, ϖ, 0, ϖ, 1, 1)
+	                  |__List(0, -2, ω, ω, 0, ω, 1, 1)
 	                    |3
-	                    |__List(0, -2, ϖ, ϖ, 0, ϖ, 1, 1)*
+	                    |__List(0, -2, ω, ω, 0, ω, 1, 1)*
 	                    |8
-	                    |__List(0, -4, ϖ, ϖ, 0, ϖ, 0, 1)
+	                    |__List(0, -4, ω, ω, 0, ω, 0, 1)
 	                      |3
-	                      |__List(0, -4, ϖ, ϖ, 0, ϖ, 0, 1)*
+	                      |__List(0, -4, ω, ω, 0, ω, 0, 1)*
 	                      |9
-	                      |__List(0, -4, ϖ, ϖ, 1, ϖ, 0, 0)
+	                      |__List(0, -4, ω, ω, 1, ω, 0, 0)
 	                        |2
-	                        |__List(1, -4, ϖ, ϖ, 0, ϖ, 0, 0)
+	                        |__List(1, -4, ω, ω, 0, ω, 0, 0)
 	                          |1
-	                          |__List(0, -4, ϖ, 0, 1, ϖ, 0, 0)*
+	                          |__List(0, -4, ω, 0, 1, ω, 0, 0)*
 	                        |3
-	                        |__List(0, -4, ϖ, ϖ, 1, ϖ, 0, 0)*
+	                        |__List(0, -4, ω, ω, 1, ω, 0, 0)*
 	                        |4
-	                        |__List(0, -4, ϖ, ϖ, 0, ϖ, 1, 0)
+	                        |__List(0, -4, ω, ω, 0, ω, 1, 0)
 	                          |3
-	                          |__List(0, -4, ϖ, ϖ, 0, ϖ, 1, 0)*
+	                          |__List(0, -4, ω, ω, 0, ω, 1, 0)*
 	                |4
-	                |__List(0, -2, ϖ, 0, 0, ϖ, 1, 1)*
+	                |__List(0, -2, ω, 0, 0, ω, 1, 1)*
 	        |3
-	        |__List(0, -1, ϖ, ϖ, 1, ϖ, 0, 0)*
+	        |__List(0, -1, ω, ω, 1, ω, 0, 0)*
 	        |4
-	        |__List(0, -1, ϖ, ϖ, 0, ϖ, 1, 0)
+	        |__List(0, -1, ω, ω, 0, ω, 1, 0)
 	          |3
-	          |__List(0, -1, ϖ, ϖ, 0, ϖ, 1, 0)*
+	          |__List(0, -1, ω, ω, 0, ω, 1, 0)*
 	          |5
-	          |__List(0, -2, ϖ, ϖ, 0, ϖ, 1, 1)*
+	          |__List(0, -2, ω, ω, 0, ω, 1, 1)*
 	          |7
-	          |__List(0, -3, ϖ, ϖ, 0, ϖ, 0, 0)
+	          |__List(0, -3, ω, ω, 0, ω, 0, 0)
 	            |3
-	            |__List(0, -3, ϖ, ϖ, 0, ϖ, 0, 0)*
+	            |__List(0, -3, ω, ω, 0, ω, 0, 0)*
 	            |6
-	            |__List(0, -4, ϖ, ϖ, 0, ϖ, 0, 1)*
+	            |__List(0, -4, ω, ω, 0, ω, 0, 1)*
 	        |5
-	        |__List(0, -2, ϖ, ϖ, 1, ϖ, 0, 1)*
+	        |__List(0, -2, ω, ω, 1, ω, 0, 1)*
 	      |4
-	      |__List(0, -1, ϖ, 0, 0, 1, 1, 0)*
+	      |__List(0, -1, ω, 0, 0, 1, 1, 0)*
 	      |5
-	      |__List(0, -2, ϖ, 1, 1, 0, 0, 1)*
+	      |__List(0, -2, ω, 1, 1, 0, 0, 1)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __25__.
 
-	|__List(1, -1, ϖ, ϖ, 0, ϖ, 0, 0)
+	|__List(1, -1, ω, ω, 0, ω, 0, 0)
 	  |1
-	  |__List(0, -1, ϖ, ϖ, 1, ϖ, 0, 0)
+	  |__List(0, -1, ω, ω, 1, ω, 0, 0)
 	    |2
-	    |__List(1, -1, ϖ, ϖ, 0, ϖ, 0, 0)*
+	    |__List(1, -1, ω, ω, 0, ω, 0, 0)*
 	    |3
-	    |__List(0, -1, ϖ, ϖ, 1, ϖ, 0, 0)*
+	    |__List(0, -1, ω, ω, 1, ω, 0, 0)*
 	    |4
-	    |__List(0, -1, ϖ, ϖ, 0, ϖ, 1, 0)
+	    |__List(0, -1, ω, ω, 0, ω, 1, 0)
 	      |3
-	      |__List(0, -1, ϖ, ϖ, 0, ϖ, 1, 0)*
+	      |__List(0, -1, ω, ω, 0, ω, 1, 0)*
 	      |5
-	      |__List(0, -2, ϖ, ϖ, 0, ϖ, 1, 1)
+	      |__List(0, -2, ω, ω, 0, ω, 1, 1)
 	        |3
-	        |__List(0, -2, ϖ, ϖ, 0, ϖ, 1, 1)*
+	        |__List(0, -2, ω, ω, 0, ω, 1, 1)*
 	        |8
-	        |__List(0, -4, ϖ, ϖ, 0, ϖ, 0, 1)
+	        |__List(0, -4, ω, ω, 0, ω, 0, 1)
 	          |3
-	          |__List(0, -4, ϖ, ϖ, 0, ϖ, 0, 1)*
+	          |__List(0, -4, ω, ω, 0, ω, 0, 1)*
 	          |9
-	          |__List(0, -4, ϖ, ϖ, 1, ϖ, 0, 0)
+	          |__List(0, -4, ω, ω, 1, ω, 0, 0)
 	            |2
-	            |__List(1, -4, ϖ, ϖ, 0, ϖ, 0, 0)
+	            |__List(1, -4, ω, ω, 0, ω, 0, 0)
 	              |1
-	              |__List(0, -4, ϖ, 0, 1, ϖ, 0, 0)*
+	              |__List(0, -4, ω, 0, 1, ω, 0, 0)*
 	            |3
-	            |__List(0, -4, ϖ, ϖ, 1, ϖ, 0, 0)*
+	            |__List(0, -4, ω, ω, 1, ω, 0, 0)*
 	            |4
-	            |__List(0, -4, ϖ, ϖ, 0, ϖ, 1, 0)
+	            |__List(0, -4, ω, ω, 0, ω, 1, 0)
 	              |3
-	              |__List(0, -4, ϖ, ϖ, 0, ϖ, 1, 0)*
+	              |__List(0, -4, ω, ω, 0, ω, 1, 0)*
 	      |7
-	      |__List(0, -3, ϖ, ϖ, 0, ϖ, 0, 0)
+	      |__List(0, -3, ω, ω, 0, ω, 0, 0)
 	        |3
-	        |__List(0, -3, ϖ, ϖ, 0, ϖ, 0, 0)*
+	        |__List(0, -3, ω, ω, 0, ω, 0, 0)*
 	        |6
-	        |__List(0, -4, ϖ, ϖ, 0, ϖ, 0, 1)*
+	        |__List(0, -4, ω, ω, 0, ω, 0, 1)*
 	    |5
-	    |__List(0, -2, ϖ, ϖ, 1, ϖ, 0, 1)
+	    |__List(0, -2, ω, ω, 1, ω, 0, 1)
 	      |2
-	      |__List(1, -2, ϖ, ϖ, 0, ϖ, 0, 1)
+	      |__List(1, -2, ω, ω, 0, ω, 0, 1)
 	        |1
-	        |__List(0, -2, ϖ, 0, 1, ϖ, 0, 1)*
+	        |__List(0, -2, ω, 0, 1, ω, 0, 1)*
 	      |3
-	      |__List(0, -2, ϖ, ϖ, 1, ϖ, 0, 1)*
+	      |__List(0, -2, ω, ω, 1, ω, 0, 1)*
 	      |4
-	      |__List(0, -2, ϖ, ϖ, 0, ϖ, 1, 1)*
+	      |__List(0, -2, ω, ω, 0, ω, 1, 1)*
 	  |5
-	  |__List(1, -2, ϖ, ϖ, 0, ϖ, 0, 1)*
+	  |__List(1, -2, ω, ω, 0, ω, 0, 1)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -1323,11 +1313,10 @@ The size of graph: __25__.
 	  rel2:  "java (nb, Suc (Suc 0), i, b, o', in', Suc out, w) ==> java (nb, Suc (Suc (Suc (Suc 0))), Suc i, b, o', in', out, w)" |
 	  go:  "java (nb, Suc (Suc (Suc (Suc 0))), i, b, o', in', out, Suc w) ==> java (nb, Suc (Suc (Suc (Suc 0))), Suc i, b, Suc o', in', out, w)"
 	
-	fun unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
-	  "unsafe (nb, race, i, b, Suc (Suc o'), in', out, w) = True" |
-	  "unsafe (nb, race, i, b, Suc o', in', Suc out, w) = True" |
-	  "unsafe (nb, race, i, b, o', in', Suc (Suc out), w) = True" |
-	  "unsafe (nb, race, i, b, o', in', out, w) = False" 
+	inductive unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
+	  "unsafe (nb, race, i, b, Suc (Suc o'), in', out, w)" |
+	  "unsafe (nb, race, i, b, Suc o', in', Suc out, w)" |
+	  "unsafe (nb, race, i, b, o', in', Suc (Suc out), w)"
 	    
 	      
 	inductive java' :: "(nat * nat * nat * nat * nat * nat * nat * nat) => bool" where
@@ -1350,12 +1339,12 @@ The size of graph: __25__.
 	
 	lemma safety: "java' c ==> ~unsafe c"
 	  apply(erule java'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "java c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "java c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -1367,123 +1356,123 @@ The size of graph: __25__.
 
 The size of graph: __48__.
 
-	|__List(1, 0, 0, ϖ, 0, 0)
+	|__List(1, 0, 0, ω, 0, 0)
 	  |5
-	  |__List(1, 0, 0, ϖ, 1, 0)
+	  |__List(1, 0, 0, ω, 1, 0)
 	    |2
-	    |__List(1, 0, 1, ϖ, 0, 0)
+	    |__List(1, 0, 1, ω, 0, 0)
 	      |4
-	      |__List(1, 0, 0, ϖ, 0, 0)*
+	      |__List(1, 0, 0, ω, 0, 0)*
 	      |5
-	      |__List(1, 0, 1, ϖ, 1, 0)
+	      |__List(1, 0, 1, ω, 1, 0)
 	        |2
-	        |__List(1, 0, ϖ, ϖ, 0, 0)
+	        |__List(1, 0, ω, ω, 0, 0)
 	          |4
-	          |__List(1, 0, ϖ, ϖ, 0, 0)*
+	          |__List(1, 0, ω, ω, 0, 0)*
 	          |5
-	          |__List(1, 0, ϖ, ϖ, 1, 0)
+	          |__List(1, 0, ω, ω, 1, 0)
 	            |2
-	            |__List(1, 0, ϖ, ϖ, 0, 0)*
+	            |__List(1, 0, ω, ω, 0, 0)*
 	            |4
-	            |__List(1, 0, ϖ, ϖ, 1, 0)*
+	            |__List(1, 0, ω, ω, 1, 0)*
 	            |5
-	            |__List(1, 0, ϖ, ϖ, ϖ, 0)
+	            |__List(1, 0, ω, ω, ω, 0)
 	              |2
-	              |__List(1, 0, ϖ, ϖ, ϖ, 0)*
+	              |__List(1, 0, ω, ω, ω, 0)*
 	              |4
-	              |__List(1, 0, ϖ, ϖ, ϖ, 0)*
+	              |__List(1, 0, ω, ω, ω, 0)*
 	              |5
-	              |__List(1, 0, ϖ, ϖ, ϖ, 0)*
+	              |__List(1, 0, ω, ω, ω, 0)*
 	              |6
-	              |__List(1, 0, ϖ, ϖ, ϖ, 1)
+	              |__List(1, 0, ω, ω, ω, 1)
 	                |1
-	                |__List(0, 1, 0, ϖ, ϖ, 1)
+	                |__List(0, 1, 0, ω, ω, 1)
 	                  |3
-	                  |__List(1, 0, 0, ϖ, ϖ, 1)*
+	                  |__List(1, 0, 0, ω, ω, 1)*
 	                  |5
-	                  |__List(0, 1, 0, ϖ, ϖ, 1)*
+	                  |__List(0, 1, 0, ω, ω, 1)*
 	                  |6
-	                  |__List(0, 1, 0, ϖ, ϖ, ϖ)
+	                  |__List(0, 1, 0, ω, ω, ω)
 	                    |3
-	                    |__List(1, 0, 0, ϖ, ϖ, ϖ)
+	                    |__List(1, 0, 0, ω, ω, ω)
 	                      |1
-	                      |__List(0, 1, 0, ϖ, ϖ, ϖ)*
+	                      |__List(0, 1, 0, ω, ω, ω)*
 	                      |2
-	                      |__List(1, 0, 1, ϖ, ϖ, ϖ)
+	                      |__List(1, 0, 1, ω, ω, ω)
 	                        |2
-	                        |__List(1, 0, ϖ, ϖ, ϖ, ϖ)
+	                        |__List(1, 0, ω, ω, ω, ω)
 	                          |1
-	                          |__List(0, 1, 0, ϖ, ϖ, ϖ)*
+	                          |__List(0, 1, 0, ω, ω, ω)*
 	                          |2
-	                          |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	                          |__List(1, 0, ω, ω, ω, ω)*
 	                          |4
-	                          |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	                          |__List(1, 0, ω, ω, ω, ω)*
 	                          |5
-	                          |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	                          |__List(1, 0, ω, ω, ω, ω)*
 	                          |6
-	                          |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	                          |__List(1, 0, ω, ω, ω, ω)*
 	                        |4
-	                        |__List(1, 0, 0, ϖ, ϖ, ϖ)*
+	                        |__List(1, 0, 0, ω, ω, ω)*
 	                        |5
-	                        |__List(1, 0, 1, ϖ, ϖ, ϖ)*
+	                        |__List(1, 0, 1, ω, ω, ω)*
 	                        |6
-	                        |__List(1, 0, 1, ϖ, ϖ, ϖ)*
+	                        |__List(1, 0, 1, ω, ω, ω)*
 	                      |5
-	                      |__List(1, 0, 0, ϖ, ϖ, ϖ)*
+	                      |__List(1, 0, 0, ω, ω, ω)*
 	                      |6
-	                      |__List(1, 0, 0, ϖ, ϖ, ϖ)*
+	                      |__List(1, 0, 0, ω, ω, ω)*
 	                    |5
-	                    |__List(0, 1, 0, ϖ, ϖ, ϖ)*
+	                    |__List(0, 1, 0, ω, ω, ω)*
 	                    |6
-	                    |__List(0, 1, 0, ϖ, ϖ, ϖ)*
+	                    |__List(0, 1, 0, ω, ω, ω)*
 	                |2
-	                |__List(1, 0, ϖ, ϖ, ϖ, 1)*
+	                |__List(1, 0, ω, ω, ω, 1)*
 	                |4
-	                |__List(1, 0, ϖ, ϖ, ϖ, 1)*
+	                |__List(1, 0, ω, ω, ω, 1)*
 	                |5
-	                |__List(1, 0, ϖ, ϖ, ϖ, 1)*
+	                |__List(1, 0, ω, ω, ω, 1)*
 	                |6
-	                |__List(1, 0, ϖ, ϖ, ϖ, 2)*
+	                |__List(1, 0, ω, ω, ω, 2)*
 	            |6
-	            |__List(1, 0, ϖ, ϖ, 1, 1)*
+	            |__List(1, 0, ω, ω, 1, 1)*
 	          |6
-	          |__List(1, 0, ϖ, ϖ, 0, 1)*
+	          |__List(1, 0, ω, ω, 0, 1)*
 	        |4
-	        |__List(1, 0, 0, ϖ, 1, 0)*
+	        |__List(1, 0, 0, ω, 1, 0)*
 	        |5
-	        |__List(1, 0, 1, ϖ, 2, 0)*
+	        |__List(1, 0, 1, ω, 2, 0)*
 	        |6
-	        |__List(1, 0, 1, ϖ, 1, 1)*
+	        |__List(1, 0, 1, ω, 1, 1)*
 	      |6
-	      |__List(1, 0, 1, ϖ, 0, 1)*
+	      |__List(1, 0, 1, ω, 0, 1)*
 	    |5
-	    |__List(1, 0, 0, ϖ, 2, 0)*
+	    |__List(1, 0, 0, ω, 2, 0)*
 	    |6
-	    |__List(1, 0, 0, ϖ, 1, 1)*
+	    |__List(1, 0, 0, ω, 1, 1)*
 	  |6
-	  |__List(1, 0, 0, ϖ, 0, 1)*
+	  |__List(1, 0, 0, ω, 0, 1)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __9__.
 
-	|__List(1, 0, ϖ, ϖ, ϖ, ϖ)
+	|__List(1, 0, ω, ω, ω, ω)
 	  |1
-	  |__List(0, 1, 0, ϖ, ϖ, ϖ)
+	  |__List(0, 1, 0, ω, ω, ω)
 	    |3
-	    |__List(1, 0, 0, ϖ, ϖ, ϖ)*
+	    |__List(1, 0, 0, ω, ω, ω)*
 	    |5
-	    |__List(0, 1, 0, ϖ, ϖ, ϖ)*
+	    |__List(0, 1, 0, ω, ω, ω)*
 	    |6
-	    |__List(0, 1, 0, ϖ, ϖ, ϖ)*
+	    |__List(0, 1, 0, ω, ω, ω)*
 	  |2
-	  |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	  |__List(1, 0, ω, ω, ω, ω)*
 	  |4
-	  |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	  |__List(1, 0, ω, ω, ω, ω)*
 	  |5
-	  |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	  |__List(1, 0, ω, ω, ω, ω)*
 	  |6
-	  |__List(1, 0, ϖ, ϖ, ϖ, ϖ)*
+	  |__List(1, 0, ω, ω, ω, ω)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -1501,9 +1490,8 @@ The size of graph: __9__.
 	  r5: "rw (x2, x3, x4, Suc x5, x6, x7) ==> rw (x2, x3, x4, x5, Suc x6, x7)" |
 	  r6: "rw (x2, x3, x4, Suc x5, x6, x7) ==> rw (x2, x3, x4, x5, x6, Suc x7)" 
 	
-	fun unsafe :: "(nat * nat * nat * nat * nat * nat) => bool" where 
-	  "unsafe (x2, Suc x3, Suc x4, x5, x6, x7) = True" |    
-	  "unsafe (x2, x3, x4, x5, x6, x7) = False"
+	inductive unsafe :: "(nat * nat * nat * nat * nat * nat) => bool" where 
+	  "unsafe (x2, Suc x3, Suc x4, x5, x6, x7)"
 	    
 	      
 	inductive rw' :: "(nat * nat * nat * nat * nat * nat) => bool" where
@@ -1517,12 +1505,12 @@ The size of graph: __9__.
 	
 	lemma safety: "rw' c ==> ~unsafe c"
 	  apply(erule rw'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "rw c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "rw c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
@@ -1534,37 +1522,37 @@ The size of graph: __9__.
 
 The size of graph: __9__.
 
-	|__List(ϖ, 0, 0)
+	|__List(ω, 0, 0)
 	  |1
-	  |__List(ϖ, 1, 0)
+	  |__List(ω, 1, 0)
 	    |3
-	    |__List(ϖ, 0, 0)*
+	    |__List(ω, 0, 0)*
 	  |2
-	  |__List(ϖ, 0, 1)
+	  |__List(ω, 0, 1)
 	    |2
-	    |__List(ϖ, 0, ϖ)
+	    |__List(ω, 0, ω)
 	      |1
-	      |__List(ϖ, 1, 0)*
+	      |__List(ω, 1, 0)*
 	      |2
-	      |__List(ϖ, 0, ϖ)*
+	      |__List(ω, 0, ω)*
 	      |4
-	      |__List(ϖ, 0, ϖ)*
+	      |__List(ω, 0, ω)*
 	    |4
-	    |__List(ϖ, 0, 0)*
+	    |__List(ω, 0, 0)*
 
 ##The minimal graph found by multi-result supercompiler
 
 The size of graph: __5__.
 
-	|__List(ϖ, 0, ϖ)
+	|__List(ω, 0, ω)
 	  |1
-	  |__List(ϖ, 1, 0)
+	  |__List(ω, 1, 0)
 	    |3
-	    |__List(ϖ, 0, 0)*
+	    |__List(ω, 0, 0)*
 	  |2
-	  |__List(ϖ, 0, ϖ)*
+	  |__List(ω, 0, ω)*
 	  |4
-	  |__List(ϖ, 0, ϖ)*
+	  |__List(ω, 0, ω)*
 
 ##The proof of safety of protocol for Isabelle
 
@@ -1580,9 +1568,8 @@ The size of graph: __5__.
 	  "datarace (out, Suc cs, scs) ==> datarace (Suc out, cs, scs)" |
 	  "datarace (out, cs, Suc scs) ==> datarace (Suc out, cs, scs)"
 	
-	fun unsafe :: "(nat * nat * nat) => bool" where 
-	  "unsafe (out, Suc cs, Suc scs) = True" |    
-	  "unsafe (out, cs, scs) = False"
+	inductive unsafe :: "(nat * nat * nat) => bool" where 
+	  "unsafe (out, Suc cs, Suc scs)"
 	    
 	      
 	inductive datarace' :: "(nat * nat * nat) => bool" where
@@ -1596,12 +1583,12 @@ The size of graph: __5__.
 	
 	lemma safety: "datarace' c ==> ~unsafe c"
 	  apply(erule datarace'.cases)
-	  apply(auto)
+	  apply(erule unsafe.cases | auto)+
 	done
 	
-	theorem valid:
-	  assumes A: "datarace c" shows "~unsafe c"
-	  using A inclusion safety by (auto)
+	theorem valid: "datarace c ==> ~unsafe c"
+	  apply(insert inclusion safety, simp)
+	done
 	
 	end
       
