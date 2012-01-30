@@ -42,7 +42,7 @@ case class MRCountersRules1(val protocol: Protocol, l: Int) extends GraphRewrite
     g.completeNodes.size + g.incompleteLeaves.size
 }
 
-// The copy of MRCountersRules0 - with the only change:
+// The copy of MRCountersRules1 - with the only change:
 // instead of considering all rebuildings, we consider only one-step 
 // rebuildings here
 case class MRCountersRules2(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
@@ -85,7 +85,7 @@ case class MRCountersRules2(val protocol: Protocol, l: Int) extends GraphRewrite
     g.completeNodes.size + g.incompleteLeaves.size
 }
 
-// The copy of MRCountersRules1 - we consider only
+// The copy of MRCountersRules2 - we consider only
 // safe rebuildings
 case class MRCountersRules3(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
   var maxSize: Int = Int.MaxValue
@@ -127,7 +127,7 @@ case class MRCountersRules3(val protocol: Protocol, l: Int) extends GraphRewrite
     g.completeNodes.size + g.incompleteLeaves.size
 }
 
-// The copy of MRCountersRules2 
+// The copy of MRCountersRules3 
 // The next change (#3): 
 // we ban driving step if one of the next configurations
 // is unsafe
