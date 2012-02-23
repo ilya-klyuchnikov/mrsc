@@ -1,6 +1,6 @@
 /.scala_dependencies
 /bin
-/target
+target/
 /.idea
 /mrsc.iml
 /.project

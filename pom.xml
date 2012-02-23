@@ -41,13 +41,6 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.scala-tools.testing</groupId>
-			<artifactId>scalacheck_${scala.version}</artifactId>
-			<version>1.9</version>
-			<type>jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.specs2</groupId>
 			<artifactId>specs2_${scala.version}</artifactId>
 			<version>1.5</version>
