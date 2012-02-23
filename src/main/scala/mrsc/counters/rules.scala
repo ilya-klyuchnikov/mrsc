@@ -45,44 +45,47 @@ case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteR
         case Some(s) => List(s)
         case None =>
           val signal = inspect(g)
-           rebuild(signal, g) ++ drive(signal, g)
+          rebuild(signal, g) ++ drive(signal, g)
       }
     }
-  
+
   private def size(g: G) =
     g.completeNodes.size + g.incompleteLeaves.size
 }
 
 // A (not elegant so far) version of single-result supercompiler for counters.
-case class SRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
+case class SRCountersRules(val protocol: Protocol, l: Int)
+  extends GraphRewriteRules[Conf, Int] {
+
+  def next(c: Conf): List[Option[Conf]] =
+    protocol.rules.map { _.lift(c) }
+
+  def fold(g: G): Option[S] =
+    for (
+      n <- g.completeNodes.find
+        (n => Conf.instanceOf(g.current.conf, n.conf))
+    ) yield FoldStep(n.sPath)
+
   def inspect(g: G) = g.current.conf exists {
     case Num(i) => i >= l
     case Omega  => false
   }
 
-  def fold(g: G): Option[S] =
-    g.completeNodes.find { n => Conf.instanceOf(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S }
-
   def drive(dangerous: Boolean, g: G): List[S] =
-    if (dangerous) {
-      List()
-    } else {
-      val subSteps = for ((next, i) <- next(g.current.conf).zipWithIndex if next.isDefined) yield (next.get, i + 1)
-      if (subSteps.isEmpty) {
-        List(CompleteCurrentNodeStep())
-      } else {
-        List(AddChildNodesStep(subSteps))
-      }
+    if (dangerous) List()
+    else (for ((Some(c), i) <- next(g.current.conf).zipWithIndex)
+      yield (c, i + 1)) match {
+      case Nil => List(CompleteCurrentNodeStep())
+      case ns  => List(AddChildNodesStep(ns))
     }
 
-  def next(c: Conf) = protocol.rules.map { _.lift(c) }
+  def rebuildExpr(e: Expr): Expr =
+    if (e >= l) Omega else e
 
   def rebuild(dangerous: Boolean, g: G): List[S] =
-    if (dangerous) {
-      List(RebuildStep(g.current.conf.map { e => if (e >= l) Omega else e }))
-    } else {
-      List()
-    }
+    if (dangerous)
+      List(RebuildStep(g.current.conf.map(rebuildExpr)))
+    else List()
 
   override def steps(g: G): List[S] =
     fold(g) match {
