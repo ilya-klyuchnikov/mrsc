@@ -55,6 +55,8 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C)
 
 object GraphGenerator {
   def executeStep[C, D](step: GraphRewriteStep[C, D], g: SGraph[C, D]): SGraph[C, D] = step match {
+    case AddChildNodesStep(List()) =>
+      executeStep(CompleteCurrentNodeStep(), g)
     case CompleteCurrentNodeStep() =>
       SGraph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes)
     case AddChildNodesStep(ns) =>
