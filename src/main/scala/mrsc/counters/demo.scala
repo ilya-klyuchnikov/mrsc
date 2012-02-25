@@ -14,7 +14,7 @@ object Demo extends App {
 
   def scProtocol(protocol: Protocol, l: Int): Unit = {
 
-    val rules = SRCountersRules(protocol, l)
+    val rules = new SRCountersRules(protocol, l)
     val graphs = GraphGenerator(rules, protocol.start)
 
     for (graph <- graphs if graph.isComplete) {
@@ -30,10 +30,10 @@ object Demo extends App {
   }
 
   def multiScProtocol(protocol: Protocol, l: Int): Unit = {
-    val rules = MRCountersRules(protocol, l)
+    val rules = new FastMRCountersRules(protocol, l)
     val graphs = GraphGenerator(rules, protocol.start)
 
-    var minGraph: SGraph[Conf, Int] = null
+    var minGraph: SGraph[Conf, Unit] = null
     var size = Int.MaxValue
     for (graph <- graphs) {
       if (graph.isComplete) {

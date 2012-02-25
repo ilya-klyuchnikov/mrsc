@@ -1,97 +1,79 @@
 package mrsc.counters
 
 import mrsc.core._
+import Conf._
 
-// There are some optimizations in this code in order to filter out failures
-// and reduce the number of alternatives.
-case class MRCountersRules(val protocol: Protocol, l: Int) extends GraphRewriteRules[Conf, Int] {
-  var maxSize: Int = Int.MaxValue
-  def inspect(g: G) = g.current.conf exists {
-    case Num(i) => i >= l
-    case Omega  => false
-  }
-
-  def fold(g: G): Option[S] =
-    g.completeNodes.find { n => Conf.instanceOf(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S }
-
-  def drive(dangerous: Boolean, g: G): List[S] =
-    if (dangerous) {
-      List()
-    } else {
-      val subSteps = for ((next, i) <- next(g.current.conf).zipWithIndex if next.isDefined) yield (next.get, i + 1)
-      if (subSteps.isEmpty) {
-        List(CompleteCurrentNodeStep())
-      } else {
-        // SIC: optimization
-        if (subSteps.exists { case (n, i) => protocol.unsafe(n) }) {
-          List()
-        } else {
-          List(AddChildNodesStep(subSteps))
-        }
-      }
-    }
-
-  def next(c: Conf) = protocol.rules.map { _.lift(c) }
-
-  def rebuild(dangerous: Boolean, g: G): List[S] =
-    Conf.oneStepRebuildings(g.current.conf) filter { !protocol.unsafe(_) } map { RebuildStep(_): S }
-
-  override def steps(g: G): List[S] =
-    // SIC: optimization
-    if (protocol.unsafe(g.current.conf) || size(g) > maxSize) {
-      List()
-    } else {
-      fold(g) match {
-        case Some(s) => List(s)
-        case None =>
-          val signal = inspect(g)
-          rebuild(signal, g) ++ drive(signal, g)
-      }
-    }
-
-  private def size(g: G) =
-    g.completeNodes.size + g.incompleteLeaves.size
-}
-
-// A (not elegant so far) version of single-result supercompiler for counters.
-case class SRCountersRules(val protocol: Protocol, l: Int)
-  extends GraphRewriteRules[Conf, Int] {
-
-  def next(c: Conf): List[Option[Conf]] =
-    protocol.rules.map { _.lift(c) }
-
-  def fold(g: G): Option[S] =
-    for (
-      n <- g.completeNodes.find
-        (n => Conf.instanceOf(g.current.conf, n.conf))
-    ) yield FoldStep(n.sPath)
-
-  def inspect(g: G) = g.current.conf exists {
-    case Num(i) => i >= l
-    case Omega  => false
-  }
-
-  def drive(dangerous: Boolean, g: G): List[S] =
-    if (dangerous) List()
-    else (for ((Some(c), i) <- next(g.current.conf).zipWithIndex)
-      yield (c, i + 1)) match {
-      case Nil => List(CompleteCurrentNodeStep())
-      case ns  => List(AddChildNodesStep(ns))
-    }
-
-  def rebuildExpr(e: Expr): Expr =
-    if (e >= l) Omega else e
-
-  def rebuild(dangerous: Boolean, g: G): List[S] =
-    if (dangerous)
-      List(RebuildStep(g.current.conf.map(rebuildExpr)))
-    else List()
+// Naive multi-result supercompiler.
+class MRCountersRules(protocol: Protocol, l: Int)
+  extends GraphRewriteRules[Conf, Unit] {
 
   override def steps(g: G): List[S] =
     fold(g) match {
+      case None    => rebuild(g) ++ drive(g)
       case Some(s) => List(s)
-      case None =>
-        val signal = inspect(g)
-        drive(signal, g) ++ rebuild(signal, g)
     }
+
+  def fold(g: G): Option[S] = {
+    val c = g.current.conf
+    for (n <- g.completeNodes.find(n => instanceOf(c, n.conf)))
+      yield FoldStep(n.sPath)
+  }
+
+  def drive(g: G): List[S] =
+    if (dangerous(g)) List()
+    else List(AddChildNodesStep(next(g.current.conf)))
+
+  def rebuild(g: G): List[S] =
+    for (c <- gens(g.current.conf))
+      yield RebuildStep(c): S
+
+  def dangerous(g: G): Boolean =
+    g.current.conf exists
+      { case Num(i) => i >= l; case Omega => false }
+
+  def next(c: Conf): List[(Conf, Unit)] =
+    for (Some(c) <- protocol.rules.map(_.lift(c)))
+      yield (c, ())
+}
+
+// Single-result supercompiler is just
+// a specialization of multi-result supercompiler.
+class SRCountersRules(protocol: Protocol, l: Int)
+  extends MRCountersRules(protocol, l) {
+
+  def genExpr(e: Expr): Expr =
+    if (e >= l) Omega else e
+
+  override def rebuild(g: G): List[S] =
+    if (dangerous(g))
+      List(RebuildStep(g.current.conf.map(genExpr)))
+    else List()
+}
+
+// Optimized multi-result supercompiler that takes 
+// into account some knowledge about domain.
+// This is also a specialization.
+class FastMRCountersRules(protocol: Protocol, l: Int)
+  extends MRCountersRules(protocol, l) {
+
+  var maxSize: Int = Int.MaxValue
+
+  override def drive(g: G): List[S] =
+    for (
+      AddChildNodesStep(ns) <- super.drive(g);
+      if ns.forall(c => !protocol.unsafe(c._1))
+    ) yield AddChildNodesStep(ns)
+
+  override def rebuild(g: G): List[S] =
+    for (c <- oneStepGens(g.current.conf) if !protocol.unsafe(c))
+      yield RebuildStep(c): S
+
+  override def steps(g: G): List[S] =
+    if (protocol.unsafe(g.current.conf) || size(g) > maxSize)
+      List()
+    else
+      super.steps(g)
+
+  private def size(g: G) =
+    g.completeNodes.size + g.incompleteLeaves.size
 }

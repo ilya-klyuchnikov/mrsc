@@ -50,10 +50,10 @@ case object Omega extends Expr {
 object Conf {
   def instanceOf(c1: Conf, c2: Conf): Boolean = (c1, c2).zipped.forall(instanceOf)
 
-  def rebuildings(c: Conf) =
-    product(c map rebuildComp) - c
+  def gens(c: Conf) =
+    product(c map genExpr) - c
 
-  def oneStepRebuildings(c: Conf): List[Conf] =
+  def oneStepGens(c: Conf): List[Conf] =
     (0 until c.size).toList.collect { i => c(i) match { case Num(j) if j >= 0 => c.updated(i, Omega) } }
 
   private def instanceOf(c1: Expr, c2: Expr) = (c1, c2) match {
@@ -68,7 +68,7 @@ object Conf {
       for (y <- xs; ys <- product(xss)) yield y :: ys
   }
 
-  private def rebuildComp(c: Expr): List[Expr] = c match {
+  private def genExpr(c: Expr): List[Expr] = c match {
     case Omega            => List(Omega)
     case Num(i) if i >= 0 => List(Omega, Num(i))
     case v                => List(v)
