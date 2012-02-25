@@ -48,24 +48,19 @@ case object Omega extends Expr {
 // Ad-hoc: we do not rebuild negative nums: negative nums (-1, -2, -3, -4) are used in
 // the encoding of Java protocol for encoding of 4 commands.
 object Conf {
-  def instanceOf(c1: Conf, c2: Conf): Boolean = (c1, c2).zipped.forall(instanceOf)
+  def instanceOf(c1: Conf, c2: Conf): Boolean =
+    (c1, c2).zipped.forall((e1, e2) => e1 == e2 || e2 == Omega)
 
   def gens(c: Conf) =
     product(c map genExpr) - c
 
   def oneStepGens(c: Conf): List[Conf] =
-    (0 until c.size).toList.collect { i => c(i) match { case Num(j) if j >= 0 => c.updated(i, Omega) } }
+    for (i <- List.range(0, c.size) if c(i) != Omega && c(i) >= 0)
+      yield c.updated(i, Omega)
 
-  private def instanceOf(c1: Expr, c2: Expr) = (c1, c2) match {
-    case (_, Omega) => true
-    case (_, _)     => c1 == c2
-  }
-
-  private def product[T](zzs: List[List[T]]): List[List[T]] = zzs match {
-    case Nil =>
-      List(List())
-    case xs :: xss =>
-      for (y <- xs; ys <- product(xss)) yield y :: ys
+  def product[T](zs: List[List[T]]): List[List[T]] = zs match {
+    case Nil       => List(List())
+    case x :: xs => for (y <- x; ys <- product(xs)) yield y :: ys
   }
 
   private def genExpr(c: Expr): List[Expr] = c match {
