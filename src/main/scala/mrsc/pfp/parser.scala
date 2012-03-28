@@ -6,7 +6,7 @@ import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 // TODO: let, letrec, free variables
 object PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
-  lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".")
+  lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
   lexical.reserved += ("case", "of", "let", "letrec", "in", "fix")
 
   lazy val lcid: PackratParser[String] = ident ^? { case id if id.charAt(0).isLowerCase => id }
@@ -39,6 +39,7 @@ object PFPParsers extends StandardTokenParsers with PackratParsers with Implicit
 
   lazy val aTerm: PackratParser[Res[Term]] =
     "(" ~> term <~ ")" |
+      "<" ~> lcid <~ ">" ^^ { id => ctx: Context => FVar(id) } |
       lcid ^^ { i => ctx: Context => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
       (ucid <~ "[") ~ (fields <~ "]") ^^ { case tag ~ fs => ctx: Context => Ctr(tag, fs(ctx)) }
 
