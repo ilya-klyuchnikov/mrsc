@@ -42,6 +42,10 @@ object CBNEval {
       error("unexpected term: " + t)
     case Fix(t1) =>
       Fix(lazyStep(t1, g))
+    case DeCtr(Ctr(n, fs), f) =>
+      fs.find(_._1 == f).get._2
+    case DeCtr(t1, f) =>
+      DeCtr(lazyStep(t1, g), f)
     case _ =>
       error("unexpected term: " + t)
   }
