@@ -30,3 +30,13 @@ object Syntax {
   def applySubst(t: Term, s: Subst): Term =
     null
 }
+
+case class Context(l: List[String] = List()) {
+  val length: Int = l.length
+  def addName(s: String): Context = Context(s :: l)
+  def isNameBound(s: String): Boolean = l.exists { _ == s }
+  def name2index(s: String): Int = l.indexWhere { _ == s } match {
+    case -1 => throw new Exception("identifier " + s + " is unbound")
+    case i  => i
+  }
+}
