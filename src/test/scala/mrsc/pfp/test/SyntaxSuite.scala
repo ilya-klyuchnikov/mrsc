@@ -6,36 +6,59 @@ import mrsc.pfp._
 
 class SyntaxSuite extends FunSuite {
   test("checking for extraction") {
-    val t1 = PFPParsers.inputTerm("""\x -> x""")
+    val t1: Term = """\x -> x"""
     val extractable = Syntax.isFreeSubTerm(t1, 0)
     info(extractable.toString())
   }
 
-  test("finding substitutions #1") {
-    val t11 = PFPParsers.inputTerm("""\x -> x""")
-    val t12 = PFPParsers.inputTerm("""\y -> y""")
-    val sub1 = Syntax.findSubst(t11, t12)
-    info(sub1.toString())
+  test("finding substitutions") {
+    testSubst(
+      """ \x -> x """,
+      """ \y -> y """,
+      Some(Map()))
+
+    testSubst(
+      """ \x -> <a> """,
+      """ \y -> <b> """,
+      Some(Map[Term, Term](t("<a>") -> t("<b>"))))
+
+    testSubst(
+      """ \x -> <a> <a> """,
+      """ \y -> <b> <c> """,
+      None)
+
+    testSubst(
+      """ \x -> <a>   <b> """,
+      """ \y -> Nil[] <c> """,
+      Some(Map[Term, Term](t("<a>") -> t("Nil[]"), t("<b>") -> t("<c>"))))
+
+    testSubst(
+      """ \x -> <b> """,
+      """ \y ->  y """,
+      None)
+
+    testSubst(
+      """ <x> """,
+      """ \y ->  y """,
+      Some(Map(t("""<x>""") -> t("""\y -> y"""))))
+
+    testSubst(
+      """ \x -> <a> """,
+      """ \y ->  \z -> z """,
+      Some(Map(t("""<a>""") -> t("""\z -> z"""))))
+
+    testSubst(
+      """ \x -> <a> """,
+      """ \y ->  \z -> y """,
+      None)
   }
 
-  test("finding substitutions #2") {
-    val t11 = PFPParsers.inputTerm("""\x -> <a>""")
-    val t12 = PFPParsers.inputTerm("""\y -> <b>""")
-    val sub1 = Syntax.findSubst(t11, t12)
-    info(sub1.toString())
+  private def testSubst(in1: String, in2: String, sub: Option[Subst]): Unit = {
+    val t1: Term = in1
+    val t2: Term = in2
+    val sub1 = Syntax.findSubst(t1, t2)
+    info(in1 + " ^ " + in2 + " = " + sub1)
+    assert(sub1 === sub)
   }
 
-  test("finding substitutions #3") {
-    val t11 = PFPParsers.inputTerm("""\x -> <a> <a>""")
-    val t12 = PFPParsers.inputTerm("""\y -> <b> <c>""")
-    val sub1 = Syntax.findSubst(t11, t12)
-    info(sub1.toString())
-  }
-
-  test("finding substitutions #4") {
-    val t11 = PFPParsers.inputTerm("""\x -> <a> <b>""")
-    val t12 = PFPParsers.inputTerm("""\y -> Nil[] <c>""")
-    val sub1 = Syntax.findSubst(t11, t12)
-    info(sub1.toString())
-  }
 }

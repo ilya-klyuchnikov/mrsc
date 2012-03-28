@@ -74,10 +74,11 @@ object Syntax {
     case DeCtr(t, f)   => isFreeSubTerm(t, depth)
   }
 
+  // seems that we do not need depth here!
   def findSubst(from: Term, to: Term, depth: Int = 0): Option[Subst] = (from, to) match {
     case _ if from == to =>
       Some(Map())
-    case _ if isVar(from) && isFreeSubTerm(to, depth) =>
+    case _ if isVar(from) && isFreeSubTerm(to, 0) =>
       Some(Map(from -> to))
     case (Abs(t1), Abs(t2)) =>
       findSubst(t1, t2, depth + 1)
