@@ -53,7 +53,7 @@ object Syntax {
     tmMap(onVar, j, t)
   }
 
-  // substitute t for 0-var
+  // substitute s for 0-var in t
   def termSubstTop(s: Term, t: Term): Term =
     termShift(-1, termSubst(0, termShift(1, s), t))
 
@@ -115,9 +115,9 @@ object Syntax {
 
   // can it be a variable we can abstract over?
   def isVar(t: Term): Boolean = t match {
-    case FVar(_) => true
+    case FVar(_)     => true
     case DeCtr(_, _) => true
-    case _       => false
+    case _           => false
   }
 
   private def mergeOptSubst(s1: Option[Subst], s2: Option[Subst]): Option[Subst] =
@@ -134,6 +134,47 @@ object Syntax {
       Some(merged1)
     else
       None
+  }
+
+  def renaming(t1: Term, t2: Term): Boolean = {
+    val subst1 = findSubst(t1, t2)
+    val subst2 = findSubst(t2, t2)
+    (subst1, subst2) match {
+      case (Some(s1), Some(s2)) =>
+        true
+        //s1.values.toSet == s2.keySet
+      case _ => false
+    }
+  }
+
+  // replace every occurrence of t1 in t by t2
+  // t1 and t2 should be free terms
+  def replace(t: Term, t1: Term, t2: Term): Term = {
+    require(isFreeSubTerm(t1, 0))
+    require(isFreeSubTerm(t2, 0))
+    t match {
+      case _ if t == t1 =>
+        t2
+      case Abs(t3) =>
+        Abs(replace(t3, t1, t2))
+      case App(a1, a2) =>
+        App(replace(a1, t1, t2), replace(a2, t1, t2))
+      case Let(l1, l2) =>
+        Let(replace(l1, t1, t2), replace(l2, t1, t2))
+      case Fix(f) =>
+        Fix(replace(f, t1, t2))
+      case Ctr(n, fs) =>
+        val fs1 = fs.map { case (li, ti) => (li, replace(ti, t1, t2)) }
+        Ctr(n, fs1)
+      case DeCtr(c, f) =>
+        DeCtr(replace(c, t1, t2), f)
+      case Case(sel, bs) =>
+        val sel1 = replace(sel, t1, t2)
+        val bs1 = bs.map { case (li, ti) => (li, replace(ti, t1, t2)) }
+        Case(sel1, bs1)
+      case _ =>
+        t
+    }
   }
 }
 

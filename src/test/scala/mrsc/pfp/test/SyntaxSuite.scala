@@ -51,6 +51,33 @@ class SyntaxSuite extends FunSuite {
       """ \x -> <a> """,
       """ \y ->  \z -> y """,
       None)
+
+    testSubst(
+      """ <a> """,
+      """ <b>.tail """,
+      Some(Map(t("<a>") -> t("<b>.tail"))))
+
+    testSubst(
+      """ <a>.tail """,
+      """ <b> """,
+      Some(Map(t("<a>.tail") -> t("<b>"))))
+
+    testSubst(
+      """ app <x> <y> """,
+      """ app <a> <b> """,
+      Some(Map(t("<x>") -> t("<a>"), t("<y>") -> t("<b>"))))
+
+    testSubst(
+      """ app <x> <y> """,
+      """ app <a>.tail <y> """,
+      Some(Map(t("<x>") -> t("<a>.tail"))))
+  }
+
+  test("renaming") {
+    val t1 = """ app <x> <y> """
+    val t2 = """ app <a>.tail <y> """
+    val ren = Syntax.renaming(t1, t2)
+    assert(ren === true)
   }
 
   private def testSubst(in1: String, in2: String, sub: Option[Subst]): Unit = {
