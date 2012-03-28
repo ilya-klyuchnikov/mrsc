@@ -11,8 +11,15 @@ object PFPParsers extends StandardTokenParsers with PackratParsers with Implicit
 
   lazy val lcid: PackratParser[String] = ident ^? { case id if id.charAt(0).isLowerCase => id }
   lazy val ucid: PackratParser[String] = ident ^? { case id if id.charAt(0).isUpperCase => id }
+  lazy val eof: PackratParser[String] = elem("<eof>", _ == lexical.EOF) ^^ { _.chars }
 
   type Res[A] = Context => A
+
+  lazy val bindings: PackratParser[Map[String, Term]] =
+    (binding *) <~ eof ^^ { bs => Map(bs: _*) }
+
+  lazy val binding: PackratParser[(String, Term)] =
+    (lcid <~ "=") ~ (term <~ ";") ^^ { case f ~ body => (f, body(Context())) }
 
   lazy val term: PackratParser[Res[Term]] = appTerm |
     ("\\" ~> lcid) ~ ("->" ~> term) ^^ { case v ~ t => ctx: Context => Abs(t(ctx.addName(v))) } |
@@ -48,6 +55,10 @@ object PFPParsers extends StandardTokenParsers with PackratParsers with Implicit
   lazy val topTerm: PackratParser[Term] = term ^^ { _(Context()) }
 
   def inputTerm(s: String) = phrase(topTerm)(new lexical.Scanner(s)) match {
+    case t if t.successful => t.get
+    case t                 => error(t.toString)
+  }
+  def inputBindings(s: String) = phrase(bindings)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
     case t                 => error(t.toString)
   }

@@ -94,4 +94,20 @@ class ParserSuite extends FunSuite {
     info(in + " ==> " + parsed.toString())
     assert(parsed === expected)
   }
+
+  test("parsing bindings") {
+    val in =
+      """
+      app = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+        }; 
+      """
+    val expected = Map("app" ->
+      Abs(Abs(Case(BVar(1), List(("Nil", BVar(1)), ("Cons", Ctr("Cons", List(("head", DeCtr(BVar(0), "head")), ("tail", App(App(GVar("app"), DeCtr(BVar(0), "tail")), BVar(1)))))))))))
+    val parsed = PFPParsers.inputBindings(in)
+    info(in + " ==> " + parsed.toString())
+    assert(parsed === expected)
+  }
 }
