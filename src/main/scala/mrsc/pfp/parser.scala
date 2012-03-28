@@ -4,23 +4,26 @@ import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
-// TODO: let, letrec
+// TODO: let, letrec, free variables
 object PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
   lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".")
-  lexical.reserved += ("case", "of", "let", "letrec", "in")
+  lexical.reserved += ("case", "of", "let", "letrec", "in", "fix")
 
   lazy val lcid: PackratParser[String] = ident ^? { case id if id.charAt(0).isLowerCase => id }
   lazy val ucid: PackratParser[String] = ident ^? { case id if id.charAt(0).isUpperCase => id }
 
-  // needs a context to fulfill holes
   type Res[A] = Context => A
 
   lazy val term: PackratParser[Res[Term]] = appTerm |
     ("\\" ~> lcid) ~ ("->" ~> term) ^^ { case v ~ t => ctx: Context => Abs(t(ctx.addName(v))) } |
-    ("case" ~> term <~ "of") ~ ("{" ~> branches <~ "}") ^^ { case sel ~ bs => ctx: Context => Case(sel(ctx), bs(ctx)) }
+    ("case" ~> term <~ "of") ~ ("{" ~> branches <~ "}") ^^ { case sel ~ bs => ctx: Context => Case(sel(ctx), bs(ctx)) } |
+    ("let" ~> lcid) ~ ("=" ~> term) ~ ("in" ~> term) ^^ { case id ~ v ~ in => ctx: Context => Let(v(ctx), in(ctx.addName(id))) } |
+    ("letrec" ~> lcid) ~ ("=" ~> term) ~ ("in" ~> term) ^^
+    { case f ~ body ~ in => ctx: Context => Let(Fix(Abs(body(ctx.addName(f)))), in(ctx.addName(f))) }
 
   lazy val appTerm: PackratParser[Res[Term]] =
     appTerm ~ pathTerm ^^ { case t1 ~ t2 => ctx: Context => App(t1(ctx), t2(ctx)) } |
+      "fix" ~> pathTerm ^^ { t => ctx: Context => Fix(t(ctx)) } |
       pathTerm
 
   lazy val pathTerm: PackratParser[Res[Term]] =

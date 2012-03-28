@@ -7,7 +7,7 @@ import Syntax._
 object CBNEval {
 
   def isVal(t: Term) = t match {
-    case Abs(_) => true
+    case Abs(_)    => true
     case Ctr(_, _) => true
     case _         => false
   }
@@ -26,7 +26,7 @@ object CBNEval {
       termSubstTop(t2, t1)
     case App(t1, t2) =>
       App(step(t1, g), t2)
-    case Let(x, v, body) =>
+    case Let(v, body) =>
       termSubstTop(v, body)
     case Fix(Abs(body)) =>
       termSubstTop(t, body)

@@ -10,7 +10,7 @@ case class GVar(n: String) extends Term
 
 case class Abs(t: Term) extends Term
 case class App(t1: Term, t2: Term) extends Term
-case class Let(l: String, t1: Term, t2: Term) extends Term
+case class Let(v: Term, in: Term) extends Term
 case class Fix(t: Term) extends Term
 
 case class Ctr(tag: String, fields: List[Field]) extends Term

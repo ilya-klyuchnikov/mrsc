@@ -62,4 +62,36 @@ class ParserSuite extends FunSuite {
     info(in + " ==> " + parsed.toString())
     assert(parsed === expected)
   }
+
+  test("parsing let # 1") {
+    val in = """let x = Nil[] in x"""
+    val expected = Let(Ctr("Nil", List()), BVar(0))
+    val parsed = PFPParsers.inputTerm(in)
+    info(in + " ==> " + parsed.toString())
+    assert(parsed === expected)
+  }
+
+  test("parsing let # 2") {
+    val in = """let x = Nil[] in let y = x in x y"""
+    val expected = Let(Ctr("Nil", List()), Let(BVar(0), App(BVar(1), BVar(0))))
+    val parsed = PFPParsers.inputTerm(in)
+    info(in + " ==> " + parsed.toString())
+    assert(parsed === expected)
+  }
+
+  test("parsing fix") {
+    val in = """fix (\x -> x)"""
+    val expected = Fix(Abs(BVar(0)))
+    val parsed = PFPParsers.inputTerm(in)
+    info(in + " ==> " + parsed.toString())
+    assert(parsed === expected)
+  }
+
+  test("parsing letrec") {
+    val in = """letrec x = x in x"""
+    val expected = Let(Fix(Abs(BVar(0))), BVar(0))
+    val parsed = PFPParsers.inputTerm(in)
+    info(in + " ==> " + parsed.toString())
+    assert(parsed === expected)
+  }
 }
