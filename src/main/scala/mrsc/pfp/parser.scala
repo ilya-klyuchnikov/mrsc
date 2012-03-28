@@ -5,7 +5,7 @@ import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
 // TODO: let, letrec, free variables
-object PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
+case class PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
   lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
   lexical.reserved += ("case", "of", "let", "letrec", "in", "fix")
 

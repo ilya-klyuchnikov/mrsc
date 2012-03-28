@@ -16,7 +16,7 @@ class DeforestationSuite extends FunSuite {
           x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
         }; 
       """
-    val bindings: GContext = PFPParsers.inputBindings(bindingsIn)
+    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
     val goal: Term = "app <x> <y>"
     val rules = new Deforester(bindings)
     val graphs = GraphGenerator(rules, goal)
@@ -35,7 +35,7 @@ class DeforestationSuite extends FunSuite {
           x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
         }; 
       """
-    val bindings: GContext = PFPParsers.inputBindings(bindingsIn)
+    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
     val goal: Term = "app (app <x> <y>) <z> "
     val rules = new Deforester(bindings)
     val graphs = GraphGenerator(rules, goal)

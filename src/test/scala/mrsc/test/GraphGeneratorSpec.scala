@@ -1,8 +1,6 @@
 package mrsc.test
 
-import org.specs2._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
+import org.scalatest.Spec
 
 import mrsc.core._
 
@@ -26,9 +24,7 @@ object TinyRules extends GraphRewriteRules[Int, String] {
   }
 }
 
-@RunWith(classOf[JUnitRunner])
-class GraphGeneratorSpec extends mutable.Specification {
-  args(sequential = true)
+class GraphGeneratorSpec extends Spec {
 
   val graph: TGraph[Int, String] = {
     val n1 = TNode[Int, String](conf = 11, outs = List(), base = Some(List()), tPath = List(0))
@@ -37,16 +33,16 @@ class GraphGeneratorSpec extends mutable.Specification {
     TGraph(root = n0, leaves = List(n1))
   }
 
-  "GraphGenerator with deterministic rules" should {
+  describe("GraphGenerator with deterministic rules") {
 
     val tgraphs = GraphGenerator(TinyRules, 0) map Transformations.transpose toList
 
-    "produce just 1 result" in {
-      tgraphs.size must_== 1
+    it("should produce just 1 result") {
+      assert(tgraphs.size === 1)
     }
 
-    "build graph in depth first manner" in {
-      tgraphs(0) must_== graph
+    it("should build graph in depth first manner") {
+      assert(tgraphs(0) === graph)
     }
   }
 

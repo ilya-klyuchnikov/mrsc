@@ -14,9 +14,9 @@ class EvaluationSuite extends FunSuite {
           x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
         }; 
       """
-    val bindings: GContext = PFPParsers.inputBindings(bindingsIn)
-    val goal = PFPParsers.inputTerm("app Nil[] Nil[]")
-    val expected = PFPParsers.inputTerm("Nil[]")
+    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
+    val goal = PFPParsers().inputTerm("app Nil[] Nil[]")
+    val expected = PFPParsers().inputTerm("Nil[]")
     info(goal.toString())
     info(expected.toString())
     val evaled = CBNEval.eval(goal, bindings)
@@ -33,9 +33,9 @@ class EvaluationSuite extends FunSuite {
           x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
         }; 
       """
-    val bindings: GContext = PFPParsers.inputBindings(bindingsIn)
-    val goal = PFPParsers.inputTerm("app Cons[head: A[], tail: Nil[]] Nil[]")
-    val expected = PFPParsers.inputTerm("Cons[head: A[], tail: Nil[]]")
+    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
+    val goal = PFPParsers().inputTerm("app Cons[head: A[], tail: Nil[]] Nil[]")
+    val expected = PFPParsers().inputTerm("Cons[head: A[], tail: Nil[]]")
     info(goal.toString())
     info(expected.toString())
     val evaled = CBNEval.eval(goal, bindings)
