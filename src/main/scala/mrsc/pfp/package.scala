@@ -9,4 +9,7 @@ package object pfp {
 
   // global context
   type GContext = Map[String, Term]
+
+  // substitution
+  type Subst = Map[Term, Term]
 }
