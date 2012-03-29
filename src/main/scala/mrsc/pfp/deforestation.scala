@@ -4,9 +4,15 @@ import mrsc.core._
 import Syntax._
 
 abstract sealed trait DeforestStep
-case object TransientStep extends DeforestStep
-case object CaseStep extends DeforestStep
-case object CtrStep extends DeforestStep
+case object TransientStep extends DeforestStep {
+  override def toString = "->"
+}
+case class CaseStep(term: Term, tag: String) extends DeforestStep {
+  override def toString = term + " = " + tag
+}
+case object CtrStep extends DeforestStep {
+  override def toString = "(.,.)"
+}
 
 case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep] {
   override def steps(g: G): List[S] = fold(g) match {
@@ -43,16 +49,17 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
         yield (DeCtr(n, f), s)
     case Case(ctr @ Ctr(tag, fs), bs) =>
       // Not good code for now
+      // TODO: it is possible to introduce "correct"
+      // replacement in the syntax module
       val Some((_, body)) = bs.find(_._1 == tag)
       var t1 = termSubstTop(FVar("$"), body)
       for ((fi, ti) <- fs) {
         t1 = replace(t1, DeCtr(FVar("$"), fi), ti)
       }
-      //t1 = replace(t1, FVar("$"), ctr)
       List((t1, TransientStep))
     case Case(t1, bs) if isCaseable(t1) =>
       for ((li, ti) <- bs)
-        yield (termSubstTop(t1, ti), CaseStep)
+        yield (termSubstTop(t1, ti), CaseStep(t1, li))
     case Case(t1, bs) =>
       for ((n, s) <- driveStep(t1))
         yield (Case(n, bs), s)

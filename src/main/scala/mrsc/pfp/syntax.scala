@@ -2,24 +2,52 @@ package mrsc.pfp
 
 sealed trait Term
 // Nameless bound variable
-case class BVar(i: Int) extends Term
+case class BVar(i: Int) extends Term {
+  override def toString = i.toString
+}
 // Named free variable
-case class FVar(n: String) extends Term
+case class FVar(n: String) extends Term {
+  override def toString = "<" + n + ">"
+}
 // Named global variable from the global context
-case class GVar(n: String) extends Term
+case class GVar(n: String) extends Term {
+  override def toString = n
+}
 
-case class Abs(t: Term) extends Term
-case class App(t1: Term, t2: Term) extends Term
+case class Abs(t: Term) extends Term {
+  override def toString = "(\\" + t + ")"
+}
+case class App(t1: Term, t2: Term) extends Term {
+  override def toString = "(" + t1 + " " + t2 + ")"
+}
 case class Let(v: Term, in: Term) extends Term
 case class Fix(t: Term) extends Term
 
-case class Ctr(tag: String, fields: List[Field]) extends Term
-case class DeCtr(term: Term, field: String) extends Term
+case class Ctr(tag: String, fields: List[Field]) extends Term {
+  override def toString = tag + fields.map(f => f._1 + ": " + f._2).mkString("[", ", ", "]")
+}
+case class DeCtr(term: Term, field: String) extends Term {
+  override def toString = term + "." + field
+}
 // inside the branch the destructured var is referenced
 // by index 0
-case class Case(sel: Term, branches: List[Branch]) extends Term
+case class Case(sel: Term, branches: List[Branch]) extends Term {
+  override def toString = "case " + sel + " of " + branches.map(b => b._1 + "-> " + b._2).mkString("{", "; ", "}")
+}
 
+case class Context(l: List[String] = List()) {
+  def addName(s: String): Context = Context(s :: l)
+  def isNameBound(s: String): Boolean = l.exists { _ == s }
+  def name2index(s: String): Int = l.indexWhere { _ == s } match {
+    case -1 => throw new Exception("identifier " + s + " is unbound")
+    case i  => i
+  }
+}
+
+// These operations are inspired by code from the book 
+// "Types and Programming Languages"
 object Syntax {
+
   private def tmMap(onVar: (Int, BVar) => Term, c: Int, t: Term): Term = {
     def walk(c: Int, t: Term): Term = t match {
       case v: BVar     => onVar(c, v)
@@ -57,11 +85,12 @@ object Syntax {
   def termSubstTop(s: Term, t: Term): Term =
     termShift(-1, termSubst(0, termShift(1, s), t))
 
+  // TODO
   def applySubst(t: Term, s: Subst): Term =
     null
 
   // can this subterm be extracted
-  def isFreeSubTerm(t: Term, depth: Int): Boolean = t match {
+  def isFreeSubTerm(t: Term, depth: Int = 0): Boolean = t match {
     case BVar(i)       => i < depth
     case GVar(_)       => true
     case FVar(_)       => true
@@ -75,28 +104,28 @@ object Syntax {
   }
 
   // seems that we do not need depth here!
-  def findSubst(from: Term, to: Term, depth: Int = 0): Option[Subst] = (from, to) match {
+  def findSubst(from: Term, to: Term): Option[Subst] = (from, to) match {
     case _ if from == to =>
       Some(Map())
     case _ if isVar(from) && isFreeSubTerm(to, 0) =>
       Some(Map(from -> to))
     case (Abs(t1), Abs(t2)) =>
-      findSubst(t1, t2, depth + 1)
+      findSubst(t1, t2)
     case (App(h1, t1), App(h2, t2)) =>
-      val s1 = findSubst(h1, h2, depth)
-      val s2 = findSubst(t1, t2, depth)
+      val s1 = findSubst(h1, h2)
+      val s2 = findSubst(t1, t2)
       mergeOptSubst(s1, s2)
     case (Let(v1, t1), Let(v2, t2)) =>
-      val s1 = findSubst(v1, v2, depth)
-      val s2 = findSubst(t1, t2, depth + 1)
+      val s1 = findSubst(v1, v2)
+      val s2 = findSubst(t1, t2)
       mergeOptSubst(s1, s2)
     case (Fix(t1), Fix(t2)) =>
-      findSubst(t1, t2, depth)
+      findSubst(t1, t2)
     case (Case(sel1, bs1), Case(sel2, bs2)) =>
       if (bs1.map(_._1) == bs2.map(_._1)) {
-        var sub = findSubst(sel1, sel2, depth)
+        var sub = findSubst(sel1, sel2)
         for (((_, t1), (_, t2)) <- bs1.zip(bs2)) {
-          val sub1 = findSubst(t1, t2, depth + 1)
+          val sub1 = findSubst(t1, t2)
           sub = mergeOptSubst(sub, sub1)
         }
         sub
@@ -106,7 +135,7 @@ object Syntax {
     case (Ctr(n1, fs1), Ctr(n2, fs2)) if n1 == n2 =>
       var sub: Option[Subst] = Some(Map())
       for (((_, t1), (_, t2)) <- fs1.zip(fs2)) {
-        val sub1 = findSubst(t1, t2, depth)
+        val sub1 = findSubst(t1, t2)
         sub = mergeOptSubst(sub, sub1)
       }
       sub
@@ -142,7 +171,7 @@ object Syntax {
     (subst1, subst2) match {
       case (Some(s1), Some(s2)) =>
         true
-        //s1.values.toSet == s2.keySet
+      //s1.values.toSet == s2.keySet
       case _ => false
     }
   }
@@ -175,15 +204,5 @@ object Syntax {
       case _ =>
         t
     }
-  }
-}
-
-case class Context(l: List[String] = List()) {
-  val length: Int = l.length
-  def addName(s: String): Context = Context(s :: l)
-  def isNameBound(s: String): Boolean = l.exists { _ == s }
-  def name2index(s: String): Int = l.indexWhere { _ == s } match {
-    case -1 => throw new Exception("identifier " + s + " is unbound")
-    case i  => i
   }
 }
