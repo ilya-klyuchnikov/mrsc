@@ -4,7 +4,18 @@ import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
-// TODO: let, letrec, free variables
+// For now this context is used only during parsing.
+// We lookup corresponding indexes of bound variables.
+case class Context(l: List[String] = List()) {
+  def addName(s: String): Context = Context(s :: l)
+  def isNameBound(s: String): Boolean = l.exists { _ == s }
+  def name2index(s: String): Int = l.indexWhere { _ == s } match {
+    case -1 => throw new Exception("identifier " + s + " is unbound")
+    case i  => i
+  }
+}
+
+// Parser is inspired by code for "Types and Programming Languages" by Pierce.
 case class PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
   lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
   lexical.reserved += ("case", "of", "let", "letrec", "in", "fix")

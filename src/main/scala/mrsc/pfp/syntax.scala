@@ -1,5 +1,10 @@
 package mrsc.pfp
 
+// Simple higher-order pure functional language.
+// The main purpose of this representation is to move
+// to use nameless variables as much as possible
+// in order to make easy normalization by super-
+// compilation and two-level supercompilation.
 sealed trait Term
 // Nameless bound variable
 case class BVar(i: Int) extends Term {
@@ -13,35 +18,30 @@ case class FVar(n: String) extends Term {
 case class GVar(n: String) extends Term {
   override def toString = n
 }
-
+// Lambda abstraction
 case class Abs(t: Term) extends Term {
   override def toString = "(\\" + t + ")"
 }
+// Application
 case class App(t1: Term, t2: Term) extends Term {
   override def toString = "(" + t1 + " " + t2 + ")"
 }
+// Simple let-expression
 case class Let(v: Term, in: Term) extends Term
+// Fix point combinator.
 case class Fix(t: Term) extends Term
-
+// Constructor with explicit labeling of its parts.
 case class Ctr(tag: String, fields: List[Field]) extends Term {
   override def toString = tag + fields.map(f => f._1 + ": " + f._2).mkString("[", ", ", "]")
 }
+// Extracting part of a term. Usually a result of case-expression.
 case class DeCtr(term: Term, field: String) extends Term {
   override def toString = term + "." + field
 }
-// inside the branch the destructured var is referenced
-// by index 0
+// Inside the branch the selector is referenced.
+// Its parts are referenced by 0.head, 0.tail, ...
 case class Case(sel: Term, branches: List[Branch]) extends Term {
   override def toString = "case " + sel + " of " + branches.map(b => b._1 + "-> " + b._2).mkString("{", "; ", "}")
-}
-
-case class Context(l: List[String] = List()) {
-  def addName(s: String): Context = Context(s :: l)
-  def isNameBound(s: String): Boolean = l.exists { _ == s }
-  def name2index(s: String): Int = l.indexWhere { _ == s } match {
-    case -1 => throw new Exception("identifier " + s + " is unbound")
-    case i  => i
-  }
 }
 
 // These operations are inspired by code from the book 
