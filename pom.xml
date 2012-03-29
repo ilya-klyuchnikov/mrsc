@@ -41,12 +41,6 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.specs2</groupId>
-			<artifactId>specs2_${scala.version}</artifactId>
-			<version>1.5</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.scalatest</groupId>
 			<artifactId>scalatest_${scala.version}</artifactId>
 			<version>1.7.1</version>
@@ -76,11 +70,6 @@
 						<arg>-target:jvm-1.5</arg>
 					</args>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>ru.circumflex</groupId>
-				<artifactId>maven-cx-plugin</artifactId>
-				<version>${cx.version}</version>
 			</plugin>
 		</plugins>
 	</build>
