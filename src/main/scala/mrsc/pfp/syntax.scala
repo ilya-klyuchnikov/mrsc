@@ -89,7 +89,7 @@ object Syntax {
   def applySubst(t: Term, s: Subst): Term =
     null
 
-  // can this subterm be extracted
+  // can this subterm be extracted?
   def isFreeSubTerm(t: Term, depth: Int = 0): Boolean = t match {
     case BVar(i)       => i < depth
     case GVar(_)       => true
@@ -103,7 +103,6 @@ object Syntax {
     case DeCtr(t, f)   => isFreeSubTerm(t, depth)
   }
 
-  // seems that we do not need depth here!
   def findSubst(from: Term, to: Term): Option[Subst] = (from, to) match {
     case _ if from == to =>
       Some(Map())
@@ -150,11 +149,8 @@ object Syntax {
   }
 
   private def mergeOptSubst(s1: Option[Subst], s2: Option[Subst]): Option[Subst] =
-    for {
-      subst1 <- s1
-      subst2 <- s2
-      merged <- mergeSubst(subst1, subst2)
-    } yield merged
+    for (subst1 <- s1; subst2 <- s2; merged <- mergeSubst(subst1, subst2))
+      yield merged
 
   private def mergeSubst(sub1: Subst, sub2: Subst): Option[Subst] = {
     val merged1 = sub1 ++ sub2
@@ -165,16 +161,9 @@ object Syntax {
       None
   }
 
-  def renaming(t1: Term, t2: Term): Boolean = {
-    val subst1 = findSubst(t1, t2)
-    val subst2 = findSubst(t2, t2)
-    (subst1, subst2) match {
-      case (Some(s1), Some(s2)) =>
-        true
-      //s1.values.toSet == s2.keySet
-      case _ => false
-    }
-  }
+  // brute-force testing for renaming
+  def renaming(t1: Term, t2: Term): Boolean =
+    findSubst(t1, t2).isDefined && findSubst(t2, t2).isDefined
 
   // replace every occurrence of t1 in t by t2
   // t1 and t2 should be free terms
