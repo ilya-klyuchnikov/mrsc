@@ -43,4 +43,20 @@ class EvaluationSuite extends FunSuite {
     assert(evaled === expected)
   }
   
+  test("letrec evaluation #1") {
+    val goalIn =
+      """
+      letrec app = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+        } in app Cons[head: A[], tail: Nil[]] Nil[]
+      """
+    val goal = PFPParsers().inputTerm(goalIn)
+    val expected = PFPParsers().inputTerm("Cons[head: A[], tail: Nil[]]")
+    val evaled = CBNEval.eval(goal, Map())
+    info(goalIn + " => " + evaled)
+    assert(evaled === expected)
+  }
+  
 }

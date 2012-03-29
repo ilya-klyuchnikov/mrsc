@@ -73,7 +73,7 @@ class SyntaxSuite extends FunSuite {
       Some(Map(t("<x>") -> t("<a>.tail"))))
   }
 
-  test("renaming") {
+  test("renaming #1") {
     val t1 = """ app <x> <y> """
     val t2 = """ app <a>.tail <y> """
     val ren = Syntax.renaming(t1, t2)
