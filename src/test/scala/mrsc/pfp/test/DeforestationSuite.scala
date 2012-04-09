@@ -7,8 +7,8 @@ import mrsc.pfp._
 
 class DeforestationSuite extends FunSuite {
 
-  test("deforest append") {
-    val bindingsIn =
+  test("build graph for append") {
+    val bindings: GContext =
       """
       app = \x -> \y ->
         case x of {
@@ -16,7 +16,6 @@ class DeforestationSuite extends FunSuite {
           x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
         }; 
       """
-    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
     val goal: Term = "app <x> <y>"
     val rules = new Deforester(bindings)
     val graphs = GraphGenerator(rules, goal)
@@ -26,8 +25,8 @@ class DeforestationSuite extends FunSuite {
     }
   }
   
-  test("deforest double append") {
-    val bindingsIn =
+  test("build graph for double append") {
+    val bindings: GContext =
       """
       app = \x -> \y ->
         case x of {
@@ -35,7 +34,6 @@ class DeforestationSuite extends FunSuite {
           x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
         }; 
       """
-    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
     val goal: Term = "app (app <x> <y>) <z> "
     val rules = new Deforester(bindings)
     val graphs = GraphGenerator(rules, goal)
@@ -44,5 +42,36 @@ class DeforestationSuite extends FunSuite {
       println()
       println(tg)
     }
+  }
+  
+  test("constructor residuation") {
+    val bindings: GContext = ""
+    val goal: Term = "Nil[]"
+    val expectedResult: Term = "Nil[]" 
+    testExample(bindings, goal, expectedResult)
+  }
+  
+  test("variable residuation") {
+    val bindings: GContext = ""
+    val goal: Term = "<x>"
+    val expectedResult: Term = "<x>" 
+    testExample(bindings, goal, expectedResult)
+  }
+  
+  test("constructor with variables residuation") {
+    val bindings: GContext = ""
+    val goal: Term = "Cons[head: <x>, tail: <y>]"
+    val expectedResult: Term = goal
+    testExample(bindings, goal, expectedResult)
+  }
+  
+  def testExample(bindings: GContext, goal: Term, expectedResult: Term): Unit = {
+    val rules = new Deforester(bindings)
+    val graphs = GraphGenerator(rules, goal).toList
+    val tGraph = Transformations.transpose(graphs.head)
+    info(tGraph.toString())
+    val result = Residuator(tGraph).result
+    info(result.toString())
+    assert(result === expectedResult)
   }
 }

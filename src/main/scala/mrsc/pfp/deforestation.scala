@@ -10,8 +10,8 @@ case object TransientStep extends DeforestStep {
 case class CaseStep(term: Term, tag: String) extends DeforestStep {
   override def toString = term + " = " + tag
 }
-case object CtrStep extends DeforestStep {
-  override def toString = "(.,.)"
+case class CtrArg(label: String) extends DeforestStep {
+  override def toString = label
 }
 
 case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep] {
@@ -28,8 +28,8 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       List((gc(n), TransientStep))
     case FVar(n) =>
       List()
-    case Ctr(_, fs) =>
-      fs.map(f => (f._2, CtrStep))
+    case Ctr(n, fs) =>
+      fs.map(f => (f._2, CtrArg(f._1)))
     case App(Abs(t1), t2) =>
       List((termSubstTop(t2, t1), TransientStep))
     case App(t1, t2) =>
