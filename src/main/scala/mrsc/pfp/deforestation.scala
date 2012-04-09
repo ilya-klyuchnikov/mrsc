@@ -51,6 +51,8 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       // Not good code for now
       // TODO: it is possible to introduce "correct"
       // replacement in the syntax module
+      // really it should be:
+      // termReplace(DeCtr(BVar(0), f), ti)
       val Some((_, body)) = bs.find(_._1 == tag)
       var t1 = termSubstTop(FVar("$"), body)
       for ((fi, ti) <- fs) {

@@ -48,6 +48,11 @@ case class Case(sel: Term, branches: List[Branch]) extends Term {
 // "Types and Programming Languages"
 object Syntax {
 
+  // Given a term t and a function onVar, 
+  // the result of tmMap onVar t is a term of the same shape as t 
+  // in which every variable has been replaced by the result of calling onvar on that variable.
+  // c = initial "context depth"
+  // onVar(c, v) - here c is current context depth
   private def tmMap(onVar: (Int, BVar) => Term, c: Int, t: Term): Term = {
     def walk(c: Int, t: Term): Term = t match {
       case v: BVar     => onVar(c, v)
@@ -64,6 +69,9 @@ object Syntax {
     walk(c, t)
   }
 
+  // Def 6.2.1 
+  // The d-place shift of a term t above cutoff c.
+  // ↑dc (t)
   private def termShiftAbove(d: Int, c: Int, t: Term): Term = {
     val f = { (c: Int, v: BVar) =>
       if (v.i >= c) BVar(v.i + d) else BVar(v.i)
@@ -71,9 +79,13 @@ object Syntax {
     tmMap(f, c, t)
   }
 
+  // The top level shift ↑d (t)
   private def termShift(d: Int, t: Term): Term =
     termShiftAbove(d, 0, t)
 
+  // right now termSubst is called only with j = 0.
+  // Be careful with other cases!!
+  // What to do depends on what you mean! (See note in google docs.)
   private def termSubst(j: Int, s: Term, t: Term): Term = {
     val onVar = { (c: Int, v: BVar) =>
       if (v.i == c) termShift(c, s) else v
