@@ -65,6 +65,20 @@ class DeforestationSuite extends FunSuite {
     testExample(bindings, goal, expectedResult)
   }
   
+  test("naive folding") {
+    val bindings: GContext = """f = \x -> f x;"""
+    val rules = new Deforester(bindings)
+    val goal: Term = "f <y>"
+      
+    val expectedResult: Term = """letrec h = \x -> h x in h <y>"""
+    val graphs = GraphGenerator(rules, goal).toList
+    val tGraph = Transformations.transpose(graphs.head)
+    info(tGraph.toString())
+    val result: Term = Residuator(tGraph).result
+    info(result.toString())
+    assert(expectedResult === result)
+  }
+  
   def testExample(bindings: GContext, goal: Term, expectedResult: Term): Unit = {
     val rules = new Deforester(bindings)
     val graphs = GraphGenerator(rules, goal).toList

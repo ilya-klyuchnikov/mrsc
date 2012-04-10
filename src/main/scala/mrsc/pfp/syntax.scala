@@ -72,15 +72,16 @@ object Syntax {
   // Def 6.2.1 
   // The d-place shift of a term t above cutoff c.
   // ↑dc (t)
-  private def termShiftAbove(d: Int, c: Int, t: Term): Term = {
+  def termShiftAbove(d: Int, c: Int, t: Term): Term = {
     val f = { (c: Int, v: BVar) =>
+      println((c, v))
       if (v.i >= c) BVar(v.i + d) else BVar(v.i)
     }
     tmMap(f, c, t)
   }
 
   // The top level shift ↑d (t)
-  private def termShift(d: Int, t: Term): Term =
+  def termShift(d: Int, t: Term): Term =
     termShiftAbove(d, 0, t)
 
   // right now termSubst is called only with j = 0.
@@ -99,7 +100,7 @@ object Syntax {
 
   // TODO
   def applySubst(t: Term, s: Subst): Term =
-    null
+    t
 
   // can this subterm be extracted?
   def isFreeSubTerm(t: Term, depth: Int = 0): Boolean = t match {
@@ -175,13 +176,13 @@ object Syntax {
 
   // brute-force testing for renaming
   def renaming(t1: Term, t2: Term): Boolean =
-    findSubst(t1, t2).isDefined && findSubst(t2, t2).isDefined
+    findSubst(t1, t2).isDefined && findSubst(t2, t1).isDefined
 
   // replace every occurrence of t1 in t by t2
   // t1 and t2 should be free terms
   def replace(t: Term, t1: Term, t2: Term): Term = {
     require(isFreeSubTerm(t1, 0))
-    require(isFreeSubTerm(t2, 0))
+    //require(isFreeSubTerm(t2, 0))
     t match {
       case _ if t == t1 =>
         t2
@@ -206,4 +207,18 @@ object Syntax {
         t
     }
   }
+
+  def freeVars(t: Term): List[FVar] = t match {
+    case fv @ FVar(_)  => List(fv)
+    case BVar(_)       => List()
+    case GVar(_)       => List()
+    case Abs(t1)       => freeVars(t1)
+    case App(t1, t2)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
+    case Let(t1, t2)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
+    case Fix(t1)       => freeVars(t1)
+    case Ctr(_, args)  => args.map(_._2).map(freeVars).flatten.distinct
+    case DeCtr(t1, _)  => freeVars(t1)
+    case Case(sel, bs) => (freeVars(sel) :: bs.map(_._2).map(freeVars)).flatten.distinct
+  }
+
 }
