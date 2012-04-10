@@ -7,8 +7,11 @@ abstract sealed trait DeforestStep
 case object TransientStep extends DeforestStep {
   override def toString = "->"
 }
-case class CaseStep(term: Term, tag: String) extends DeforestStep {
+case class CaseBranch(term: Term, tag: String) extends DeforestStep {
   override def toString = term + " = " + tag
+}
+case object CaseSel extends DeforestStep{
+  override def toString = "?"
 }
 case class CtrArg(label: String) extends DeforestStep {
   override def toString = label
@@ -60,8 +63,10 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       }
       List((t1, TransientStep))
     case Case(t1, bs) if isCaseable(t1) =>
-      for ((li, ti) <- bs)
-        yield (termSubstTop(t1, ti), CaseStep(t1, li))
+      val sel = (t1, CaseSel)
+      val bSteps = for ((li, ti) <- bs)
+        yield (termSubstTop(t1, ti), CaseBranch(t1, li))
+      sel :: bSteps
     case Case(t1, bs) =>
       for ((n, s) <- driveStep(t1))
         yield (Case(n, bs), s)

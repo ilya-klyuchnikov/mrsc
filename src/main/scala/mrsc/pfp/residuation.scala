@@ -69,8 +69,8 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
           val i = ctx.indexForTerm(fv)
           println("++" + i)
           res = Syntax.replace(res, fv, BVar(i))
-        } 
-        
+        }
+
         res
     }
 
@@ -82,7 +82,14 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
       v
     case _ =>
       node.outs match {
-        case List(TEdge(n1, TransientStep)) => fold(n1, ctx)
+        case TEdge(n1, CaseSel) :: bs =>
+          val sel = fold(n1, ctx)
+          val bs1 = for (TEdge(n, CaseBranch(_, tag)) <- bs) yield (tag, fold(n, ctx))
+          Case(sel, bs1)
+        case List(TEdge(n1, TransientStep)) =>
+          fold(n1, ctx)
+        case List() =>
+          node.conf
       }
   }
 }
