@@ -91,7 +91,14 @@ class DeforestationSuite extends FunSuite {
     val rules = new Deforester(bindings)
     val goal: Term = "app <x> <y>"
 
-    val expectedResult: Term = """letrec h = \x -> h x in h <y>"""
+    val expectedResult: Term = 
+      """
+      letrec h = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x.head, tail: (h x.tail y)]
+        } in h <x> <y>
+      """
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
     info(tGraph.toString())

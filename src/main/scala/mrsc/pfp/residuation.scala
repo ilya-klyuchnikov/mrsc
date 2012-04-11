@@ -34,6 +34,7 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
   def fold(node: TNode[Term, DeforestStep], ctx: ResContext): Term =
     node.base match {
       case None =>
+        println("NONE: " + node.conf)
         val base = g.leaves.exists(_.base == Some(node.tPath))
         if (base) {
           val conf = node.conf
@@ -45,7 +46,15 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
           for (fv <- fvars) {
             ctx1 = ctx1.addBinding(TermBinding(fv))
           }
-          var abs = Abs(construct(node, ctx1))
+
+          var body = construct(node, ctx1)
+          val fvars1 = Syntax.freeVars(body)
+          for (fv <- fvars1) {
+            val i = ctx1.indexForTerm(fv)
+            body = Syntax.applySubst(body, Map(fv -> BVar(i)))
+          }
+
+          var abs = Abs(body)
           for (fv <- fvars) {
             abs = Abs(abs)
           }
@@ -54,29 +63,22 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
           construct(node, ctx)
       case Some(_) =>
         val conf = node.conf
+        println(">>**" + conf)
         val i = ctx.indexForTerm(conf)
         val DefBinding(t1, t2) = ctx.getBinding(i)
         val Some(renaming) = Syntax.findSubst(t1, conf)
-        // TODO!!! here!!!
         println(">>" + t1)
+        println(">>" + t2)
         println(">>" + conf)
         println(">>" + renaming)
         var res = Syntax.applySubst(t2, renaming)
-        val fvars = Syntax.freeVars(conf)
-        println("++" + ctx)
-        for (fv <- fvars) {
-          println(fv)
-          val i = ctx.indexForTerm(fv)
-          println("++" + i)
-          res = Syntax.replace(res, fv, BVar(i))
-        }
 
         res
     }
 
   def construct(node: TNode[Term, DeforestStep], ctx: ResContext): Term = node.conf match {
     case Ctr(n, _) =>
-      val args: List[Field] = node.outs.map { case TEdge(child, CtrArg(l)) => (l, construct(child, ctx)) }
+      val args: List[Field] = node.outs.map { case TEdge(child, CtrArg(l)) => (l, fold(child, ctx)) }
       Ctr(n, args)
     case v @ FVar(n) =>
       v
@@ -84,7 +86,8 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
       node.outs match {
         case TEdge(n1, CaseSel) :: bs =>
           val sel = fold(n1, ctx)
-          val bs1 = for (TEdge(n, CaseBranch(_, tag)) <- bs) yield (tag, fold(n, ctx))
+          val ctx1 = ctx.addBinding(TermBinding(FVar("**")))
+          val bs1 = for (TEdge(n, CaseBranch(_, tag)) <- bs) yield (tag, fold(n, ctx1))
           Case(sel, bs1)
         case List(TEdge(n1, TransientStep)) =>
           fold(n1, ctx)
