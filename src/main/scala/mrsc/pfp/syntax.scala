@@ -99,17 +99,30 @@ object Syntax {
 
   def applySubst(t: Term, s: Subst): Term = {
     def walk(c: Int, t: Term): Term = t match {
-      case v: BVar                       => v
-      case v: FVar if s.get(v).isDefined => Syntax.termShift(c, s(v))
-      case v: FVar                       => v
-      case v: GVar                       => v
-      case Abs(t2)                       => Abs(walk(c + 1, t2))
-      case App(t1, t2)                   => App(walk(c, t1), walk(c, t2))
-      case Let(t1, t2)                   => Let(walk(c, t1), walk(c + 1, t2))
-      case Fix(t1)                       => Fix(walk(c, t1))
-      case Case(t, bs)                   => Case(walk(c, t), bs.map { case (li, ti) => (li, walk(c + 1, ti)) })
-      case Ctr(n, fs)                    => Ctr(n, fs.map { case (tagi, ti) => (tagi, walk(c, ti)) })
-      case DeCtr(t, f)                   => DeCtr(walk(c, t), f)
+      case v @ BVar(i) if s.get(BVar(i + c)).isDefined =>
+        Syntax.termShift(c, s(BVar(i + c)))
+      case v: BVar =>
+        v
+      case v: FVar if s.get(v).isDefined =>
+        Syntax.termShift(c, s(v))
+      case v: FVar =>
+        v
+      case v: GVar =>
+        v
+      case Abs(t2) =>
+        Abs(walk(c + 1, t2))
+      case App(t1, t2) =>
+        App(walk(c, t1), walk(c, t2))
+      case Let(t1, t2) =>
+        Let(walk(c, t1), walk(c + 1, t2))
+      case Fix(t1) =>
+        Fix(walk(c, t1))
+      case Case(t, bs) =>
+        Case(walk(c, t), bs.map { case (li, ti) => (li, walk(c + 1, ti)) })
+      case Ctr(n, fs) =>
+        Ctr(n, fs.map { case (tagi, ti) => (tagi, walk(c, ti)) })
+      case DeCtr(t, f) =>
+        DeCtr(walk(c, t), f)
     }
     walk(0, t)
   }
@@ -190,11 +203,11 @@ object Syntax {
   def renaming(t1: Term, t2: Term): Boolean =
     findSubst(t1, t2).isDefined && findSubst(t2, t1).isDefined
 
-  // replace every occurrence of t1 in t by t2
-  // t1 and t2 should be free terms
-  // Note, that it doesn't perform shifting!
+  // Replace every occurrence of t1 in t by t2
+  // We assume that both t1 and t2 are free subterms 
   def replace(t: Term, t1: Term, t2: Term): Term = {
     require(isFreeSubTerm(t1, 0))
+    require(isFreeSubTerm(t2, 0))
     t match {
       case _ if t == t1 =>
         t2

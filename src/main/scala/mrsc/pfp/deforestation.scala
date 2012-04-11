@@ -51,15 +51,10 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       for ((n, s) <- driveStep(t1))
         yield (DeCtr(n, f), s)
     case Case(ctr @ Ctr(tag, fs), bs) =>
-      // Not good code for now
-      // TODO: it is possible to introduce "correct"
-      // replacement in the syntax module
-      // really it should be:
-      // termReplace(DeCtr(BVar(0), f), ti)
       val Some((_, body)) = bs.find(_._1 == tag)
-      var t1 = termSubstTop(FVar("$"), body)
+      var t1 = termSubstTop(ctr, body)
       for ((fi, ti) <- fs) {
-        t1 = replace(t1, DeCtr(FVar("$"), fi), ti)
+        t1 = replace(t1, DeCtr(ctr, fi), ti)
       }
       List((t1, TransientStep))
     case Case(t1, bs) if isCaseable(t1) =>
