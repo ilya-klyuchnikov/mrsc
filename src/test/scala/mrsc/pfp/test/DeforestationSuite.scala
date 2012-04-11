@@ -107,6 +107,34 @@ class DeforestationSuite extends FunSuite {
     assert(expectedResult === result)
   }
   
+  test("append residuation2") {
+    val bindings: GContext =
+      """
+      app = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+        }; 
+      """
+    val rules = new Deforester(bindings)
+    val goal: Term = "app <x> <y>"
+
+    val expectedResult: Term = 
+      """
+      letrec h = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x1.head, tail: (h x1.tail y)]
+        } in h <x> <y>
+      """
+    val graphs = GraphGenerator(rules, goal).toList
+    val tGraph = Transformations.transpose(graphs.head)
+    info(tGraph.toString())
+    val result: Term = Residuator2(tGraph).result
+    info(result.toString())
+    assert(expectedResult === result)
+  }
+  
   test("double append residuation") {
     val bindings: GContext =
       """
@@ -131,6 +159,32 @@ class DeforestationSuite extends FunSuite {
                 } in h1 y z;
           x1:Cons -> Cons[head: x.head, tail: (h0 x.tail y z)]
         } in h0 <x> <y> <z>
+      """
+    val graphs = GraphGenerator(rules, goal).toList
+    val tGraph = Transformations.transpose(graphs.head)
+    info(tGraph.toString())
+    val result: Term = Residuator(tGraph).result
+    info(result.toString())
+    assert(expectedResult === result)
+  }
+  
+  test("flip residuation") {
+    val bindings: GContext =
+      """
+      flip = \zt -> case zt of {
+            z1: Leaf   -> Leaf[leaf: z1.leaf];
+            z1: Branch -> Branch[left: (flip z1.right), right: (flip z1.left)]
+      };
+      """
+    val rules = new Deforester(bindings)
+    val goal: Term = "flip (flip <z>)"
+
+    val expectedResult: Term = 
+      """
+      letrec h1 = \zt -> case zt of {
+            z1: Leaf   -> Leaf[leaf: zt.leaf];
+            z1: Branch -> Branch[left: (h1 zt.left), right: (h1 zt.right)]
+      } in h1 <z>
       """
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)

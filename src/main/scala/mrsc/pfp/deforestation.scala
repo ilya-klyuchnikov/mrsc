@@ -10,9 +10,6 @@ case object TransientStep extends DeforestStep {
 case class CaseBranch(term: Term, tag: String) extends DeforestStep {
   override def toString = term + " = " + tag
 }
-case object CaseSel extends DeforestStep{
-  override def toString = "?"
-}
 case class CtrArg(label: String) extends DeforestStep {
   override def toString = label
 }
@@ -58,10 +55,10 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       }
       List((t1, TransientStep))
     case Case(t1, bs) if isCaseable(t1) =>
-      val sel = (t1, CaseSel)
+      // here we lose information about t1.
       val bSteps = for ((li, ti) <- bs)
         yield (termSubstTop(t1, ti), CaseBranch(t1, li))
-      sel :: bSteps
+      bSteps
     case Case(t1, bs) =>
       for ((n, s) <- driveStep(t1))
         yield (Case(n, bs), s)

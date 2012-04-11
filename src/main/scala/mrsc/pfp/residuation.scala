@@ -84,15 +84,64 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
       v
     case _ =>
       node.outs match {
-        case TEdge(n1, CaseSel) :: bs =>
-          val sel1 = fold(n1, ctx)
+        case bs @ (TEdge(n1, CaseBranch(sel, _)) :: _) =>
           val ctx1 = ctx.addBinding(TermBinding(FVar("**")))
           val bs1 = for (TEdge(n, CaseBranch(_, tag)) <- bs) yield (tag, fold(n, ctx1))
-          Case(sel1, bs1)
+          Case(sel, bs1)
         case List(TEdge(n1, TransientStep)) =>
           fold(n1, ctx)
         case List() =>
           node.conf
       }
+  }
+}
+
+case class Residuator2(gr: TGraph[Term, DeforestStep]) extends Residuator(gr) {
+  override def construct(node: TNode[Term, DeforestStep], ctx: ResContext): Term = node.conf match {
+    case Ctr(n, _) =>
+      val args: List[Field] = node.outs.map { case TEdge(child, CtrArg(l)) => (l, fold(child, ctx)) }
+      Ctr(n, args)
+    case v @ FVar(n) =>
+      v
+    case _ =>
+      node.outs match {
+        case bs @ (TEdge(n1, CaseBranch(sel, _)) :: _) =>
+          val ctx1 = ctx.addBinding(TermBinding(FVar("**")))
+          val bs1 = for (TEdge(n, CaseBranch(sel, tag)) <- bs) yield {
+            val body = restoreBindings(fold(n, ctx1), sel, 0)
+            (tag, body)
+          }
+          Case(sel, bs1)
+        case List(TEdge(n1, TransientStep)) =>
+          fold(n1, ctx)
+        case List() =>
+          node.conf
+      }
+  }
+
+  def restoreBindings(t: Term, fv: Term, level: Int): Term = {
+    t match {
+      case Abs(t3) =>
+        Abs(restoreBindings(t3, fv, level + 1))
+      case App(a1, a2) =>
+        App(restoreBindings(a1, fv, level), restoreBindings(a2, fv, level))
+      case Let(l1, l2) =>
+        Let(restoreBindings(l1, fv, level), restoreBindings(l2, fv, level + 1))
+      case Fix(f) =>
+        Fix(restoreBindings(f, fv, level))
+      case Ctr(n, fs) =>
+        val fs1 = fs.map { case (li, ti) => (li, restoreBindings(ti, fv, level)) }
+        Ctr(n, fs1)
+      case DeCtr(t, f) if t == fv =>
+        DeCtr(BVar(level), f)
+      case DeCtr(c, f) =>
+        DeCtr(restoreBindings(c, fv, level), f)
+      case Case(sel, bs) =>
+        val sel1 = restoreBindings(sel, fv, level)
+        val bs1 = bs.map { case (li, ti) => (li, restoreBindings(ti, fv, level + 1)) }
+        Case(sel1, bs1)
+      case _ =>
+        t
+    }
   }
 }
