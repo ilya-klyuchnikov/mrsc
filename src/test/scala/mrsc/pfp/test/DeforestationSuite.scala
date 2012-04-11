@@ -106,6 +106,39 @@ class DeforestationSuite extends FunSuite {
     info(result.toString())
     assert(expectedResult === result)
   }
+  
+  test("double append residuation") {
+    val bindings: GContext =
+      """
+      app = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+        }; 
+      """
+    val rules = new Deforester(bindings)
+    val goal: Term = "app (app <x> <y>) <z>"
+
+    val expectedResult: Term = 
+      """
+      letrec h0 = \x -> \y -> \z ->
+        case x of {
+          x1:Nil  -> 
+              letrec h1 = \x -> \y ->
+                case x of {
+                  x1:Nil  -> y;
+                  x1:Cons -> Cons[head: x.head, tail: (h1 x.tail y)]
+                } in h1 y z;
+          x1:Cons -> Cons[head: x.head, tail: (h0 x.tail y z)]
+        } in h0 <x> <y> <z>
+      """
+    val graphs = GraphGenerator(rules, goal).toList
+    val tGraph = Transformations.transpose(graphs.head)
+    info(tGraph.toString())
+    val result: Term = Residuator(tGraph).result
+    info(result.toString())
+    assert(expectedResult === result)
+  }
 
   def testExample(bindings: GContext, goal: Term, expectedResult: Term): Unit = {
     val rules = new Deforester(bindings)
