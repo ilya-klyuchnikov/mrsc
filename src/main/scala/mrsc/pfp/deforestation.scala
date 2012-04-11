@@ -62,6 +62,8 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
     case Case(t1, bs) =>
       for ((n, s) <- driveStep(t1))
         yield (Case(n, bs), s)
+    case Let(v@Fix(_), body) =>
+      List((termSubstTop(v, body), TransientStep))
     case _ =>
       error("unexpected term: " + t)
   }
