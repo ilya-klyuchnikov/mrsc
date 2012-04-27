@@ -26,7 +26,7 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
 
   type Res[A] = Context => A
 
-  lazy val bindings: PackratParser[Map[String, Term]] =
+  lazy val bindings: PackratParser[GContext] =
     (binding *) <~ eof ^^ { bs => Map(bs: _*) }
 
   lazy val binding: PackratParser[(String, Term)] =

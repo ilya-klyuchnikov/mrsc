@@ -34,7 +34,6 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
   def fold(node: TNode[Term, DeforestStep], ctx: ResContext): Term =
     node.base match {
       case None =>
-        println("NONE: " + node.conf)
         val base = g.leaves.exists(_.base == Some(node.tPath))
         if (base) {
           val conf = node.conf
@@ -63,16 +62,10 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
           construct(node, ctx)
       case Some(_) =>
         val conf = node.conf
-        println(">>**" + conf)
         val i = ctx.indexForTerm(conf)
         val DefBinding(t1, t2) = ctx.getBinding(i)
         val Some(renaming) = Syntax.findSubst(t1, conf)
-        println(">>" + t1)
-        println(">>" + t2)
-        println(">>" + conf)
-        println(">>" + renaming)
         var res = Syntax.applySubst(t2, renaming)
-
         res
     }
 
