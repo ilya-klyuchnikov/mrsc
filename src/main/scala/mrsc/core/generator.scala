@@ -11,7 +11,7 @@ trait GraphRewriteRules[C, D] {
 }
 
 sealed trait GraphRewriteStep[C, D]
-case class CompleteCurrentNodeStep[C, D] extends GraphRewriteStep[C, D]
+case class CompleteCurrentNodeStep[C, D]() extends GraphRewriteStep[C, D]
 case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphRewriteStep[C, D]
 case class FoldStep[C, D](to: SPath) extends GraphRewriteStep[C, D]
 case class RebuildStep[C, D](c: C) extends GraphRewriteStep[C, D]
