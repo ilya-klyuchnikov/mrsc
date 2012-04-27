@@ -107,6 +107,36 @@ class DeforestationSuite extends FunSuite {
     assert(expectedResult === result)
   }
   
+  test("append double deforestation") {
+    val bindings: GContext =
+      """
+       
+      """
+    val rules = new Deforester(bindings)
+    val goal: Term = """
+      letrec h = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x.head, tail: (h x.tail y)]
+        } in h <x> <y>
+      """
+
+    val expectedResult: Term = 
+      """
+      letrec h = \x -> \y ->
+        case x of {
+          x1:Nil  -> y;
+          x1:Cons -> Cons[head: x.head, tail: (h x.tail y)]
+        } in h <x> <y>
+      """
+    val graphs = GraphGenerator(rules, goal).toList
+    val tGraph = Transformations.transpose(graphs.head)
+    info(tGraph.toString())
+    val result: Term = Residuator(tGraph).result
+    info(result.toString())
+    assert(expectedResult === result)
+  }
+  
   test("append residuation2") {
     val bindings: GContext =
       """
