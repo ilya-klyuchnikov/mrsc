@@ -1,10 +1,13 @@
 package mrsc.pfp.test
 
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
 import mrsc.core._
 import mrsc.pfp._
 
+@RunWith(classOf[JUnitRunner])
 class DeforestationSuite extends FunSuite {
 
   test("build graph for append") {
@@ -21,7 +24,7 @@ class DeforestationSuite extends FunSuite {
     val graphs = GraphGenerator(rules, goal)
     for (g <- graphs) {
       val tg = Transformations.transpose(g)
-      println(tg)
+      info(tg.toString)
     }
   }
 
@@ -39,8 +42,8 @@ class DeforestationSuite extends FunSuite {
     val graphs = GraphGenerator(rules, goal)
     for (g <- graphs) {
       val tg = Transformations.transpose(g)
-      println()
-      println(tg)
+      info("")
+      info(tg.toString)
     }
   }
 

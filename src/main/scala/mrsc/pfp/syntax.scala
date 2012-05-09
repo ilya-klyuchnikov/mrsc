@@ -2,11 +2,12 @@ package mrsc.pfp
 
 // These operations are inspired by code from the book 
 // "Types and Programming Languages"
+// 
 object Syntax {
 
   // Given a term t and a function onVar, 
   // the result of tmMap onVar t is a term of the same shape as t 
-  // in which every variable has been replaced by the result of calling onvar on that variable.
+  // in which every *bound* variable has been replaced by the result of calling onVar on that variable.
   // c = initial "context depth"
   // onVar(c, v) - here c is current context depth
   private def tmMap(onVar: (Int, BVar) => Term, c: Int, t: Term): Term = {

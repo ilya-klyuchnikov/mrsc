@@ -38,7 +38,7 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
     case Fix(Abs(body)) =>
       List((termSubstTop(t, body), TransientStep))
     case Fix(Ctr(_, _)) =>
-      error("unexpected term: " + t)
+      sys.error("unexpected term: " + t)
     case Fix(t1) =>
       for ((n, s) <- driveStep(t1))
         yield (Fix(n), s)
@@ -55,7 +55,7 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       }
       List((t1, TransientStep))
     case Case(t1, bs) if isCaseable(t1) =>
-      // here we lose information about t1.
+      // here we lose information about t1
       val bSteps = for ((li, ti) <- bs)
         yield (termSubstTop(t1, ti), CaseBranch(t1, li))
       bSteps
@@ -65,7 +65,7 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
     case Let(v@Fix(_), body) =>
       List((termSubstTop(v, body), TransientStep))
     case _ =>
-      error("unexpected term: " + t)
+      sys.error("unexpected term: " + t)
   }
 
   private def isCaseable(t: Term): Boolean = t match {
