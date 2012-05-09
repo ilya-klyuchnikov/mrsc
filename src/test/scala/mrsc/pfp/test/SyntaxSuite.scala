@@ -1,9 +1,12 @@
 package mrsc.pfp.test
 
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
 import mrsc.pfp._
 
+@RunWith(classOf[JUnitRunner])
 class SyntaxSuite extends FunSuite {
   test("checking for extraction") {
     val t1: Term = """\x -> x"""
