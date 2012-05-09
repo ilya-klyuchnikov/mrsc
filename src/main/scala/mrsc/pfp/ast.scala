@@ -12,13 +12,11 @@ sealed trait Term
 case class BVar(i: Int) extends Term {
   override def toString = i.toString
 }
-// Free variables are named. It is done for the following
-// reasons:
-// 1. To avoid extra shifts.
-// 2. To simplify implementations of homeomorphic embedding,
-//    renamings and substitutions.
-case class FVar(n: String) extends Term {
-  override def toString = "<" + n + ">"
+// Free variables are nameless.
+// It is done in order to simplify generating
+// of new variables.
+case class FVar(i: Int) extends Term {
+  override def toString = "<" + i + ">"
 }
 // Global variables are named for the same reasons.
 case class GVar(n: String) extends Term {

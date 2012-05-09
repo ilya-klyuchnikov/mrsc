@@ -50,7 +50,7 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
 
   lazy val aTerm: PackratParser[Res[Term]] =
     "(" ~> term <~ ")" |
-      "<" ~> lcid <~ ">" ^^ { id => ctx: Context => FVar(id) } |
+      "<" ~> numericLit <~ ">" ^^ { id => ctx: Context => FVar(id.toInt) } |
       lcid ^^ { i => ctx: Context => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
       (ucid <~ "[") ~ (fields <~ "]") ^^ { case tag ~ fs => ctx: Context => Ctr(tag, fs(ctx)) }
 

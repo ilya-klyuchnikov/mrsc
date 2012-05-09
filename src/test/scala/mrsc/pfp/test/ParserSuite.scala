@@ -10,7 +10,7 @@ import mrsc.pfp._
 class ParserSuite extends FunSuite {
 
   test("parsing free variable") {
-    testTermParsing("<a>", FVar("a"))
+    testTermParsing("<1>", FVar(1))
   }
 
   test("parsing global variable") {

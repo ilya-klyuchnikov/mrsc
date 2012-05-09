@@ -78,7 +78,8 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
     case _ =>
       node.outs match {
         case bs @ (TEdge(n1, CaseBranch(sel, _)) :: _) =>
-          val ctx1 = ctx.addBinding(TermBinding(FVar("**")))
+          // pseudo-variable to denote bindings in case branches
+          val ctx1 = ctx.addBinding(TermBinding(FVar(-1)))
           val bs1 = for (TEdge(n, CaseBranch(_, tag)) <- bs) yield (tag, fold(n, ctx1))
           Case(sel, bs1)
         case List(TEdge(n1, TransientStep)) =>
@@ -89,6 +90,7 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
   }
 }
 
+// the only difference is that we restore bindings.
 case class Residuator2(gr: TGraph[Term, DeforestStep]) extends Residuator(gr) {
   override def construct(node: TNode[Term, DeforestStep], ctx: ResContext): Term = node.conf match {
     case Ctr(n, _) =>
@@ -99,7 +101,7 @@ case class Residuator2(gr: TGraph[Term, DeforestStep]) extends Residuator(gr) {
     case _ =>
       node.outs match {
         case bs @ (TEdge(n1, CaseBranch(sel, _)) :: _) =>
-          val ctx1 = ctx.addBinding(TermBinding(FVar("**")))
+          val ctx1 = ctx.addBinding(TermBinding(FVar(-1)))
           val bs1 = for (TEdge(n, CaseBranch(sel, tag)) <- bs) yield {
             val body = restoreBindings(fold(n, ctx1), sel, 0)
             (tag, body)
@@ -112,6 +114,8 @@ case class Residuator2(gr: TGraph[Term, DeforestStep]) extends Residuator(gr) {
       }
   }
 
+  // deconstructor can be applied to the corresponding bound 
+  // variable of case expression only.
   def restoreBindings(t: Term, fv: Term, level: Int): Term = {
     t match {
       case Abs(t3) =>

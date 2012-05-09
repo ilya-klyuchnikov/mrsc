@@ -18,64 +18,64 @@ class SyntaxSuite extends FunSuite {
       Some(Map()))
 
     testSubst(
-      """ \x -> <a> """,
-      """ \y -> <b> """,
-      Some(Map[Term, Term](t("<a>") -> t("<b>"))))
+      """ \x -> <1> """,
+      """ \y -> <2> """,
+      Some(Map[Term, Term](t("<1>") -> t("<2>"))))
 
     testSubst(
-      """ \x -> <a> <a> """,
-      """ \y -> <b> <c> """,
+      """ \x -> <1> <1> """,
+      """ \y -> <2> <3> """,
       None)
 
     testSubst(
-      """ \x -> <a>   <b> """,
-      """ \y -> Nil[] <c> """,
-      Some(Map[Term, Term](t("<a>") -> t("Nil[]"), t("<b>") -> t("<c>"))))
+      """ \x -> <1>   <2> """,
+      """ \y -> Nil[] <3> """,
+      Some(Map[Term, Term](t("<1>") -> t("Nil[]"), t("<2>") -> t("<3>"))))
 
     testSubst(
-      """ \x -> <b> """,
+      """ \x -> <2> """,
       """ \y ->  y """,
       None)
 
     testSubst(
-      """ <x> """,
+      """ <1> """,
       """ \y ->  y """,
-      Some(Map(t("""<x>""") -> t("""\y -> y"""))))
+      Some(Map(t("""<1>""") -> t("""\y -> y"""))))
 
     testSubst(
-      """ \x -> <a> """,
+      """ \x -> <1> """,
       """ \y ->  \z -> z """,
-      Some(Map(t("""<a>""") -> t("""\z -> z"""))))
+      Some(Map(t("""<1>""") -> t("""\z -> z"""))))
 
     testSubst(
-      """ \x -> <a> """,
+      """ \x -> <1> """,
       """ \y ->  \z -> y """,
       None)
 
     testSubst(
-      """ <a> """,
-      """ <b>.tail """,
-      Some(Map(t("<a>") -> t("<b>.tail"))))
+      """ <1> """,
+      """ <2>.tail """,
+      Some(Map(t("<1>") -> t("<2>.tail"))))
 
     testSubst(
-      """ <a>.tail """,
-      """ <b> """,
-      Some(Map(t("<a>.tail") -> t("<b>"))))
+      """ <1>.tail """,
+      """ <2> """,
+      Some(Map(t("<1>.tail") -> t("<2>"))))
 
     testSubst(
-      """ app <x> <y> """,
-      """ app <a> <b> """,
-      Some(Map(t("<x>") -> t("<a>"), t("<y>") -> t("<b>"))))
+      """ app <11> <12> """,
+      """ app <1> <2> """,
+      Some(Map(t("<11>") -> t("<1>"), t("<12>") -> t("<2>"))))
 
     testSubst(
-      """ app <x> <y> """,
-      """ app <a>.tail <y> """,
-      Some(Map(t("<x>") -> t("<a>.tail"))))
+      """ app <11> <12> """,
+      """ app <1>.tail <12> """,
+      Some(Map(t("<11>") -> t("<1>.tail"))))
   }
 
   test("renaming #1") {
-    val t1 = """ app <x> <y> """
-    val t2 = """ app <a>.tail <y> """
+    val t1 = """ app <11> <12> """
+    val t2 = """ app <1>.tail <12> """
     val ren = Syntax.renaming(t1, t2)
     assert(ren === true)
   }
