@@ -10,3 +10,4 @@ target/
 /.settings
 /todo
 /.cache
+/.idea_modules
