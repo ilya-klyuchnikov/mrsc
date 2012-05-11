@@ -13,13 +13,13 @@ class EvaluationSuite extends FunSuite {
       """
       app = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, (app xs y))
         }; 
       """
     val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
-    val goal = PFPParsers().inputTerm("app Nil[] Nil[]")
-    val expected = PFPParsers().inputTerm("Nil[]")
+    val goal = PFPParsers().inputTerm("app Nil() Nil()")
+    val expected = PFPParsers().inputTerm("Nil()")
     info(goal.toString())
     info(expected.toString())
     val evaled = CBNEval.eval(goal, bindings)
@@ -32,13 +32,13 @@ class EvaluationSuite extends FunSuite {
       """
       app = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, (app xs y))
         }; 
       """
     val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
-    val goal = PFPParsers().inputTerm("app Cons[head: A[], tail: Nil[]] Nil[]")
-    val expected = PFPParsers().inputTerm("Cons[head: A[], tail: Nil[]]")
+    val goal = PFPParsers().inputTerm("app Cons(A(), Nil()) Nil()")
+    val expected = PFPParsers().inputTerm("Cons(A(), Nil())")
     info(goal.toString())
     info(expected.toString())
     val evaled = CBNEval.eval(goal, bindings)
@@ -51,12 +51,12 @@ class EvaluationSuite extends FunSuite {
       """
       letrec app = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
-        } in app Cons[head: A[], tail: Nil[]] Nil[]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, (app xs y))
+        } in app Cons(A(), Nil()) Nil()
       """
     val goal = PFPParsers().inputTerm(goalIn)
-    val expected = PFPParsers().inputTerm("Cons[head: A[], tail: Nil[]]")
+    val expected = PFPParsers().inputTerm("Cons(A(), Nil())")
     val evaled = CBNEval.eval(goal, Map())
     info(goalIn + " => " + evaled)
     assert(evaled === expected)

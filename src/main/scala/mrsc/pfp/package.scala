@@ -5,7 +5,7 @@ package object pfp {
   type Field = (String, Term)
 
   // Branch in case expression
-  type Branch = (String, Term)
+  type Branch = (Ptr, Term)
 
   // global context
   type GContext = Map[String, Term]

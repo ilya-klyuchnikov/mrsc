@@ -2,7 +2,6 @@ package mrsc.pfp
 
 // These operations are inspired by code from the book 
 // "Types and Programming Languages"
-// 
 object Syntax {
 
   // Given a term t and a function onVar, 
@@ -12,16 +11,15 @@ object Syntax {
   // onVar(c, v) - here c is current context depth
   private def tmMap(onVar: (Int, BVar) => Term, c: Int, t: Term): Term = {
     def walk(c: Int, t: Term): Term = t match {
-      case v: BVar     => onVar(c, v)
-      case v: FVar     => v
-      case v: GVar     => v
-      case Abs(t2)     => Abs(walk(c + 1, t2))
-      case App(t1, t2) => App(walk(c, t1), walk(c, t2))
-      case Let(t1, t2) => Let(walk(c, t1), walk(c + 1, t2))
-      case Fix(t1)     => Fix(walk(c, t1))
-      case Case(t, bs) => Case(walk(c, t), bs.map { case (li, ti) => (li, walk(c + 1, ti)) })
-      case Ctr(n, fs)  => Ctr(n, fs.map { case (tagi, ti) => (tagi, walk(c, ti)) })
-      case DeCtr(t, f) => DeCtr(walk(c, t), f)
+      case v: BVar      => onVar(c, v)
+      case v: FVar      => v
+      case v: GVar      => v
+      case Abs(t2)      => Abs(walk(c + 1, t2))
+      case App(t1, t2)  => App(walk(c, t1), walk(c, t2))
+      case Let(t1, t2)  => Let(walk(c, t1), walk(c + 1, t2))
+      case Fix(t1)      => Fix(walk(c, t1))
+      case Case(t, bs)  => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
+      case Ctr(n, args) => Ctr(n, args.map(walk(c, _)))
     }
     walk(c, t)
   }
@@ -74,12 +72,10 @@ object Syntax {
         Let(walk(c, t1), walk(c + 1, t2))
       case Fix(t1) =>
         Fix(walk(c, t1))
-      case Case(t, bs) =>
-        Case(walk(c, t), bs.map { case (li, ti) => (li, walk(c + 1, ti)) })
+      case Case(t, bs)  => 
+        Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
       case Ctr(n, fs) =>
-        Ctr(n, fs.map { case (tagi, ti) => (tagi, walk(c, ti)) })
-      case DeCtr(t, f) =>
-        DeCtr(walk(c, t), f)
+        Ctr(n, fs.map(walk(c, _)))
     }
     walk(0, t)
   }
@@ -94,8 +90,7 @@ object Syntax {
     case Let(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth + 1)
     case Fix(t1)       => isFreeSubTerm(t1, depth)
     case Case(sel, bs) => isFreeSubTerm(sel, depth) && bs.forall(b => isFreeSubTerm(b._2, depth + 1))
-    case Ctr(n, fs)    => fs.forall(f => isFreeSubTerm(f._2, depth))
-    case DeCtr(t, f)   => isFreeSubTerm(t, depth)
+    case Ctr(n, fs)    => fs.forall(isFreeSubTerm(_, depth))
   }
 
   def findSubst(from: Term, to: Term): Option[Subst] = (from, to) match {
@@ -128,7 +123,7 @@ object Syntax {
       }
     case (Ctr(n1, fs1), Ctr(n2, fs2)) if n1 == n2 =>
       var sub: Option[Subst] = Some(Map())
-      for (((_, t1), (_, t2)) <- fs1.zip(fs2)) {
+      for ((t1, t2) <- fs1.zip(fs2)) {
         val sub1 = findSubst(t1, t2)
         sub = mergeOptSubst(sub, sub1)
       }
@@ -138,9 +133,8 @@ object Syntax {
 
   // can it be a variable we can abstract over?
   def isVar(t: Term): Boolean = t match {
-    case FVar(_)     => true
-    case DeCtr(_, _) => true
-    case _           => false
+    case FVar(_) => true
+    case _       => false
   }
 
   private def mergeOptSubst(s1: Option[Subst], s2: Option[Subst]): Option[Subst] =
@@ -177,10 +171,8 @@ object Syntax {
       case Fix(f) =>
         Fix(replace(f, t1, t2))
       case Ctr(n, fs) =>
-        val fs1 = fs.map { case (li, ti) => (li, replace(ti, t1, t2)) }
+        val fs1 = fs.map(replace(_, t1, t2))
         Ctr(n, fs1)
-      case DeCtr(c, f) =>
-        DeCtr(replace(c, t1, t2), f)
       case Case(sel, bs) =>
         val sel1 = replace(sel, t1, t2)
         val bs1 = bs.map { case (li, ti) => (li, replace(ti, t1, t2)) }
@@ -198,8 +190,7 @@ object Syntax {
     case App(t1, t2)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
     case Let(t1, t2)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
     case Fix(t1)       => freeVars(t1)
-    case Ctr(_, args)  => args.map(_._2).map(freeVars).flatten.distinct
-    case DeCtr(t1, _)  => freeVars(t1)
+    case Ctr(_, args)  => args.map(freeVars).flatten.distinct
     case Case(sel, bs) => (freeVars(sel) :: bs.map(_._2).map(freeVars)).flatten.distinct
   }
 

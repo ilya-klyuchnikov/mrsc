@@ -15,8 +15,8 @@ class DeforestationSuite extends FunSuite {
       """
       app = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, (app xs y))
         }; 
       """
     val goal: Term = "app <1> <2>"
@@ -33,8 +33,8 @@ class DeforestationSuite extends FunSuite {
       """
       app = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, (app xs y))
         }; 
       """
     val goal: Term = "app (app <1> <2>) <3> "
@@ -49,8 +49,8 @@ class DeforestationSuite extends FunSuite {
 
   test("constructor residuation") {
     val bindings: GContext = ""
-    val goal: Term = "Nil[]"
-    val expectedResult: Term = "Nil[]"
+    val goal: Term = "Nil()"
+    val expectedResult: Term = "Nil()"
     testExample(bindings, goal, expectedResult)
   }
 
@@ -63,7 +63,7 @@ class DeforestationSuite extends FunSuite {
 
   test("constructor with variables residuation") {
     val bindings: GContext = ""
-    val goal: Term = "Cons[head: <1>, tail: <2>]"
+    val goal: Term = "Cons(<1>, <2>)"
     val expectedResult: Term = goal
     testExample(bindings, goal, expectedResult)
   }
@@ -87,19 +87,19 @@ class DeforestationSuite extends FunSuite {
       """
       app = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, (app xs y))
         }; 
       """
     val rules = new Deforester(bindings)
     val goal: Term = "app <1> <2>"
 
-    val expectedResult: Term = 
+    val expectedResult: Term =
       """
       letrec h = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x.head, tail: (h x.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, h xs y)
         } in h <1> <2>
       """
     val graphs = GraphGenerator(rules, goal).toList
@@ -109,27 +109,27 @@ class DeforestationSuite extends FunSuite {
     info(result.toString())
     assert(expectedResult === result)
   }
-  
+
   test("append double deforestation") {
     val bindings: GContext =
       """
-       
       """
     val rules = new Deforester(bindings)
-    val goal: Term = """
+    val goal: Term =
+      """
       letrec h = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x.head, tail: (h x.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, h xs y)
         } in h <1> <2>
       """
 
-    val expectedResult: Term = 
+    val expectedResult: Term =
       """
       letrec h = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x.head, tail: (h x.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, h xs y)
         } in h <1> <2>
       """
     val graphs = GraphGenerator(rules, goal).toList
@@ -139,58 +139,30 @@ class DeforestationSuite extends FunSuite {
     info(result.toString())
     assert(expectedResult === result)
   }
-  
-  test("append residuation2") {
-    val bindings: GContext =
-      """
-      app = \x -> \y ->
-        case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
-        }; 
-      """
-    val rules = new Deforester(bindings)
-    val goal: Term = "app <1> <2>"
 
-    val expectedResult: Term = 
-      """
-      letrec h = \x -> \y ->
-        case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (h x1.tail y)]
-        } in h <1> <2>
-      """
-    val graphs = GraphGenerator(rules, goal).toList
-    val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
-    val result: Term = Residuator2(tGraph).result
-    info(result.toString())
-    assert(expectedResult === result)
-  }
-  
   test("double append residuation") {
     val bindings: GContext =
       """
       app = \x -> \y ->
         case x of {
-          x1:Nil  -> y;
-          x1:Cons -> Cons[head: x1.head, tail: (app x1.tail y)]
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, (app xs y))
         }; 
       """
     val rules = new Deforester(bindings)
     val goal: Term = "app (app <1> <2>) <3>"
 
-    val expectedResult: Term = 
+    val expectedResult: Term =
       """
       letrec h0 = \x -> \y -> \z ->
         case x of {
-          x1:Nil  -> 
+          Nil()  -> 
               letrec h1 = \x -> \y ->
                 case x of {
-                  x1:Nil  -> y;
-                  x1:Cons -> Cons[head: x.head, tail: (h1 x.tail y)]
+                  Nil()  -> y;
+                  Cons(x, xs) -> Cons(x, h1 xs y)
                 } in h1 y z;
-          x1:Cons -> Cons[head: x.head, tail: (h0 x.tail y z)]
+          Cons(x, xs) -> Cons(x, h0 xs y z)
         } in h0 <1> <2> <3>
       """
     val graphs = GraphGenerator(rules, goal).toList
@@ -200,23 +172,23 @@ class DeforestationSuite extends FunSuite {
     info(result.toString())
     assert(expectedResult === result)
   }
-  
+
   test("flip residuation") {
     val bindings: GContext =
       """
       flip = \zt -> case zt of {
-            z1: Leaf   -> Leaf[leaf: z1.leaf];
-            z1: Branch -> Branch[left: (flip z1.right), right: (flip z1.left)]
+        Leaf(z)   -> Leaf(z);
+        Branch(xt, yt) -> Branch(flip yt, flip xt)
       };
       """
     val rules = new Deforester(bindings)
     val goal: Term = "flip (flip <1>)"
 
-    val expectedResult: Term = 
+    val expectedResult: Term =
       """
       letrec h1 = \zt -> case zt of {
-            z1: Leaf   -> Leaf[leaf: zt.leaf];
-            z1: Branch -> Branch[left: (h1 zt.left), right: (h1 zt.right)]
+        Leaf(z)   -> Leaf(z);
+        Branch(xt, yt) -> Branch(h1 xt, h1 yt)
       } in h1 <1>
       """
     val graphs = GraphGenerator(rules, goal).toList

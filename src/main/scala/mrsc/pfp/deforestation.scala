@@ -7,14 +7,21 @@ abstract sealed trait DeforestStep
 case object TransientStep extends DeforestStep {
   override def toString = "->"
 }
-case class CaseBranch(term: Term, tag: String) extends DeforestStep {
-  override def toString = term + " = " + tag
+case class CaseBranch(term: Term, ptr: Ptr, alt: Ctr) extends DeforestStep {
+  override def toString = term + " = " + alt
 }
-case class CtrArg(label: String) extends DeforestStep {
-  override def toString = label
+case object CtrArg extends DeforestStep {
+  override def toString = ""
 }
 
 case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep] {
+  // TODO: dirty hack for now (not functional approach)
+  var freeVar: Int = 30
+  private def nextVar(x: Any = null): FVar = {
+    freeVar += 1
+    FVar(freeVar)
+  }
+
   override def steps(g: G): List[S] = fold(g) match {
     case Some(s) => List(s)
     case None    => List(drive(g))
@@ -28,8 +35,8 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       List((gc(n), TransientStep))
     case FVar(n) =>
       List()
-    case Ctr(n, fs) =>
-      fs.map(f => (f._2, CtrArg(f._1)))
+    case Ctr(n, args) =>
+      args.map(a => (a, CtrArg))
     case App(Abs(t1), t2) =>
       List((termSubstTop(t2, t1), TransientStep))
     case App(t1, t2) =>
@@ -42,36 +49,24 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
     case Fix(t1) =>
       for ((n, s) <- driveStep(t1))
         yield (Fix(n), s)
-    case DeCtr(Ctr(n, fs), f) =>
-      List((fs.find(_._1 == f).get._2, TransientStep))
-    case DeCtr(t1, f) =>
-      for ((n, s) <- driveStep(t1))
-        yield (DeCtr(n, f), s)
-    case Case(ctr @ Ctr(tag, fs), bs) =>
-      val Some((_, body)) = bs.find(_._1 == tag)
-      var t1 = termSubstTop(ctr, body)
-      for ((fi, ti) <- fs) {
-        t1 = replace(t1, DeCtr(ctr, fi), ti)
+    case Case(Ctr(name, args), bs) =>
+      val Some((ptr, body)) = bs.find(_._1.name == name)
+      val next = args.foldRight(body)(termSubstTop(_, _))
+      List((next, TransientStep))
+    case Case(t @ FVar(_), bs) =>
+      val bSteps = for { (ptr@Ptr(name, args), body) <- bs } yield {
+        val ctr = Ctr(name, args.map(nextVar))
+        val next = ctr.args.foldRight(body)(termSubstTop(_, _))
+        (next, CaseBranch(t, ptr, ctr))
       }
-      List((t1, TransientStep))
-    case Case(t1, bs) if isCaseable(t1) =>
-      // here we lose information about t1
-      val bSteps = for ((li, ti) <- bs)
-        yield (termSubstTop(t1, ti), CaseBranch(t1, li))
       bSteps
     case Case(t1, bs) =>
       for ((n, s) <- driveStep(t1))
         yield (Case(n, bs), s)
-    case Let(v@Fix(_), body) =>
+    case Let(v @ Fix(_), body) =>
       List((termSubstTop(v, body), TransientStep))
     case _ =>
       sys.error("unexpected term: " + t)
-  }
-
-  private def isCaseable(t: Term): Boolean = t match {
-    case FVar(_)      => true
-    case DeCtr(t1, _) => isCaseable(t1)
-    case _            => false
   }
 
   def fold(g: G): Option[S] = {

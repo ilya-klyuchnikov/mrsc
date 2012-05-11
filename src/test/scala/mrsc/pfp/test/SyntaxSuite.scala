@@ -32,8 +32,8 @@ class SyntaxSuite extends FunSuite {
 
     testSubst(
       """ \x -> <1>   <2> """,
-      """ \y -> Nil[] <3> """,
-      Some(Map[Term, Term](t("<1>") -> t("Nil[]"), t("<2>") -> t("<3>"))))
+      """ \y -> Nil() <3> """,
+      Some(Map[Term, Term](t("<1>") -> t("Nil()"), t("<2>") -> t("<3>"))))
 
     testSubst(
       """ \x -> <2> """,
@@ -57,28 +57,18 @@ class SyntaxSuite extends FunSuite {
 
     testSubst(
       """ <1> """,
-      """ <2>.tail """,
-      Some(Map(t("<1>") -> t("<2>.tail"))))
-
-    testSubst(
-      """ <1>.tail """,
       """ <2> """,
-      Some(Map(t("<1>.tail") -> t("<2>"))))
+      Some(Map(t("<1>") -> t("<2>"))))
 
     testSubst(
       """ app <11> <12> """,
       """ app <1> <2> """,
       Some(Map(t("<11>") -> t("<1>"), t("<12>") -> t("<2>"))))
-
-    testSubst(
-      """ app <11> <12> """,
-      """ app <1>.tail <12> """,
-      Some(Map(t("<11>") -> t("<1>.tail"))))
   }
 
   test("renaming #1") {
     val t1 = """ app <11> <12> """
-    val t2 = """ app <1>.tail <12> """
+    val t2 = """ app <1> <12> """
     val ren = Syntax.renaming(t1, t2)
     assert(ren === true)
   }
