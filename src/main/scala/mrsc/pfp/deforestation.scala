@@ -15,17 +15,13 @@ case object CtrArg extends DeforestStep {
 }
 
 case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep] {
-  // TODO: dirty hack for now (not functional approach)
-  var freeVar: Int = 30
+  var freeVar: Int = 10
   private def nextVar(x: Any = null): FVar = {
     freeVar += 1
     FVar(freeVar)
   }
 
-  override def steps(g: G): List[S] = fold(g) match {
-    case Some(s) => List(s)
-    case None    => List(drive(g))
-  }
+  override def steps(g: G): List[S] = List(fold(g) getOrElse drive(g))
 
   def drive(g: G): S =
     AddChildNodesStep(driveStep(g.current.conf))
@@ -54,12 +50,11 @@ case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep
       val next = args.foldRight(body)(termSubstTop(_, _))
       List((next, TransientStep))
     case Case(t @ FVar(_), bs) =>
-      val bSteps = for { (ptr@Ptr(name, args), body) <- bs } yield {
+      for { (ptr@Ptr(name, args), body) <- bs } yield {
         val ctr = Ctr(name, args.map(nextVar))
         val next = ctr.args.foldRight(body)(termSubstTop(_, _))
         (next, CaseBranch(t, ptr, ctr))
       }
-      bSteps
     case Case(t1, bs) =>
       for ((n, s) <- driveStep(t1))
         yield (Case(n, bs), s)
