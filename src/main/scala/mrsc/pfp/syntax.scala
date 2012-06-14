@@ -195,3 +195,11 @@ object Syntax {
   }
 
 }
+
+trait VarGen {
+  var freeVar: Int = 10
+  def nextVar(x: Any = ()): FVar = {
+    freeVar += 1
+    FVar(freeVar)
+  }
+}

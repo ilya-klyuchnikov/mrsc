@@ -14,12 +14,7 @@ case object CtrArg extends DeforestStep {
   override def toString = ""
 }
 
-case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep] {
-  var freeVar: Int = 10
-  private def nextVar(x: Any = null): FVar = {
-    freeVar += 1
-    FVar(freeVar)
-  }
+case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep] with VarGen {
 
   override def steps(g: G): List[S] = List(fold(g) getOrElse drive(g))
 
