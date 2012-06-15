@@ -2,7 +2,7 @@ package mrsc.pfp
 
 import Syntax._
 
-case class Rebuilding(t: Term, s: Subst)
+case class Rebuilding(t: Term, sub: Subst)
 
 trait Rebuildings { self: VarGen =>
 

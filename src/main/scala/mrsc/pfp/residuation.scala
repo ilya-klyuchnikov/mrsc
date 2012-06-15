@@ -24,11 +24,11 @@ case class ResContext(l: List[Binding] = List()) {
   }
 }
 
-case class Residuator(val g: TGraph[Term, Step]) {
+case class Residuator(val g: TGraph[Term, Label]) {
 
   lazy val result: Term = fold(g.root, ResContext())
 
-  def fold(node: TNode[Term, Step], ctx: ResContext): Term = node.base match {
+  def fold(node: TNode[Term, Label], ctx: ResContext): Term = node.base match {
     case None if g.leaves.exists(_.base == Some(node.tPath)) =>
       val conf = node.conf
       val fvars = freeVars(node.conf)
@@ -51,7 +51,7 @@ case class Residuator(val g: TGraph[Term, Step]) {
       applySubst(t2, renaming)
   }
 
-  def construct(node: TNode[Term, Step], ctx: ResContext): Term = node.conf match {
+  def construct(node: TNode[Term, Label], ctx: ResContext): Term = node.conf match {
     case Ctr(n, _) =>
       val args: List[Term] = node.outs.map { case TEdge(child, _) => fold(child, ctx) }
       Ctr(n, args)
@@ -59,8 +59,8 @@ case class Residuator(val g: TGraph[Term, Step]) {
       v
     case _ =>
       node.outs match {
-        case bs @ (TEdge(n1, CaseBranch(sel, _, _)) :: _) =>
-          val bs1 = for (TEdge(n, CaseBranch(_, ptr, ctr)) <- bs) yield {
+        case bs @ (TEdge(n1, CaseBranchLabel(sel, _, _)) :: _) =>
+          val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- bs) yield {
             val extCtx = ctx.addBindings(ctr.args.map(TermBinding(_)))
             val rawFolded = fold(n, extCtx)
             val subst: Subst = freeVars(ctr).map { v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
