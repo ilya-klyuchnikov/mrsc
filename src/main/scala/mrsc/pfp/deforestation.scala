@@ -3,25 +3,14 @@ package mrsc.pfp
 import mrsc.core._
 import Syntax._
 
-abstract sealed trait DeforestStep
-case object TransientStep extends DeforestStep {
-  override def toString = "->"
-}
-case class CaseBranch(term: Term, ptr: Ptr, alt: Ctr) extends DeforestStep {
-  override def toString = term + " = " + alt
-}
-case object CtrArg extends DeforestStep {
-  override def toString = ""
-}
-
-case class Deforester(gc: GContext) extends GraphRewriteRules[Term, DeforestStep] with VarGen {
+case class Deforester(gc: GContext) extends GraphRewriteRules[Term, Step] with VarGen {
 
   override def steps(g: G): List[S] = List(fold(g) getOrElse drive(g))
 
   def drive(g: G): S =
     AddChildNodesStep(driveStep(g.current.conf))
 
-  def driveStep(t: Term): List[(Term, DeforestStep)] = t match {
+  def driveStep(t: Term): List[(Term, Step)] = t match {
     case GVar(n) =>
       List((gc(n), TransientStep))
     case FVar(n) =>

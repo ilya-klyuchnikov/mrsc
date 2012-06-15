@@ -24,11 +24,11 @@ case class ResContext(l: List[Binding] = List()) {
   }
 }
 
-case class Residuator(val g: TGraph[Term, DeforestStep]) {
+case class Residuator(val g: TGraph[Term, Step]) {
 
   lazy val result: Term = fold(g.root, ResContext())
 
-  def fold(node: TNode[Term, DeforestStep], ctx: ResContext): Term = node.base match {
+  def fold(node: TNode[Term, Step], ctx: ResContext): Term = node.base match {
     case None if g.leaves.exists(_.base == Some(node.tPath)) =>
       val conf = node.conf
       val fvars = freeVars(node.conf)
@@ -51,7 +51,7 @@ case class Residuator(val g: TGraph[Term, DeforestStep]) {
       applySubst(t2, renaming)
   }
 
-  def construct(node: TNode[Term, DeforestStep], ctx: ResContext): Term = node.conf match {
+  def construct(node: TNode[Term, Step], ctx: ResContext): Term = node.conf match {
     case Ctr(n, _) =>
       val args: List[Term] = node.outs.map { case TEdge(child, _) => fold(child, ctx) }
       Ctr(n, args)
