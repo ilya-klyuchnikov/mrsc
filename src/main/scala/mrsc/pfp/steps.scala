@@ -25,20 +25,20 @@ case class SubTermLabel(t: Term) extends Label {
 // MetaStep = Step of supercompiler.
 // Transformed into graph rewrite step.
 sealed trait MStep {
-  val graphStep: GraphRewriteStep[Term, Label]
+  val graphStep: GraphRewriteStep[MetaTerm, Label]
 }
-case class TransientMStep(next: Term) extends MStep {
-  val graphStep = AddChildNodesStep[Term, Label](List((next, TransientLabel)))
+case class TransientMStep(next: MetaTerm) extends MStep {
+  val graphStep = AddChildNodesStep[MetaTerm, Label](List((next, TransientLabel)))
 }
 case object StopMStep extends MStep {
-  val graphStep = CompleteCurrentNodeStep[Term, Label]()
+  val graphStep = CompleteCurrentNodeStep[MetaTerm, Label]()
 }
-case class DecomposeMStep[C](parts: List[Term]) extends MStep {
-  val graphStep = AddChildNodesStep[Term, Label](parts map { (_, CtrArgLabel) })
+case class DecomposeMStep[C](parts: List[MetaTerm]) extends MStep {
+  val graphStep = AddChildNodesStep[MetaTerm, Label](parts map { (_, CtrArgLabel) })
 }
 case class VariantsMStep(sel: Term, cases: List[(Ptr, Ctr, Term)]) extends MStep {
   val graphStep = {
     val ns = cases map { v => (v._3, CaseBranchLabel(sel, v._1, v._2)) }
-    AddChildNodesStep[Term, Label](ns)
+    AddChildNodesStep[MetaTerm, Label](ns)
   }
 }
