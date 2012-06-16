@@ -2,9 +2,9 @@ package mrsc.pfp
 
 import Syntax._
 
-trait Rebuildings { self: VarGen =>
+trait Rebuildings extends VarGen {
 
-  def rebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)
+  def termRebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)
 
   private def rebuild(e: Term, sub: Subst): List[Rebuilding] = {
 

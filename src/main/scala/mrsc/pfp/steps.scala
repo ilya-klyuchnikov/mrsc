@@ -42,3 +42,7 @@ case class VariantsMStep(sel: Term, cases: List[(Ptr, Ctr, Term)]) extends MStep
     AddChildNodesStep[MetaTerm, Label](ns)
   }
 }
+case class DecomposeRebuildingMStep(t: Rebuilding) extends MStep {
+  val ns = (t.t, TermSkelLabel) :: (t.sub.toList map { case (k, v) => (v, SubTermLabel(k)) })
+  val graphStep = AddChildNodesStep[MetaTerm, Label](ns)
+}
