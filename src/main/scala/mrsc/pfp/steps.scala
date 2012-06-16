@@ -15,10 +15,10 @@ case object CaseSelLabel extends Label
 case object CtrArgLabel extends Label {
   override def toString = ""
 }
-case object GenSkelLabel extends Label {
+case object TermSkelLabel extends Label {
   override def toString = "let"
 }
-case class GenPartLabel(t: Term) extends Label {
+case class SubTermLabel(t: Term) extends Label {
   override def toString = t + "->"
 }
 

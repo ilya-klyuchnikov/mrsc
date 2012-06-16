@@ -5,12 +5,8 @@ import mrsc.core._
 trait PFPSyntax {
   def subst(c: Term, sub: Subst): Term
   def findSubst(from: Term, to: Term): Option[Subst]
-  def rawRebuildings(c: Term): List[Rebuilding]
-  def translate(rebuilding: Rebuilding): Term
-  def trivialRb(c: Term)(rb: Rebuilding) =
-    (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
-  def rebuildings(c: Term): List[Term] =
-    rawRebuildings(c) filterNot trivialRb(c) map translate
+  def rebuildings(c: Term): List[Rebuilding]
+  def trivialRb(c: Term)(rb: Rebuilding) = (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
   def size(c: Term): Int
   val subclass: PartialOrdering[Term]
 }
@@ -25,7 +21,7 @@ trait Residuation {
 
 trait MutualGens extends PFPSyntax {
   def mutualGens(c1: Term, c2: Term): List[Rebuilding] = {
-    val nonTrivialRbs = rawRebuildings(c1) filterNot trivialRb(c1)
+    val nonTrivialRbs = rebuildings(c1) filterNot trivialRb(c1)
     nonTrivialRbs filter { rb => subclass.gteq(rb.t, c2) }
   }
 }

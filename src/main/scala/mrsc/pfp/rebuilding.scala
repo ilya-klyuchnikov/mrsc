@@ -2,8 +2,6 @@ package mrsc.pfp
 
 import Syntax._
 
-case class Rebuilding(t: Term, sub: Subst)
-
 trait Rebuildings { self: VarGen =>
 
   def rebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)

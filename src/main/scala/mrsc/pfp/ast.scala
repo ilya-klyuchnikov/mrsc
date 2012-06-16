@@ -1,12 +1,9 @@
 package mrsc.pfp
 
-// This is the core representation of 
-// a simple higher-order pure functional language.
-// The main purpose of this representation is to move
-// to use nameless variables as much as possible
-// in order to make easy normalization by super-
-// compilation and two-level supercompilation.
-sealed trait Term
+sealed trait MetaTerm
+case class Rebuilding(t: Term, sub: Subst) extends MetaTerm
+
+sealed trait Term extends MetaTerm
 
 // Nameless bound variable coded by means of de-Bruijn indices.
 // De-Bruijn indices are indexed from zero.
@@ -43,7 +40,6 @@ case class Let(v: Term, in: Term) extends Term
 // Term itself is represented as `BVar(0)` in `t`.
 case class Fix(t: Term) extends Term
 
-// Constructor with explicit labeling of its parts.
 case class Ctr(name: String, args: List[Term]) extends Term {
   override def toString = name + args.mkString("(", ", ", ")")
 }
