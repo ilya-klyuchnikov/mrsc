@@ -52,7 +52,7 @@ object Decomposition {
 
   private def headVar(app: App): FVar = app.t1 match {
     case v: FVar => v
-    case a: App  => headVar(app)
+    case a: App  => headVar(a)
     case _       => null
   }
 }

@@ -28,10 +28,18 @@ trait Folding extends PFPRules with PFPSyntax {
     g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S } toList
 }
 
+trait NoWhistle extends PFPRules {
+  override def inspect(g: G): Signal = None
+}
+
 trait BinaryWhistle extends PFPRules {
   val ordering: PartialOrdering[MetaTerm]
   override def inspect(g: G): Signal =
     g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
+}
+
+trait NoRebuildings extends PFPRules with PFPSyntax {
+  override def rebuild(signal: Option[N], g: G) = List()
 }
 
 trait AllRebuildings extends PFPRules with PFPSyntax {
