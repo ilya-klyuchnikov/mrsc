@@ -23,6 +23,20 @@ trait Driving extends PFPRules with PFPSemantics {
     List(driveStep(g.current.conf).graphStep)
 }
 
+trait PositiveDriving extends PFPRules with PFPSyntax with PFPSemantics {
+  override def drive(signal: Signal, g: G): List[S] = {
+    val ds = driveStep(g.current.conf) match {
+      case VariantsMStep(sel, bs) =>
+        val bs1 = bs map { case (ptr, ctr, next) => (ptr, ctr, subst(next, Map(sel -> ctr))) }
+        VariantsMStep(sel, bs1)
+      case s =>
+        s
+    }
+    List(ds.graphStep)
+  }
+
+}
+
 trait Folding extends PFPRules with PFPSyntax {
   override def fold(signal: Signal, g: G): List[S] =
     g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S } toList
@@ -36,6 +50,14 @@ trait BinaryWhistle extends PFPRules {
   val ordering: PartialOrdering[MetaTerm]
   override def inspect(g: G): Signal =
     g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
+}
+
+trait HEWhistle extends BinaryWhistle {
+  override val ordering = HEOrdering
+}
+
+trait HEByCouplingWhistle extends BinaryWhistle {
+  override val ordering = HEByCouplingOrdering
 }
 
 trait NoRebuildings extends PFPRules with PFPSyntax {

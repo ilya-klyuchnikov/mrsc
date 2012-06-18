@@ -1,11 +1,5 @@
 package mrsc.pfp
 
-trait Homeomorphic {
-  def he(t1: MetaTerm, t2: MetaTerm) = heByDiving(t1, t2) || heByCoupling(t1, t2)
-  def heByDiving(t1: MetaTerm, t2: MetaTerm): Boolean
-  def heByCoupling(t1: MetaTerm, t2: MetaTerm): Boolean
-}
-
 // the strongest version of embedding
 object HE {
 
@@ -38,4 +32,12 @@ object HE {
     case _                                => false
   }
 
+}
+
+object HEOrdering extends SimplePartialOrdering[MetaTerm] {
+  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE.he(t1, t2)
+}
+
+object HEByCouplingOrdering extends SimplePartialOrdering[MetaTerm] {
+  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE.heByCoupling(t1, t2)
 }
