@@ -12,15 +12,7 @@ case class CaseBranchLabel(sel: Term, ptr: Ptr, alt: Ctr) extends Label {
   override def toString = sel + " = " + alt
 }
 case object CaseSelLabel extends Label
-case object CtrArgLabel extends Label {
-  override def toString = ""
-}
-case object TermSkelLabel extends Label {
-  override def toString = "let"
-}
-case class SubTermLabel(t: Term) extends Label {
-  override def toString = t + "->"
-}
+case class DecomposeLabel(compose: List[Term] => Term) extends Label
 
 // MetaStep = Step of supercompiler.
 // Transformed into graph rewrite step.
@@ -33,8 +25,9 @@ case class TransientMStep(next: MetaTerm) extends MStep {
 case object StopMStep extends MStep {
   val graphStep = CompleteCurrentNodeStep[MetaTerm, Label]()
 }
-case class DecomposeMStep[C](parts: List[MetaTerm]) extends MStep {
-  val graphStep = AddChildNodesStep[MetaTerm, Label](parts map { (_, CtrArgLabel) })
+case class DecomposeCtrMStep[C](ctr: Ctr) extends MStep {
+  val compose = (args: List[Term]) => Ctr(ctr.name, args)
+  val graphStep = AddChildNodesStep[MetaTerm, Label](ctr.args map { (_, DecomposeLabel(compose)) })
 }
 case class VariantsMStep(sel: Term, cases: List[(Ptr, Ctr, Term)]) extends MStep {
   val graphStep = {
@@ -42,7 +35,14 @@ case class VariantsMStep(sel: Term, cases: List[(Ptr, Ctr, Term)]) extends MStep
     AddChildNodesStep[MetaTerm, Label](ns)
   }
 }
+
 case class DecomposeRebuildingMStep(t: Rebuilding) extends MStep {
-  val ns = (t.t, TermSkelLabel) :: (t.sub.toList map { case (k, v) => (v, SubTermLabel(k)) })
-  val graphStep = AddChildNodesStep[MetaTerm, Label](ns)
+  val parts = t.sub.toList
+  val vals = parts.map { _._2 }
+  val fvs = parts.map { _._1 }
+  val compose = { (args: List[Term]) =>
+    val sub1 = Map(fvs zip args.tail: _*)
+    Syntax.applySubst(args.head, sub1)
+  }
+  val graphStep = AddChildNodesStep[MetaTerm, Label]((t.t :: vals) map { (_, DecomposeLabel(compose)) })
 }

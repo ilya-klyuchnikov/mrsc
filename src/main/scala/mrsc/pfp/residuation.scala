@@ -30,13 +30,10 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
 
   def fold(node: TNode[MetaTerm, Label], ctx: ResContext): Term = node.conf match {
     case rb: Rebuilding =>
-      val skel = node.outs.head.node
-      val skelFoldel = fold(skel, ctx)
-      val parts = node.outs.tail map {case TEdge(n, SubTermLabel(t)) => (t, n)}
-      val vars = parts map {_._1}
-      val foldedParts = parts map {_._2} map {fold(_, ctx)}
-      val subst = Map(vars zip foldedParts:_*)
-      Syntax.applySubst(skelFoldel, subst)
+      val TEdge(_, DecomposeLabel(comp)) = node.outs.head
+      val subnodes = node.outs map {case TEdge(n, _) => n}
+      val foldedParts = subnodes map {fold(_, ctx)}
+      comp(foldedParts)
     case conf: Term =>
       node.base match {
         case None if g.leaves.exists(_.base == Some(node.tPath)) =>
