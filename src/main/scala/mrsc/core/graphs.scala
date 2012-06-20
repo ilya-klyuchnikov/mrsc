@@ -125,9 +125,9 @@ object Transformations {
    levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
   def transpose[C, D, E](g: SGraph[C, D]): TGraph[C, D] = {
-    require(g.isComplete)
-    val allLeaves = g.completeLeaves
-    val allNodes = g.completeNodes
+    //require(g.isComplete)
+    val allLeaves = g.completeLeaves ++ g.incompleteLeaves
+    val allNodes = g.completeNodes ++ g.incompleteLeaves
     val orderedNodes = allNodes.sortBy(_.sPath)(PathOrdering)
     val rootNode = orderedNodes.head
 
