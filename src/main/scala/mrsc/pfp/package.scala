@@ -12,4 +12,11 @@ package object pfp {
 
   // substitution
   type Subst = Map[Term, Term]
+
+  implicit def t(s: String): Term =
+    PFPParsers().inputTerm(s)
+
+  implicit def bc(s: String): GContext =
+    PFPParsers().inputBindings(s)
+
 }
