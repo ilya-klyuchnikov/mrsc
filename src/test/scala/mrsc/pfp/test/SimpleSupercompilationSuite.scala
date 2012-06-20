@@ -12,9 +12,11 @@ class ClassicSC(val gc: GContext) extends PFPRules
   with PFPSyntax
   with PFPSemantics
   with PositiveDriving
+  with AllFoldingCandidates
   with Folding
+  with AllEmbeddingCandidates
   with HEByCouplingWhistle
-  with UpperMsgOrLowerMggOnBinaryWhistle
+  with LowerMsgOrUpperMsgOnBinaryWhistle
 
 @RunWith(classOf[JUnitRunner])
 class SimpleSupercompilationSuite extends FunSuite {

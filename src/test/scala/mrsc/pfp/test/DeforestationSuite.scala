@@ -11,6 +11,7 @@ case class Deforester(val gc: GContext) extends PFPRules
   with PFPSyntax
   with PFPSemantics
   with Driving
+  with AllFoldingCandidates
   with Folding
   with NoWhistle
   with NoRebuildings

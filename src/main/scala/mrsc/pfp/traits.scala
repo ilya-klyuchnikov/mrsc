@@ -34,22 +34,37 @@ trait PositiveDriving extends PFPRules with PFPSyntax with PFPSemantics {
     }
     List(ds.graphStep)
   }
-
 }
 
-trait Folding extends PFPRules with PFPSyntax {
+trait FoldingCandidates extends PFPRules {
+  def foldingCandidates(n: N): List[N]
+}
+
+trait AllFoldingCandidates extends FoldingCandidates {
+  override def foldingCandidates(n: N): List[N] = n.ancestors
+}
+
+trait Folding extends FoldingCandidates with PFPSyntax {
   override def fold(signal: Signal, g: G): List[S] =
-    g.current.ancestors.find { n => subclass.equiv(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S } toList
+    foldingCandidates(g.current) find { n => subclass.equiv(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S } toList
+}
+
+trait EmbeddingCandidates extends PFPRules {
+  def embeddingCandidates(n: N): List[N]
+}
+
+trait AllEmbeddingCandidates extends EmbeddingCandidates {
+  override def embeddingCandidates(n: N): List[N] = n.ancestors
 }
 
 trait NoWhistle extends PFPRules {
   override def inspect(g: G): Signal = None
 }
 
-trait BinaryWhistle extends PFPRules {
+trait BinaryWhistle extends EmbeddingCandidates {
   val ordering: PartialOrdering[MetaTerm]
   override def inspect(g: G): Signal =
-    g.current.ancestors find { n => ordering.lteq(n.conf, g.current.conf) }
+    embeddingCandidates(g.current) find { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
 trait HEWhistle extends BinaryWhistle {
@@ -158,6 +173,25 @@ trait UpperAllBinaryGensOrDriveOnBinaryWhistle extends PFPRules with MutualGens 
     }
 }
 
+trait UpperMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
+
+  override def rebuild(signal: Signal, g: G): List[S] = {
+    signal match {
+      case Some(upper) =>
+        val currentConf = g.current.conf
+        val upperConf = upper.conf
+        msg(upperConf, currentConf) match {
+          case Some(rb) =>
+            List(RollbackStep(upper.sPath, rb): S)
+          case None =>
+            throw new Exception("Cannot msg " + upperConf + " and " + currentConf)
+        }
+      case None =>
+        List()
+    }
+  }
+}
+
 trait UpperMsgOrLowerMggOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
 
   override def rebuild(signal: Signal, g: G): List[S] = {
@@ -215,6 +249,28 @@ trait LowerMsgOrDrivingOnBinaryWhistle extends PFPRules with MSG with BinaryWhis
   }
 }
 
+trait LowerMsgOrUpperMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
+
+  override def rebuild(signal: Signal, g: G) = signal match {
+    case Some(upper) =>
+      val lowerConf = g.current.conf
+      val upperConf = upper.conf
+      msg(lowerConf, upperConf) match {
+        case Some(rb) =>
+          List(RebuildStep(rb))
+        case None =>
+          msg(upperConf, lowerConf) match {
+            case Some(rb) =>
+              List(RollbackStep(upper.sPath, rb): S)
+            case None =>
+              throw new Exception("Cannot msg " + upperConf + " and " + lowerConf)
+          }
+      }
+    case None =>
+      List()
+  }
+}
+
 trait DoubleMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
 
   def rebuild(signal: Signal, g: G) = signal match {
@@ -227,3 +283,4 @@ trait DoubleMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
       List()
   }
 }
+
