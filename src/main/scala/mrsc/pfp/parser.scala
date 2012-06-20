@@ -20,7 +20,7 @@ case class PContext(l: List[String] = List()) {
 // See also https://github.com/ilya-klyuchnikov/tapl-scala for details.
 case class PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
   lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
-  lexical.reserved += ("case", "of", "let", "letrec", "in", "fix")
+  lexical.reserved += ("case", "of", "let", "letrec", "in")
 
   lazy val lcid: PackratParser[String] = ident ^? { case id if id.charAt(0).isLower => id }
   lazy val ucid: PackratParser[String] = ident ^? { case id if id.charAt(0).isUpper => id }
@@ -46,7 +46,7 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
 
   lazy val appTerm: PackratParser[Res[Term]] =
     appTerm ~ aTerm ^^ { case t1 ~ t2 => ctx: PContext => App(t1(ctx), t2(ctx)) } |
-      "fix" ~> aTerm ^^ { t => ctx: PContext => Fix(t(ctx)) } |
+      //"fix" ~> aTerm ^^ { t => ctx: PContext => Fix(t(ctx)) } |
       aTerm
 
   lazy val aTerm: PackratParser[Res[Term]] =
