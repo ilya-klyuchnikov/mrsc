@@ -38,6 +38,10 @@ trait PFPSemantics extends VarGen {
         StopMStep
       case ObservableCon(c) =>
         DecomposeCtrMStep(c)
+      case ObservableLam(l) =>
+        val fv = nextVar()
+        val body1 = termSubstTop(fv, l.t)
+        DecomposeLamMStep(body1, fv)
       case context @ Context(RedexCall(f)) =>
         TransientMStep(context.replaceHole(gc(f.n)))
       case context @ Context(RedexLamApp(Abs(t1), App(_, t2))) =>
