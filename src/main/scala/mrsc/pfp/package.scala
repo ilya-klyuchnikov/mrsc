@@ -11,7 +11,7 @@ package object pfp {
   type GContext = Map[String, Term]
 
   // substitution
-  type Subst = Map[Term, Term]
+  type Subst = Map[FVar, Term]
 
   implicit def t(s: String): Term =
     PFPParsers().inputTerm(s)

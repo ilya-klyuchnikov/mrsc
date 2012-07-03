@@ -23,7 +23,7 @@ class SyntaxSuite extends FunSuite {
     testSubst(
       """ \x -> <1> """,
       """ \y -> <2> """,
-      Some(Map[Term, Term](t("<1>") -> t("<2>"))))
+      Some(Map[FVar, Term](FVar(1) -> t("<2>"))))
 
     testSubst(
       """ \x -> <1> <1> """,
@@ -33,7 +33,7 @@ class SyntaxSuite extends FunSuite {
     testSubst(
       """ \x -> <1>   <2> """,
       """ \y -> Nil() <3> """,
-      Some(Map[Term, Term](t("<1>") -> t("Nil()"), t("<2>") -> t("<3>"))))
+      Some(Map[FVar, Term](FVar(1) -> t("Nil()"), FVar(2) -> t("<3>"))))
 
     testSubst(
       """ \x -> <2> """,
@@ -43,12 +43,12 @@ class SyntaxSuite extends FunSuite {
     testSubst(
       """ <1> """,
       """ \y ->  y """,
-      Some(Map(t("""<1>""") -> t("""\y -> y"""))))
+      Some(Map(FVar(1) -> t("""\y -> y"""))))
 
     testSubst(
       """ \x -> <1> """,
       """ \y ->  \z -> z """,
-      Some(Map(t("""<1>""") -> t("""\z -> z"""))))
+      Some(Map(FVar(1) -> t("""\z -> z"""))))
 
     testSubst(
       """ \x -> <1> """,
@@ -58,12 +58,12 @@ class SyntaxSuite extends FunSuite {
     testSubst(
       """ <1> """,
       """ <2> """,
-      Some(Map(t("<1>") -> t("<2>"))))
+      Some(Map(FVar(1) -> t("<2>"))))
 
     testSubst(
       """ app <11> <12> """,
       """ app <1> <2> """,
-      Some(Map(t("<11>") -> t("<1>"), t("<12>") -> t("<2>"))))
+      Some(Map(FVar(11) -> t("<1>"), FVar(12) -> t("<2>"))))
   }
 
   test("renaming #1") {

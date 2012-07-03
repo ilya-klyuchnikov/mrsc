@@ -9,7 +9,8 @@ object Syntax {
   // in which every *bound* variable has been replaced by the result of calling onVar on that variable.
   // c = initial "context depth"
   // onVar(c, v) - here c is current context depth
-  private def tmMap(onVar: (Int, BVar) => Term, c: Int, t: Term): Term = {
+  private def tmMap(onVar: (Int, BVar) => Term, t: Term): Term = {
+    // c - current context depth
     def walk(c: Int, t: Term): Term = t match {
       case v: BVar      => onVar(c, v)
       case v: FVar      => v
@@ -21,64 +22,40 @@ object Syntax {
       case Case(t, bs)  => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
       case Ctr(n, args) => Ctr(n, args.map(walk(c, _)))
     }
-    walk(c, t)
+    walk(0, t)
   }
 
-  // Def 6.2.1 
-  // The d-place shift of a term t above cutoff c.
-  // ↑dc (t)
-  def termShiftAbove(d: Int, c: Int, t: Term): Term = {
-    val f = { (c: Int, v: BVar) =>
-      if (v.i >= c) BVar(v.i + d) else BVar(v.i)
+  def applySubst(t: Term, s: Subst): Term = {
+    def walk(c: Int, t: Term): Term = t match {
+      case v: BVar                       => v
+      case v: FVar if s.get(v).isDefined => termShift(c, s(v))
+      case v: FVar                       => v
+      case v: GVar                       => v
+      case Abs(t2)                       => Abs(walk(c + 1, t2))
+      case App(t1, t2)                   => App(walk(c, t1), walk(c, t2))
+      case Let(t1, t2)                   => Let(walk(c, t1), walk(c + 1, t2))
+      case Fix(t1)                       => Fix(walk(c, t1))
+      case Case(t, bs)                   => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
+      case Ctr(n, fs)                    => Ctr(n, fs.map(walk(c, _)))
     }
-    tmMap(f, c, t)
+    walk(0, t)
   }
 
-  // The top level shift ↑d (t)
-  def termShift(d: Int, t: Term): Term =
-    termShiftAbove(d, 0, t)
+  // shifts unbound bvars by d
+  def termShift(d: Int, t: Term): Term = {
+    val f = { (c: Int, v: BVar) => if (v.i >= c) BVar(v.i + d) else BVar(v.i) }
+    tmMap(f, t)
+  }
 
-  // right now termSubst is called only with j = 0.
-  // Be careful with other cases!!
-  // What to do depends on what you mean! (See note in google docs.)
-  private def termSubst(j: Int, s: Term, t: Term): Term = {
-    val onVar = { (c: Int, v: BVar) =>
-      if (v.i == c) termShift(c, s) else v
-    }
-    tmMap(onVar, j, t)
+  // replaces BVar(0) in t by s
+  private def termSubst(s: Term, t: Term): Term = {
+    val onVar = { (c: Int, v: BVar) => if (v.i == c) termShift(c, s) else v }
+    tmMap(onVar, t)
   }
 
   // substitute s for 0-var in t
   def termSubstTop(s: Term, t: Term): Term =
-    termShift(-1, termSubst(0, termShift(1, s), t))
-
-  def applySubst(t: Term, s: Subst): Term = {
-    def walk(c: Int, t: Term): Term = t match {
-      case v @ BVar(i) if s.get(BVar(i + c)).isDefined =>
-        Syntax.termShift(c, s(BVar(i + c)))
-      case v: BVar =>
-        v
-      case v: FVar if s.get(v).isDefined =>
-        Syntax.termShift(c, s(v))
-      case v: FVar =>
-        v
-      case v: GVar =>
-        v
-      case Abs(t2) =>
-        Abs(walk(c + 1, t2))
-      case App(t1, t2) =>
-        App(walk(c, t1), walk(c, t2))
-      case Let(t1, t2) =>
-        Let(walk(c, t1), walk(c + 1, t2))
-      case Fix(t1) =>
-        Fix(walk(c, t1))
-      case Case(t, bs)  => 
-        Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
-      case Ctr(n, fs) =>
-        Ctr(n, fs.map(walk(c, _)))
-    }
-    walk(0, t)
-  }
+    termShift(-1, termSubst(termShift(1, s), t))
 
   // can this subterm be extracted?
   def isFreeSubTerm(t: Term, depth: Int = 0): Boolean = t match {
@@ -96,8 +73,8 @@ object Syntax {
   def findSubst(from: Term, to: Term): Option[Subst] = (from, to) match {
     case _ if from == to =>
       Some(Map())
-    case _ if isVar(from) && isFreeSubTerm(to, 0) =>
-      Some(Map(from -> to))
+    case (fv: FVar, _) if isFreeSubTerm(to, 0) =>
+      Some(Map(fv -> to))
     case (Abs(t1), Abs(t2)) =>
       findSubst(t1, t2)
     case (App(h1, t1), App(h2, t2)) =>
@@ -131,12 +108,6 @@ object Syntax {
     case _ => None
   }
 
-  // can it be a variable we can abstract over?
-  def isVar(t: Term): Boolean = t match {
-    case FVar(_) => true
-    case _       => false
-  }
-
   private def mergeOptSubst(s1: Option[Subst], s2: Option[Subst]): Option[Subst] =
     for (subst1 <- s1; subst2 <- s2; merged <- mergeSubst(subst1, subst2))
       yield merged
@@ -153,34 +124,6 @@ object Syntax {
   // brute-force testing for renaming
   def renaming(t1: Term, t2: Term): Boolean =
     findSubst(t1, t2).isDefined && findSubst(t2, t1).isDefined
-
-  // Replace every occurrence of t1 in t by t2
-  // We assume that both t1 and t2 are free subterms 
-  def replace(t: Term, t1: Term, t2: Term): Term = {
-    require(isFreeSubTerm(t1, 0))
-    require(isFreeSubTerm(t2, 0))
-    t match {
-      case _ if t == t1 =>
-        t2
-      case Abs(t3) =>
-        Abs(replace(t3, t1, t2))
-      case App(a1, a2) =>
-        App(replace(a1, t1, t2), replace(a2, t1, t2))
-      case Let(l1, l2) =>
-        Let(replace(l1, t1, t2), replace(l2, t1, t2))
-      case Fix(f) =>
-        Fix(replace(f, t1, t2))
-      case Ctr(n, fs) =>
-        val fs1 = fs.map(replace(_, t1, t2))
-        Ctr(n, fs1)
-      case Case(sel, bs) =>
-        val sel1 = replace(sel, t1, t2)
-        val bs1 = bs.map { case (li, ti) => (li, replace(ti, t1, t2)) }
-        Case(sel1, bs1)
-      case _ =>
-        t
-    }
-  }
 
   def freeVars(t: Term): List[FVar] = t match {
     case fv @ FVar(_)  => List(fv)
@@ -203,3 +146,4 @@ trait VarGen {
     FVar(freeVar)
   }
 }
+
