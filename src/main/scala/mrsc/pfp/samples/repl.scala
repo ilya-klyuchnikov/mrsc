@@ -14,7 +14,7 @@ class ClassicSC(val gc: GContext) extends PFPRules
   with HEByCouplingWhistle
   with LowerMsgOrUpperMsgOnBinaryWhistle
 
-object ClassicExamples {
+object REPL {
   
   var trace: Boolean = false
   
