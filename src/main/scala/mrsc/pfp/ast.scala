@@ -43,14 +43,11 @@ case class Fix(t: Term) extends Term
 case class Ctr(name: String, args: List[Term]) extends Term {
   override def toString = name + args.mkString("(", ", ", ")")
 }
-
-// 
+ 
 case class Case(sel: Term, branches: List[Branch]) extends Term {
   override def toString = "case " + sel + " of " + branches.map(b => b._1 + " -> " + b._2).mkString("{", "; ", "}")
 }
 
-// Pattern
-// We use de Bruijn notation for encoding variables in patterns.
 case class Ptr(name: String, args: List[String]) {
   override def toString = name + args.mkString("(", ", ", ")") 
 }

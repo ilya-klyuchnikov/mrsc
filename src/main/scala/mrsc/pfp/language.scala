@@ -13,9 +13,8 @@ trait PFPSyntax extends Rebuildings {
     case _       => List()
   }
 
-  def trivialRb(c: MetaTerm)(rb: Rebuilding) = (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
-  //TODO:
-  //def size(c: Term): Int = 0
+  def trivialRb(c: MetaTerm)(rb: Rebuilding) =
+    (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
 
   // here we mean subclass in semantical sense (as subset)
   val subclass: PartialOrdering[MetaTerm] = new SimplePartialOrdering[MetaTerm] {
@@ -48,11 +47,11 @@ trait PFPSemantics extends VarGen {
         TransientMStep(context.replaceHole(gc(f.n)))
       case context @ Context(RedexLamApp(Abs(t1), App(_, t2))) =>
         TransientMStep(context.replaceHole((termSubstTop(t2, t1))))
-      case context @ Context(RedexCaseCon(Ctr(name, args), Case(_, bs))) =>
+      case context @ Context(RedexCaseCtr(Ctr(name, args), Case(_, bs))) =>
         val Some((ptr, body)) = bs.find(_._1.name == name)
         val next = args.foldRight(body)(termSubstTop(_, _))
         TransientMStep(context.replaceHole(next))
-      case context @ Context(RedexCaseVar(v, Case(_, bs))) =>
+      case context @ Context(RedexCaseAlt(v, Case(_, bs))) =>
         val xs = for { (ptr @ Ptr(name, args), body) <- bs } yield {
           val ctr = Ctr(name, args.map(nextVar))
           val next = ctr.args.foldRight(body)(termSubstTop(_, _))

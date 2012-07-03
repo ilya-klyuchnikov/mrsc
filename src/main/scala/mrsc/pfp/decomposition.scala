@@ -8,23 +8,21 @@ case class ObservableAbs(l: Abs) extends TermDecomposition
 
 sealed abstract class Redex(term: Term)
 case class RedexLamApp(lam: Abs, app: App) extends Redex(app)
-case class RedexCaseCon(c: Ctr, ce: Case) extends Redex(ce)
 case class RedexCall(f: GVar) extends Redex(f)
 case class RedexLet(let: Let) extends Redex(let)
 case class RedexFix(fix: Fix) extends Redex(fix)
-case class RedexCaseVar(v: Term, ce: Case) extends Redex(ce)
+case class RedexCaseCtr(c: Ctr, ce: Case) extends Redex(ce)
+case class RedexCaseAlt(alt: Term, ce: Case) extends Redex(ce)
 
 abstract case class Context(val redex: Redex) extends TermDecomposition {
-  def replaceHole(t: Term): Term
+  def replaceHole(t: Term): Term = t
 }
-private class ContextHole(override val redex: Redex) extends Context(redex) {
-  def replaceHole(t: Term) = t
-}
+private class ContextHole(override val redex: Redex) extends Context(redex)
 private class ContextApp(head: Context, app: App) extends Context(head.redex) {
-  def replaceHole(t: Term) = App(head.replaceHole(t), app.t2)
+  override def replaceHole(t: Term) = App(head.replaceHole(t), app.t2)
 }
 private class ContextCase(selector: Context, ce: Case) extends Context(selector.redex) {
-  def replaceHole(t: Term) = Case(selector.replaceHole(t), ce.branches)
+  override def replaceHole(t: Term) = Case(selector.replaceHole(t), ce.branches)
 }
 
 object Decomposition {
@@ -48,9 +46,9 @@ object Decomposition {
     case let: Let                             => new ContextHole(RedexLet(let))
     case fix: Fix                             => new ContextHole(RedexFix(fix))
     case app @ App(l: Abs, arg)               => new ContextHole(RedexLamApp(l, app))
-    case ce @ Case(v: FVar, _)                => new ContextHole(RedexCaseVar(v, ce))
-    case ce @ Case(a: App, _) if headVar_?(a) => new ContextHole(RedexCaseVar(a, ce))
-    case ce @ Case(c: Ctr, _)                 => new ContextHole(RedexCaseCon(c, ce))
+    case ce @ Case(v: FVar, _)                => new ContextHole(RedexCaseAlt(v, ce))
+    case ce @ Case(a: App, _) if headVar_?(a) => new ContextHole(RedexCaseAlt(a, ce))
+    case ce @ Case(c: Ctr, _)                 => new ContextHole(RedexCaseCtr(c, ce))
     case ce @ Case(s, _)                      => new ContextCase(createContext(s), ce)
     case a @ App(h, _)                        => new ContextApp(createContext(h), a)
     case _                                    => sys.error("unexpected context: " + t)
