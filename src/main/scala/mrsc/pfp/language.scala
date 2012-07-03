@@ -51,21 +51,23 @@ trait PFPSemantics extends VarGen {
         val Some((ptr, body)) = bs.find(_._1.name == name)
         val next = args.foldRight(body)(termSubstTop(_, _))
         TransientMStep(context.replaceHole(next))
-      case context @ Context(RedexCaseAlt(v, Case(_, bs))) =>
+      case context @ Context(RedexCaseAlt(v: FVar, Case(_, bs))) =>
         val xs = for { (ptr @ Ptr(name, args), body) <- bs } yield {
           val ctr = Ctr(name, args.map(nextVar))
           val next = ctr.args.foldRight(body)(termSubstTop(_, _))
           (ptr, ctr, context.replaceHole(next))
         }
         VariantsMStep(v, xs)
+      case context @ Context(RedexCaseAlt(sel, Case(_, bs))) =>
+        val v = nextVar()
+        RebuildMStep(Rebuilding(context.replaceHole(v), Map(v -> sel)))
       case context @ Context(RedexFix(t1 @ Fix(Abs(body)))) =>
         TransientMStep(context.replaceHole(termSubstTop(t1, body)))
       case context @ Context(RedexFix(t1 @ Fix(_))) =>
         sys.error("unexpected term")
-      case context @ Context(RedexLet(Let(v @ Fix(_), body))) =>
+      case context @ Context(RedexLet(Let(v, body))) =>
         val red1 = termSubstTop(v, body)
         TransientMStep(context.replaceHole(red1))
-      case _ => sys.error("unexpected term: " + t)
     }
   }
 }

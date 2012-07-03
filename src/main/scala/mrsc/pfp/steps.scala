@@ -24,6 +24,9 @@ sealed trait MStep {
 case class TransientMStep(next: MetaTerm) extends MStep {
   val graphStep = AddChildNodesStep[MetaTerm, Label](List((next, TransientLabel)))
 }
+case class RebuildMStep(rb: Rebuilding) extends MStep {
+  val graphStep = RebuildStep[MetaTerm, Label](rb)
+}
 case object StopMStep extends MStep {
   val graphStep = CompleteCurrentNodeStep[MetaTerm, Label]()
 }
@@ -40,7 +43,7 @@ case class DecomposeVarApp(fv: FVar, args: List[Term]) extends MStep {
   val compose = (ls: List[Term]) => ls.reduce(App)
   val graphStep = AddChildNodesStep[MetaTerm, Label]((fv :: args) map { (_, DecomposeLabel(compose)) })
 }
-case class VariantsMStep(sel: Term, cases: List[(Ptr, Ctr, Term)]) extends MStep {
+case class VariantsMStep(sel: FVar, cases: List[(Ptr, Ctr, Term)]) extends MStep {
   val graphStep = {
     val ns = cases map { v => (v._3, CaseBranchLabel(sel, v._1, v._2)) }
     AddChildNodesStep[MetaTerm, Label](ns)
