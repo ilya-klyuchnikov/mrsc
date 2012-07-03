@@ -38,20 +38,8 @@ object tasks {
       """,
     "")
 
-  // generalizing supercompiled program!
   task(
-    "app3",
-    """
-      letrec h = \x -> \y ->
-        case x of {
-          Nil()  -> y;
-          Cons(x, xs) -> Cons(x, h xs y)
-        } in h <1> <1>
-      """,
-    "")
-
-  task(
-    "app4", "app <1> <1>",
+    "app3", "app <1> <1>",
 
     """
     app = \x -> \y ->
@@ -60,6 +48,18 @@ object tasks {
         Cons(x, xs) -> Cons(x, (app xs y))
       }; 
     """)
+
+  // generalizing supercompiled program!
+  task(
+    "app4",
+    """
+      letrec h = \x -> \y ->
+        case x of {
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, h xs y)
+        } in h <1> <1>
+      """,
+    "")
 
   task(
     "fix1",
@@ -74,6 +74,16 @@ object tasks {
     """
     fst = \p -> case p of { P(x, y) -> x };
     snd = \p -> case p of { P(x, y) -> y };
+    fix = \f -> f(fix f);
+    """)
+
+  task(
+    "fix3",
+    """fst (fix (\r -> t2 (A (snd r)) (B (fst r))))""",
+    """
+    t2 = \x -> \y -> \f -> f x y;
+    fst = \f -> f (\x -> \y -> x);
+    snd = \f -> f (\x -> \y -> y);
     fix = \f -> f(fix f);
     """)
 

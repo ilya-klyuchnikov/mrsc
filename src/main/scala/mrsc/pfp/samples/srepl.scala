@@ -4,19 +4,9 @@ import mrsc.core._
 import mrsc.pfp._
 import scala.annotation.tailrec
 
-class ClassicSC(val gc: GContext) extends PFPRules
-  with PFPSyntax
-  with PFPSemantics
-  with PositiveDriving
-  with AllFoldingCandidates
-  with Folding
-  with AllEmbeddingCandidates
-  with HEByCouplingWhistle
-  with UpperMsgOrLowerMggOnBinaryWhistle
-
-object REPL {
-
-  var trace: Boolean = false
+// REPL for interactive experiments with
+// single-result supercompilers
+object SREPL {
 
   def main(args: Array[String]) {
     loop()
@@ -24,54 +14,46 @@ object REPL {
 
   @tailrec
   private def loop() {
-    invite()
+    Console.print("pfpc > ")
     Console.readLine() match {
+      // quit
       case ":q" =>
         return
+      // clear console
       case ":c" =>
         clear()
-      case ":t" =>
+      // list all tasks
+      case ":ls" =>
         listTasks()
-      case ":trace+" =>
-        trace = true
-      case ":trace-" =>
-        trace = false
       case ":all" =>
         runAll()
+      // tracing the last supercompilation task
+      case ":trace" if history != null =>
+        clear()
+        trace()
+      // running task by name
       case name if tasks.tasks.get(name).isDefined =>
         val task = tasks(name)
         runTask(task)
-      case cmd =>
+      case _ =>
         Console.println("unknown cmd")
     }
     loop()
-  }
-
-  private def invite() {
-    if (trace)
-      Console.print("pfpc+> ")
-    else
-      Console.print("pfpc > ")
   }
 
   private def runTask(task: Task) {
     Console.println(task.name)
     Console.println(task.goal)
 
-    val rules = new ClassicSC(task.bindings)
-    val graphs = GraphGenerator(rules, task.goal, trace).toList
+    val rules = ClassicSC(task.bindings)
+    val graphs = GraphGenerator(rules, task.goal, true).toList
     val sGraph = graphs.head
     val tGraph = Transformations.transpose(sGraph)
-    
-    Console.println(tGraph)
-    
 
-    if (trace) {
-      history = Tracing.history(sGraph).reverse
-      current = -1
-      steps()
-    }
-    
+    history = Tracing.history(sGraph).reverse
+    current = -1
+
+    Console.println(tGraph)
     Console.print(Console.BOLD)
     val result = Residuator(tGraph).result
     Console.println(result.toString())
@@ -82,7 +64,7 @@ object REPL {
   var history: List[SGraph[_, _]] = _
 
   @tailrec
-  private def steps() {
+  private def trace() {
     Console.readLine() match {
       case "" if current < history.size - 1 =>
         clear()
@@ -99,7 +81,7 @@ object REPL {
       case _ =>
         return
     }
-    steps()
+    trace()
   }
 
   private def clear() {
@@ -110,7 +92,7 @@ object REPL {
 
   private def listTasks() {
     val ts = tasks.tasks.values.toList.sortBy(_.name)
-    ts map { t => Console.println(t.name) }
+    ts map { t => Console.println(t.name + ": " + t.goal) }
   }
 
   private def runAll() {

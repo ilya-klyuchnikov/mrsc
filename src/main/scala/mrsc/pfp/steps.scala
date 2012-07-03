@@ -12,7 +12,9 @@ case class CaseBranchLabel(sel: Term, ptr: Ptr, alt: Ctr) extends Label {
   override def toString = sel + " = " + alt
 }
 case object CaseSelLabel extends Label
-case class DecomposeLabel(compose: List[Term] => Term) extends Label
+case class DecomposeLabel(compose: List[Term] => Term) extends Label {
+  override def toString = ""
+}
 
 // MetaStep = Step of supercompiler.
 // Transformed into graph rewrite step.
