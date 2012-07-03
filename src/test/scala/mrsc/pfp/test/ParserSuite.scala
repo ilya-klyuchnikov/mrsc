@@ -47,10 +47,6 @@ class ParserSuite extends FunSuite {
       Let(Ctr("Nil", List()), Let(BVar(0), App(BVar(1), BVar(0)))))
   }
 
-  test("parsing fix") {
-    testTermParsing("""fix (\x -> x)""", Fix(Abs(BVar(0))))
-  }
-
   test("parsing letrec") {
     testTermParsing("""letrec x = x in x""", Let(Fix(Abs(BVar(0))), BVar(0)))
   }

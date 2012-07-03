@@ -27,64 +27,54 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
 
   lazy val result: Term = fold(g.root, ResContext())
 
-  def fold(node: TNode[MetaTerm, Label], ctx: ResContext): Term = node.outs match {
-    case TEdge(_, DecomposeLabel(comp)) :: _ =>
-      val subnodes = node.outs map { case TEdge(n, _) => n }
-      val foldedParts = subnodes map { fold(_, ctx) }
-      comp(foldedParts)
-    case _ => node.conf match {
-      case conf: Term =>
-        node.base match {
-          case None if g.leaves.exists(_.base == Some(node.tPath)) =>
-            // TODO: parameterize it for lambda dropping!!
-            val fvars = freeVars(conf)
-            val app: Term = (BVar(0) :: fvars).reduceLeft(App)
-            val absBody = {
-              val extCtx = (ctx.addBinding(DefBinding(conf, app)) /: fvars)(_.addVar(_))
-              val rawBody = construct(node, extCtx)
-              val subst: Subst = freeVars(rawBody).map { fv => fv -> BVar(extCtx.indexForTerm(fv)) }.toMap
-              applySubst(rawBody, subst)
-            }
-            val abs = (Abs(absBody) /: fvars) { (a, _) => Abs(a) }
-            Let(Fix(abs), app)
-          case None =>
-            construct(node, ctx)
-          case Some(_) =>
-            val i = ctx.indexForTerm(conf)
-            val DefBinding(t1, t2) = ctx.getBinding(i)
-            val Some(renaming) = findSubst(t1, conf)
-            applySubst(t2, renaming)
-        }
-      case _ => sys.error("")
-    }
-
-  }
-
-  def construct(node: TNode[MetaTerm, Label], ctx: ResContext): Term = node.conf match {
-    case Ctr(n, _) =>
-      val args: List[Term] = node.outs.map { case TEdge(child, _) => fold(child, ctx) }
-      Ctr(n, args)
-    case v @ FVar(_) =>
-      v
-    case _ =>
-      node.outs match {
-        case bs @ (TEdge(n1, CaseBranchLabel(sel, _, _)) :: _) =>
-          val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- bs) yield {
-            // valuable for shifting previous exprs in context
-            val extCtx = ctx.addBindings(ctr.args.map(TermBinding(_)))
-            val rawFolded = fold(n, extCtx)
-            val subst: Subst = freeVars(ctr).map { v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
-            val folded = applySubst(rawFolded, subst)
-            (ptr, folded)
+  def fold(node: TNode[MetaTerm, Label], ctx: ResContext): Term = node.conf match {
+    case conf: Term =>
+      node.base match {
+        case None if g.leaves.exists(_.base == Some(node.tPath)) =>
+          // TODO: parameterize it for lambda dropping!!
+          val fvars = freeVars(conf)
+          val app: Term = (BVar(0) :: fvars).reduceLeft(App)
+          val absBody = {
+            val extCtx = (ctx.addBinding(DefBinding(conf, app)) /: fvars)(_.addVar(_))
+            val rawBody = construct(node, extCtx)
+            val subst: Subst = freeVars(rawBody).map { fv => fv -> BVar(extCtx.indexForTerm(fv)) }.toMap
+            applySubst(rawBody, subst)
           }
-          Case(sel, bs1)
-        case List(TEdge(n1, _)) =>
-          fold(n1, ctx)
-        case List() =>
-          node.conf match {
-            case t: Term => t
-            case c       => sys.error("unexpected " + c)
-          }
+          val abs = (Abs(absBody) /: fvars) { (a, _) => Abs(a) }
+          Let(Fix(abs), app)
+        case None =>
+          construct(node, ctx)
+        case Some(_) =>
+          val i = ctx.indexForTerm(conf)
+          val DefBinding(t1, t2) = ctx.getBinding(i)
+          val Some(renaming) = findSubst(t1, conf)
+          applySubst(t2, renaming)
       }
+    case _ => construct(node, ctx)
   }
+
+  def construct(node: TNode[MetaTerm, Label], ctx: ResContext): Term =
+    node.outs match {
+      case TEdge(_, DecomposeLabel(comp)) :: _ =>
+        val subnodes = node.outs map { case TEdge(n, _) => n }
+        val foldedParts = subnodes map { fold(_, ctx) }
+        comp(foldedParts)
+      case bs @ (TEdge(n1, CaseBranchLabel(sel, _, _)) :: _) =>
+        val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- bs) yield {
+          // valuable for shifting previous exprs in context
+          val extCtx = ctx.addBindings(ctr.args.map(TermBinding(_)))
+          val rawFolded = fold(n, extCtx)
+          val subst: Subst = freeVars(ctr).map { v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
+          val folded = applySubst(rawFolded, subst)
+          (ptr, folded)
+        }
+        Case(sel, bs1)
+      case List(TEdge(n1, _)) =>
+        fold(n1, ctx)
+      case List() =>
+        node.conf match {
+          case t: Term => t
+          case c       => sys.error("unexpected " + c)
+        }
+    }
 }

@@ -12,19 +12,19 @@ class ClassicSC(val gc: GContext) extends PFPRules
   with Folding
   with AllEmbeddingCandidates
   with HEByCouplingWhistle
-  with LowerMsgOrUpperMsgOnBinaryWhistle
+  with UpperMsgOrLowerMggOnBinaryWhistle
 
 object REPL {
-  
+
   var trace: Boolean = false
-  
+
   def main(args: Array[String]) {
     loop()
   }
 
   @tailrec
   private def loop() {
-    Console.print("pfpc> ")
+    invite()
     Console.readLine() match {
       case ":q" =>
         return
@@ -47,31 +47,61 @@ object REPL {
     loop()
   }
 
+  private def invite() {
+    if (trace)
+      Console.print("pfpc+> ")
+    else
+      Console.print("pfpc > ")
+  }
+
   private def runTask(task: Task) {
     Console.println(task.name)
     Console.println(task.goal)
-    
+
     val rules = new ClassicSC(task.bindings)
     val graphs = GraphGenerator(rules, task.goal, trace).toList
     val sGraph = graphs.head
     val tGraph = Transformations.transpose(sGraph)
-    val result = Residuator(tGraph).result
     
     Console.println(tGraph)
+    
+
+    if (trace) {
+      history = Tracing.history(sGraph).reverse
+      current = -1
+      steps()
+    }
+    
     Console.print(Console.BOLD)
+    val result = Residuator(tGraph).result
     Console.println(result.toString())
     Console.print(Console.RESET)
-    
-    if (trace) {
-      val traces = Tracing.history(sGraph).reverse
-      for (tr <- traces) {
-        val tg = Transformations.transpose(tr)
-        Console.println("+++")
-        Console.println(tg.toString)
-      }
-    }
   }
-  
+
+  var current = 0
+  var history: List[SGraph[_, _]] = _
+
+  @tailrec
+  private def steps() {
+    Console.readLine() match {
+      case "" if current < history.size - 1 =>
+        clear()
+        current += 1
+        val sGraph = history(current)
+        val tGraph = Transformations.transpose(sGraph)
+        Console.println(tGraph.toString)
+      case ":p" if current > 0 =>
+        clear()
+        current -= 1
+        val sGraph = history(current)
+        val tGraph = Transformations.transpose(sGraph)
+        Console.println(tGraph.toString)
+      case _ =>
+        return
+    }
+    steps()
+  }
+
   private def clear() {
     Console.println("\033[2J")
     Console.println("\033[0;0H")
@@ -82,9 +112,9 @@ object REPL {
     val ts = tasks.tasks.values.toList.sortBy(_.name)
     ts map { t => Console.println(t.name) }
   }
-  
+
   private def runAll() {
     val ts = tasks.tasks.values.toList.sortBy(_.name)
-    ts map {runTask}
+    ts map { runTask }
   }
 }

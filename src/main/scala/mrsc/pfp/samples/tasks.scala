@@ -9,12 +9,12 @@ object tasks {
   var tasks = Map[String, Task]()
 
   def apply(name: String): Task = tasks(name)
-  
+
   task(
-      "lam",
-      """\x -> x""",
-      "")
-  
+    "lam",
+    """\x -> x""",
+    "")
+
   task(
     "app1", "app <1> <2>",
 
@@ -49,6 +49,17 @@ object tasks {
         } in h <1> <1>
       """,
     "")
+
+  task(
+    "app4", "app <1> <1>",
+
+    """
+    app = \x -> \y ->
+      case x of {
+        Nil()  -> y;
+        Cons(x, xs) -> Cons(x, (app xs y))
+      }; 
+    """)
 
   task(
     "fix1",

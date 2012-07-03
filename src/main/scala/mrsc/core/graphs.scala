@@ -90,8 +90,6 @@ case class TNode[C, D](
     case Nil => this
     case i :: rp => outs(i).node.get(rp)
   }
-  
-  override def toString = GraphPrettyPrinter.toString(this)
 }
 
 /*! The labeled directed edge. `node` is a destination node; `D` is driving info.
@@ -110,9 +108,9 @@ case class TEdge[C, D](node: TNode[C, D], driveInfo: D)
  *`E` (extra information) is a type of extra label of a node (extra info). 
  * Extra information may be seen as an additional "instrumentation" of SC graph.
  */
-case class TGraph[C, D](root: TNode[C, D], leaves: List[TNode[C, D]]) {
+case class TGraph[C, D](root: TNode[C, D], leaves: List[TNode[C, D]], focus: Option[TPath] = None) {
   def get(tPath: TPath): TNode[C, D] = root.get(tPath)
-  override def toString = root.toString
+  override def toString = GraphPrettyPrinter.toString(this)
 }
 
 /*! Auxiliary data for transposing a graph into a transposed graph.
@@ -126,7 +124,6 @@ object Transformations {
    levels (the root is 0-level). Then graphs are produced from in bottom-up fashion.
    */
   def transpose[C, D, E](g: SGraph[C, D]): TGraph[C, D] = {
-    //require(g.isComplete)
     val allLeaves = g.completeLeaves ++ g.incompleteLeaves
     val allNodes = g.completeNodes ++ g.incompleteLeaves
     val orderedNodes = allNodes.sortBy(_.sPath)(PathOrdering)
@@ -138,7 +135,7 @@ object Transformations {
     val (tNodes, tLeaves) = subTranspose(sortedLevels, leafPathes)
     val nodes = tNodes map { _.node }
     val leaves = tLeaves map { _.node }
-    return TGraph(nodes(0), leaves)
+    return TGraph(nodes(0), leaves, Option(g.current).map(_.tPath))
   }
 
   // sub-transposes graph into transposed graph level-by-level
@@ -178,14 +175,24 @@ object Transformations {
 /*! Ad Hoc console pretty printer for graphs.
  */
 object GraphPrettyPrinter {
-  def toString(node: TNode[_, _], indent: String = ""): String = {
-    val sb = new StringBuilder(indent + "|__" + node.conf)
+  def toString(tg: TGraph[_, _]): String = {
+    val focus = tg.focus
+    toString(tg.root, focus)
+  }
+  
+  def toString(node: TNode[_, _], focus: Option[TPath], indent: String = ""): String = {
+    val sb = new StringBuilder()
+    
+    sb.append(indent + "|__" + node.conf)
     if (node.base.isDefined) {
       sb.append("*")
     }
+    if (focus == Some(node.tPath)) {
+      sb.append(" <===")
+    }
     for (edge <- node.outs) {
       sb.append("\n  " + indent + "|" + (if (edge.driveInfo != null) edge.driveInfo else ""))
-      sb.append("\n" + toString(edge.node, indent + "  "))
+      sb.append("\n" + toString(edge.node, focus, indent + "  "))
     }
     sb.toString
   }
