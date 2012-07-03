@@ -32,7 +32,8 @@ case class DecomposeCtrMStep(ctr: Ctr) extends MStep {
   val graphStep = AddChildNodesStep[MetaTerm, Label](ctr.args map { (_, DecomposeLabel(compose)) })
 }
 case class DecomposeAbsMStep(body: Term, fv: FVar) extends MStep {
-  val compose = (ls: List[Term]) => Abs(Syntax.applySubst(ls.head, Map(fv -> BVar(0))))
+  import Syntax._
+  val compose = (ls: List[Term]) => Abs(applySubst(termShift(1, ls.head), Map(fv -> BVar(0))))
   val graphStep = AddChildNodesStep[MetaTerm, Label](List((body, DecomposeLabel(compose))))
 }
 case class DecomposeVarApp(fv: FVar, args: List[Term]) extends MStep {
