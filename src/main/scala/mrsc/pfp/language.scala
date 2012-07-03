@@ -26,7 +26,7 @@ trait PFPSyntax extends Rebuildings {
   }
 }
 
-// note that this is w/o positive information propagation
+// Driving without positive information propagation
 trait PFPSemantics extends VarGen {
   import Syntax._
   val gc: GContext
@@ -38,10 +38,10 @@ trait PFPSemantics extends VarGen {
         StopMStep
       case ObservableCon(c) =>
         DecomposeCtrMStep(c)
-      case ObservableLam(l) =>
+      case ObservableAbs(l) =>
         val fv = nextVar()
         val body1 = termSubstTop(fv, l.t)
-        DecomposeLamMStep(body1, fv)
+        DecomposeAbsMStep(body1, fv)
       case ObservableVarApp(fv, args) =>
         DecomposeVarApp(fv, args)
       case context @ Context(RedexCall(f)) =>
@@ -70,12 +70,6 @@ trait PFPSemantics extends VarGen {
     }
   }
 }
-
-/*
-trait Residuation {
-  def residuate(graph: TGraph[Term, Label]): Term
-}
-*/
 
 trait MutualGens extends PFPSyntax {
   def mutualGens(c1: MetaTerm, c2: MetaTerm): List[Rebuilding] = {
