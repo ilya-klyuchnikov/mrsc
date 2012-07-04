@@ -1,7 +1,7 @@
 package mrsc.pfp
 
 import mrsc.core._
-import Syntax._
+import NamelessSyntax._
 
 sealed trait Binding
 case class DefBinding(term: Term, after: Term) extends Binding

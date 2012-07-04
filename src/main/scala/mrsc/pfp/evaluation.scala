@@ -1,6 +1,6 @@
 package mrsc.pfp
 
-import Syntax._
+import NamelessSyntax._
 
 // call-by-name step-by-step evaluation
 object CBNEval {

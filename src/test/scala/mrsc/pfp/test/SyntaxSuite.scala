@@ -10,7 +10,7 @@ import mrsc.pfp._
 class SyntaxSuite extends FunSuite {
   test("checking for extraction") {
     val t1: Term = """\x -> x"""
-    val extractable = Syntax.isFreeSubTerm(t1, 0)
+    val extractable = NamelessSyntax.isFreeSubTerm(t1, 0)
     info(extractable.toString())
   }
 
@@ -69,14 +69,14 @@ class SyntaxSuite extends FunSuite {
   test("renaming #1") {
     val t1 = """ app <11> <12> """
     val t2 = """ app <1> <12> """
-    val ren = Syntax.renaming(t1, t2)
+    val ren = NamelessSyntax.renaming(t1, t2)
     assert(ren === true)
   }
 
   private def testSubst(in1: String, in2: String, sub: Option[Subst]): Unit = {
     val t1: Term = in1
     val t2: Term = in2
-    val sub1 = Syntax.findSubst(t1, t2)
+    val sub1 = NamelessSyntax.findSubst(t1, t2)
     info(in1 + " ^ " + in2 + " = " + sub1)
     assert(sub1 === sub)
   }
