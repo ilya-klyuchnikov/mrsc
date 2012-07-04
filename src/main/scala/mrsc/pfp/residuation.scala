@@ -55,12 +55,12 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
 
   def construct(node: TNode[MetaTerm, Label], ctx: ResContext): Term =
     node.outs match {
-      case TEdge(_, DecomposeLabel(comp)) :: _ =>
+      case TEdge(n1, DecomposeLabel(comp)) :: _ =>
         val subnodes = node.outs map { case TEdge(n, _) => n }
         val foldedParts = subnodes map { fold(_, ctx) }
         comp(foldedParts)
-      case bs @ (TEdge(n1, CaseBranchLabel(sel, _, _)) :: _) =>
-        val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- bs) yield {
+      case TEdge(n1, CaseBranchLabel(sel, _, _)) :: _ =>
+        val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- node.outs) yield {
           // valuable for shifting previous exprs in context
           val extCtx = ctx.addBindings(ctr.args.map(TermBinding(_)))
           val rawFolded = fold(n, extCtx)
@@ -69,7 +69,9 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
           (ptr, folded)
         }
         Case(sel, bs1)
-      case List(TEdge(n1, _)) =>
+      case TEdge(n1, UnfoldLabel) :: Nil =>
+        fold(n1, ctx)
+      case TEdge(n1, TransientLabel) :: Nil =>
         fold(n1, ctx)
       case List() =>
         node.conf match {

@@ -44,7 +44,9 @@ trait PFPSemantics extends VarGen {
       case ObservableVarApp(fv, args) =>
         DecomposeVarApp(fv, args)
       case context @ Context(RedexCall(f)) =>
-        TransientMStep(context.replaceHole(gc(f.n)))
+        UnfoldMStep(context.replaceHole(gc(f.n)))
+      case context @ Context(RedexFix(t1 @ Fix(Abs(body)))) =>
+        UnfoldMStep(context.replaceHole(termSubstTop(t1, body)))
       case context @ Context(RedexLamApp(Abs(t1), App(_, t2))) =>
         TransientMStep(context.replaceHole((termSubstTop(t2, t1))))
       case context @ Context(RedexCaseCtr(Ctr(name, args), Case(_, bs))) =>
@@ -61,8 +63,6 @@ trait PFPSemantics extends VarGen {
       case context @ Context(RedexCaseAlt(sel, Case(_, bs))) =>
         val v = nextVar()
         RebuildMStep(Rebuilding(context.replaceHole(v), Map(v -> sel)))
-      case context @ Context(RedexFix(t1 @ Fix(Abs(body)))) =>
-        TransientMStep(context.replaceHole(termSubstTop(t1, body)))
       case context @ Context(RedexFix(t1 @ Fix(_))) =>
         sys.error("unexpected term")
       case context @ Context(RedexLet(Let(v, body))) =>

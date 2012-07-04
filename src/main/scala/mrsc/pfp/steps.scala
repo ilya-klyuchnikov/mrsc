@@ -8,10 +8,12 @@ sealed trait Label
 case object TransientLabel extends Label {
   override def toString = "->"
 }
+case object UnfoldLabel extends Label {
+  override def toString = "->*"
+}
 case class CaseBranchLabel(sel: Term, ptr: Ptr, alt: Ctr) extends Label {
   override def toString = sel + " = " + alt
 }
-case object CaseSelLabel extends Label
 case class DecomposeLabel(compose: List[Term] => Term) extends Label {
   override def toString = ""
 }
@@ -23,6 +25,9 @@ sealed trait MStep {
 }
 case class TransientMStep(next: MetaTerm) extends MStep {
   val graphStep = AddChildNodesStep[MetaTerm, Label](List((next, TransientLabel)))
+}
+case class UnfoldMStep(next: MetaTerm) extends MStep {
+  val graphStep = AddChildNodesStep[MetaTerm, Label](List((next, UnfoldLabel)))
 }
 case class RebuildMStep(rb: Rebuilding) extends MStep {
   val graphStep = RebuildStep[MetaTerm, Label](rb)
