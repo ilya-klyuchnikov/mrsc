@@ -155,7 +155,7 @@ trait VarGen {
 
 trait Rebuildings extends VarGen {
 
-  def termRebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)
+  protected def termRebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)
 
   private def rebuild(e: Term, sub: Subst): List[Rebuilding] = {
 
@@ -217,11 +217,24 @@ trait PFPSyntax extends Rebuildings {
   def findSubst(from: Term, to: Term): Option[Subst] =
     NamelessSyntax.findSubst(from, to)
   def rebuildings(t: MetaTerm): List[Rebuilding] = t match {
-    case t: Term => termRebuildings(t)
+    case t: Term => distinct(termRebuildings(t) filterNot trivialRb(t))
     case _       => List()
   }
-
-  def trivialRb(c: MetaTerm)(rb: Rebuilding) =
+  
+  private def distinct(rbs: List[Rebuilding]): List[Rebuilding] = {
+    var result: List[Rebuilding] = Nil
+    val seen = scala.collection.mutable.HashSet[Rebuilding]()
+    for (x <- rbs) {
+      if (seen.find(r => subclass.equiv(r.t, x.t)).isEmpty) {
+        result = x :: result
+        seen += x
+      }
+    }
+    result
+  }
+  
+  // forbid to extract a single variable
+  private def trivialRb(c: MetaTerm)(rb: Rebuilding) =
     (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
 
   // here we mean subclass in semantical sense (as subset)
@@ -270,7 +283,7 @@ trait PFPSemantics extends VarGen {
         VariantsMStep(v, xs)
       case context @ Context(RedexCaseAlt(sel, Case(_, bs))) =>
         val v = nextVar()
-        RebuildMStep(Rebuilding(context.replaceHole(v), Map(v -> sel)))
+        RebuildMStep(Rebuilding(context.replaceHole(Case(v, bs)), Map(v -> sel)))
       case context @ Context(RedexFix(t1 @ Fix(_))) =>
         sys.error("unexpected term")
       case context @ Context(RedexLet(Let(v, body))) =>
@@ -282,7 +295,7 @@ trait PFPSemantics extends VarGen {
 
 trait MutualGens extends PFPSyntax {
   def mutualGens(c1: MetaTerm, c2: MetaTerm): List[Rebuilding] = {
-    val nonTrivialRbs = rebuildings(c1) filterNot trivialRb(c1)
+    val nonTrivialRbs = rebuildings(c1)
     nonTrivialRbs filter { rb => subclass.gteq(rb.t, c2) }
   }
 }

@@ -80,15 +80,31 @@ trait NoRebuildings extends PFPRules with PFPSyntax {
 }
 
 trait AllRebuildings extends PFPRules with PFPSyntax {
-  override def rebuild(signal: Option[N], g: G) =
-    rebuildings(g.current.conf) map { RebuildStep(_): S }
+  override def rebuild(signal: Option[N], g: G) = {
+    val in = g.current.in
+    in match {
+      case SEdge(SNode(Rebuilding(_, _), _, _, _), _) =>
+        List()
+      case _ =>
+        rebuildings(g.current.conf) map { x => RebuildStep(x): S }
+    }
+  }
 }
 
-trait LowerRebuildingsOnBinaryWhistle extends PFPRules with PFPSyntax with BinaryWhistle {
+trait LowerRebuildingsOnBinaryWhistle extends AllRebuildings with BinaryWhistle {
   override def rebuild(signal: Signal, g: G) =
     signal match {
       case None    => List()
-      case Some(_) => rebuildings(g.current.conf) map { RebuildStep(_): S }
+      case Some(_) => super.rebuild(signal, g)
+    }
+}
+
+trait LowerAllBinaryGensOnBinaryWhistle extends PFPRules with MutualGens with BinaryWhistle {
+  override def rebuild(signal: Signal, g: G): List[S] =
+    signal match {
+      case None => List()
+      case Some(upper) =>
+        mutualGens(g.current.conf, upper.conf) map { RebuildStep(_): S }
     }
 }
 
@@ -114,21 +130,18 @@ trait DoubleRebuildingsOnBinaryWhistle extends PFPRules with PFPSyntax with Bina
     }
 }
 
-trait LowerAllBinaryGensOnBinaryWhistle extends PFPRules with MutualGens with BinaryWhistle {
-  override def rebuild(signal: Signal, g: G): List[S] =
-    signal match {
-      case None => List()
-      case Some(upper) =>
-        mutualGens(g.current.conf, upper.conf) map { RebuildStep(_): S }
-    }
-}
-
 trait UpperAllBinaryGensOnBinaryWhistle extends PFPRules with MutualGens with BinaryWhistle {
   override def rebuild(signal: Signal, g: G): List[S] =
     signal match {
       case None => List()
       case Some(upper) =>
-        mutualGens(upper.conf, g.current.conf) map { RollbackStep(upper.sPath, _): S }
+        val in = upper.in
+        in match {
+          case SEdge(SNode(Rebuilding(_, _), _, _, _), _) =>
+            List()
+          case _ =>
+            mutualGens(upper.conf, g.current.conf) map { RollbackStep(upper.sPath, _): S }
+        }
     }
 }
 
@@ -164,11 +177,17 @@ trait UpperAllBinaryGensOrDriveOnBinaryWhistle extends PFPRules with MutualGens 
     signal match {
       case None => List()
       case Some(upper) =>
-        val rollbacks = mutualGens(upper.conf, g.current.conf) map { RollbackStep(upper.sPath, _): S }
-        if (rollbacks.isEmpty) {
-          drive(signal, g)
-        } else {
-          rollbacks
+        val in = upper.in
+        in match {
+          case SEdge(SNode(Rebuilding(_, _), _, _, _), _) =>
+            List()
+          case _ =>
+            val rollbacks = mutualGens(upper.conf, g.current.conf) map { RollbackStep(upper.sPath, _): S }
+            if (rollbacks.isEmpty) {
+              drive(signal, g)
+            } else {
+              rollbacks
+            }
         }
     }
 }
@@ -203,7 +222,7 @@ trait UpperMsgOrLowerMggOnBinaryWhistle extends PFPRules with MSG with BinaryWhi
           case Some(rb) =>
             List(RollbackStep(upper.sPath, rb): S)
           case None =>
-            val cands = rebuildings(currentConf) filterNot trivialRb(currentConf)
+            val cands = rebuildings(currentConf)
             val mgg = cands find { case Rebuilding(c1, _) => cands forall { case Rebuilding(c2, _) => subclass.lteq(c2, c1) } }
             mgg.map(RebuildStep(_): S).toList
         }
@@ -224,7 +243,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle extends PFPRules with MSG with BinaryWhi
           case Some(rb) =>
             List(RebuildStep(rb): S)
           case None =>
-            val cands = rebuildings(upperConf) filterNot trivialRb(upperConf)
+            val cands = rebuildings(upperConf)
             val mgg = cands find { case Rebuilding(c1, _) => cands forall { case Rebuilding(c2, _) => subclass.lteq(c2, c1) } }
             mgg.map(RollbackStep(upper.sPath, _): S).toList
         }
