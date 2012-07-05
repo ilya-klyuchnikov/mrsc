@@ -59,11 +59,16 @@ class SyntaxSuite extends FunSuite {
       """ <1> """,
       """ <2> """,
       Some(Map(FVar(1) -> t("<2>"))))
-
+    
     testSubst(
       """ app <11> <12> """,
       """ app <1> <2> """,
       Some(Map(FVar(11) -> t("<1>"), FVar(12) -> t("<2>"))))
+
+    testSubst(
+      """ <2> <1> """,
+      """ <2> <1> """,
+      Some(Map()))
   }
 
   test("renaming #1") {

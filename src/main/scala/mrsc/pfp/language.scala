@@ -70,28 +70,30 @@ object NamelessSyntax {
     case Ctr(n, fs)    => fs.forall(isFreeSubTerm(_, depth))
   }
 
-  def findSubst(from: Term, to: Term): Option[Subst] = (from, to) match {
-    case _ if from == to =>
-      Some(Map())
+  def findSubst(from: Term, to: Term): Option[Subst] =
+    for (sub <- findSubst0(from, to))
+      yield sub.filter { case (k, v) => k != v }
+
+  def findSubst0(from: Term, to: Term): Option[Subst] = (from, to) match {
     case (fv: FVar, _) if isFreeSubTerm(to, 0) =>
       Some(Map(fv -> to))
     case (Abs(t1), Abs(t2)) =>
-      findSubst(t1, t2)
+      findSubst0(t1, t2)
     case (App(h1, t1), App(h2, t2)) =>
-      val s1 = findSubst(h1, h2)
-      val s2 = findSubst(t1, t2)
+      val s1 = findSubst0(h1, h2)
+      val s2 = findSubst0(t1, t2)
       mergeOptSubst(s1, s2)
     case (Let(v1, t1), Let(v2, t2)) =>
-      val s1 = findSubst(v1, v2)
-      val s2 = findSubst(t1, t2)
+      val s1 = findSubst0(v1, v2)
+      val s2 = findSubst0(t1, t2)
       mergeOptSubst(s1, s2)
     case (Fix(t1), Fix(t2)) =>
-      findSubst(t1, t2)
+      findSubst0(t1, t2)
     case (Case(sel1, bs1), Case(sel2, bs2)) =>
       if (bs1.map(_._1) == bs2.map(_._1)) {
-        var sub = findSubst(sel1, sel2)
+        var sub = findSubst0(sel1, sel2)
         for (((_, t1), (_, t2)) <- bs1.zip(bs2)) {
-          val sub1 = findSubst(t1, t2)
+          val sub1 = findSubst0(t1, t2)
           sub = mergeOptSubst(sub, sub1)
         }
         sub
@@ -101,10 +103,14 @@ object NamelessSyntax {
     case (Ctr(n1, fs1), Ctr(n2, fs2)) if n1 == n2 =>
       var sub: Option[Subst] = Some(Map())
       for ((t1, t2) <- fs1.zip(fs2)) {
-        val sub1 = findSubst(t1, t2)
+        val sub1 = findSubst0(t1, t2)
         sub = mergeOptSubst(sub, sub1)
       }
       sub
+    case (BVar(i), BVar(j)) if i == j =>
+      Some(Map())
+    case (GVar(i), GVar(j)) if i == j =>
+      Some(Map())
     case _ => None
   }
 
@@ -146,7 +152,6 @@ trait VarGen {
     FVar(freeVar)
   }
 }
-
 
 trait Rebuildings extends VarGen {
 
