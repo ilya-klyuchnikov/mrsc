@@ -14,6 +14,10 @@ case class PContext(l: List[String] = List()) {
     case -1 => throw new Exception("identifier " + s + " is unbound")
     case i  => i
   }
+  def index2Name(i: Int): String = l(i)
+  def pickFreshName(n: String, i: Int = 0): (PContext, String) =
+    if (isNameBound(n + i)) pickFreshName(n, i + 1)
+    else (addName(n + i), n + i)
 }
 
 // Parser is inspired by code for "Types and Programming Languages" by Pierce.
@@ -59,7 +63,7 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
     rep1sep(branch, ";") ^^ { cs => ctx: PContext => cs.map { c => c(ctx) } }
 
   lazy val branch: PackratParser[Res[Branch]] =
-    ptr ~ ("->" ~> term) ^^ { case (ptr@Ptr(name, bs)) ~ t => ctx: PContext => (ptr, t(ctx.addNames(bs.map(_.toString)))) }
+    ptr ~ ("->" ~> term) ^^ { case (ptr @ Ptr(name, bs)) ~ t => ctx: PContext => (ptr, t(ctx.addNames(bs.map(_.toString)))) }
 
   lazy val ptr: PackratParser[Ptr] =
     (ucid ~ ("(" ~> repsep(lcid, ",") <~ ")")) ^^ { case n ~ args => Ptr(n, args) }
@@ -73,5 +77,32 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
   def inputBindings(s: String) = phrase(bindings)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
     case t                 => sys.error(t.toString)
+  }
+}
+
+object NamedSyntax {
+  def named(t: Term, ctx: PContext = PContext()): String = t match {
+    case BVar(i)  => ctx.index2Name(i)
+    case fv: FVar => fv.toString
+    case gv: GVar => gv.toString
+    case Abs(t1) =>
+      val (ctx1, x) = ctx.pickFreshName("x")
+      "(\\" + x + " -> " + named(t1, ctx1) + ")"
+    case App(t1, t2) =>
+      "(" + named(t1, ctx) + " " + named(t2, ctx) + ")"
+    case Let(v, in) =>
+      val (ctx1, f) = ctx.pickFreshName("f")
+      "(let " + f + " = " + named(v, ctx1) + " in " + named(in, ctx1) + ")"
+    case Fix(Abs(t)) =>
+      named(t, ctx)
+    case Ctr(n, args) =>
+      n + args.map(named(_, ctx)).mkString("(", ", ", ")")
+    case Case(sel, bs) =>
+      "case " + named(sel, ctx) + " of " +
+        (bs.map {
+          case (p @ Ptr(n, args), t) =>
+            val (args1, ctx2) = args.foldLeft((List[String](), ctx)) { (acc, arg) => val (ctx1, a1) = acc._2.pickFreshName(arg); (acc._1 :+ a1, ctx1) }
+            Ptr(n, args1) + " -> " + named(t, ctx2)
+        }).mkString("{", "; ", "}")
   }
 }
