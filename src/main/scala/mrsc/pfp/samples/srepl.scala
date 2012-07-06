@@ -8,44 +8,20 @@ import scala.annotation.tailrec
 // single-result supercompilers
 object SREPL {
 
-  def main(args: Array[String]) {
-    loop()
-  }
-
-  @tailrec
-  private def loop() {
-    Console.print("pfpc > ")
-    Console.readLine() match {
-      // quit
-      case ":q" =>
-        return
-      // clear console
-      case ":c" =>
-        clear()
-      // list all tasks
-      case ":ls" =>
-        listTasks()
-      case ":all" =>
-        runAll()
-      // tracing the last supercompilation task
-      case ":trace" if history != null =>
-        clear()
-        trace()
-      // running task by name
-      case name if tasks.tasks.get(name).isDefined =>
-        val task = tasks(name)
-        runTask(task)
-      case _ =>
-        Console.println("unknown cmd")
+  def sc(sc: SC, t: String) {
+    if (!tasks.tasks.get(t).isDefined) {
+      Console.println("no such task")
+      return
     }
-    loop()
+    val task = tasks(t)
+    runTask(sc, task)
   }
 
-  private def runTask(task: Task) {
+  private def runTask(sc: SC, task: Task) {
     Console.println(task.name)
     Console.println(task.goal)
 
-    val rules = ClassicSC(task.bindings)
+    val rules = sc(task.bindings)
     val graphs = GraphGenerator(rules, task.goal, true).toList
     val sGraph = graphs.head
     val tGraph = Transformations.transpose(sGraph)
@@ -56,7 +32,8 @@ object SREPL {
     Console.println(tGraph)
     Console.print(Console.BOLD)
     val result = Residuator(tGraph).result
-    Console.println(result.toString())
+    Console.println(result)
+    Console.println(NamedSyntax.named(result))
     Console.print(Console.RESET)
   }
 
@@ -90,13 +67,13 @@ object SREPL {
     Console.flush()
   }
 
-  private def listTasks() {
+  def ls() {
     val ts = tasks.tasks.values.toList.sortBy(_.name)
     ts map { t => Console.println(t.name + ": " + t.goal) }
   }
 
-  private def runAll() {
+  def scAll(sc: SC) {
     val ts = tasks.tasks.values.toList.sortBy(_.name)
-    ts map { runTask }
+    ts map { runTask(sc, _) }
   }
 }
