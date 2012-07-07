@@ -76,12 +76,14 @@ object GraphGenerator {
         SGraph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes, prev)
       case RollbackStep(sPath, c) =>
         // it is possible to optimize this part
+        // if we keep history, then we can to find a graph
+        // where a node to rollback is a current node
         val to = g.current.ancestors.find(_.sPath == sPath).get
         def prune_?(n: SNode[C, D]) = n.tPath.startsWith(to.tPath)
         val node = to.copy(conf = c)
-        val completeNodes1 = g.completeNodes.remove(prune_?)
-        val completeLeaves1 = g.completeLeaves.remove(prune_?)
-        val incompleteLeaves1 = g.incompleteLeaves.tail.remove(prune_?)
+        val completeNodes1 = g.completeNodes.filterNot(prune_?)
+        val completeLeaves1 = g.completeLeaves.filterNot(prune_?)
+        val incompleteLeaves1 = g.incompleteLeaves.tail.filterNot(prune_?)
         SGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1, prev)
     }
   }
