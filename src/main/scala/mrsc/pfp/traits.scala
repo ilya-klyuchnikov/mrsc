@@ -469,12 +469,34 @@ trait LowerMsgOrUpperMsgOnBinaryWhistle extends PFPRules with MSGRebuildings wit
       val lowerConf = g.current.conf
       val upperConf = upper.conf
       msg(lowerConf, upperConf) match {
-        case Some(rb) if subclass.lt(lowerConf, rb.t) =>
+        case Some(rb) =>
           List(RebuildStep(rb))
         case None =>
           msg(upperConf, lowerConf) match {
-            case Some(rb) if subclass.lt(upperConf, rb.t) =>
+            case Some(rb) =>
               List(RollbackStep(upper.sPath, rb): S)
+            case None =>
+              throw new Exception("Cannot msg " + upperConf + " and " + lowerConf)
+          }
+      }
+    case None =>
+      List()
+  }
+}
+
+trait UpperMsgOrLowerMsgOnBinaryWhistle extends PFPRules with MSGRebuildings with BinaryWhistle {
+
+  override def rebuild(signal: Signal, g: G) = signal match {
+    case Some(upper) =>
+      val lowerConf = g.current.conf
+      val upperConf = upper.conf
+      msg(upperConf, lowerConf) match {
+        case Some(rb) =>
+          List(RollbackStep(upper.sPath, rb))
+        case None =>
+          msg(lowerConf, upperConf) match {
+            case Some(rb) =>
+              List(RebuildStep(rb))
             case None =>
               throw new Exception("Cannot msg " + upperConf + " and " + lowerConf)
           }
@@ -507,7 +529,7 @@ trait MutualGens extends RebuildingsGenerator {
 trait MSGRebuildings extends MSG with RebuildingsGenerator{
   import NamelessSyntax._
   def msg(c1: MetaTerm, c2: MetaTerm): Option[Rebuilding] = (c1, c2) match {
-    case (t1: Term, t2: Term) => termMSG(t1, t2)
+    case (t1: Term, t2: Term) => strictTermMSG(t1, t2)
     case _                    => None
   }
 }

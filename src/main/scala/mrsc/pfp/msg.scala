@@ -5,12 +5,15 @@ trait MSG extends VarGen {
 
   case class TMSG(term: Term, dSub: List[(FVar, Term, Term)])
 
-  def termMSG(term1: Term, term2: Term): Option[Rebuilding] =
+  private def termMSG(term1: Term, term2: Term): Option[Rebuilding] =
     for (gen <- generalize(term1, term2)) yield {
       val TMSG(gTerm, dSub) = simplify(gen)
       val s1 = dSub.map { case (v, e1, e2) => (v, e1) }
       Rebuilding(gTerm, Map(s1: _*))
     }
+  
+  def strictTermMSG(term1: Term, term2: Term): Option[Rebuilding] =
+    termMSG(term1, term2) filter {rb => subclass.lt(term1, rb.t)}
 
   private def generalize(e1: Term, e2: Term): Option[TMSG] = ((e1, e2) match {
 
