@@ -66,7 +66,7 @@ object NamelessSyntax {
     case App(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth)
     case Let(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth + 1)
     case Fix(t1)       => isFreeSubTerm(t1, depth)
-    case Case(sel, bs) => isFreeSubTerm(sel, depth) && bs.forall{ case (ptr, ti) => isFreeSubTerm(ti, ptr.args.size + 1)}
+    case Case(sel, bs) => isFreeSubTerm(sel, depth) && bs.forall{ case (ptr, ti) => isFreeSubTerm(ti, depth + ptr.args.size)}
     case Ctr(n, fs)    => fs.forall(isFreeSubTerm(_, depth))
   }
 
