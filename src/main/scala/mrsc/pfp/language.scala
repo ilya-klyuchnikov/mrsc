@@ -66,7 +66,7 @@ object NamelessSyntax {
     case App(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth)
     case Let(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth + 1)
     case Fix(t1)       => isFreeSubTerm(t1, depth)
-    case Case(sel, bs) => isFreeSubTerm(sel, depth) && bs.forall(b => isFreeSubTerm(b._2, depth + 1))
+    case Case(sel, bs) => isFreeSubTerm(sel, depth) && bs.forall{ case (ptr, ti) => isFreeSubTerm(ti, ptr.args.size + 1)}
     case Ctr(n, fs)    => fs.forall(isFreeSubTerm(_, depth))
   }
 
@@ -143,106 +143,21 @@ object NamelessSyntax {
     case Case(sel, bs) => (freeVars(sel) :: bs.map(_._2).map(freeVars)).flatten.distinct
   }
 
-}
-
-trait VarGen {
-  var freeVar: Int = 10
-  def nextVar(x: Any = ()): FVar = {
-    freeVar += 1
-    FVar(freeVar)
-  }
-}
-
-trait Rebuildings extends VarGen {
-
-  protected def termRebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)
-
-  private def rebuild(e: Term, sub: Subst): List[Rebuilding] = {
-
-    val rbs1: List[Rebuilding] = e match {
-      case Abs(body) =>
-        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
-          yield Rebuilding(Abs(t1), sub1)
-      case App(a1, a2) =>
-        for {
-          Rebuilding(t1, sub1) <- rebuild(a1, sub)
-          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
-        } yield Rebuilding(App(t1, t2), sub2)
-      case Let(a1, a2) =>
-        for {
-          Rebuilding(t1, sub1) <- rebuild(a1, sub)
-          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
-        } yield Rebuilding(Let(t1, t2), sub2)
-      case Fix(body) =>
-        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
-          yield Rebuilding(Fix(t1), sub1)
-      case Ctr(n, xs) =>
-        for { (ys, sub1) <- rebuild1(xs, sub) }
-          yield Rebuilding(Ctr(n, ys), sub1)
-      case Case(sel, bs) =>
-        val (pts, bodies) = bs.unzip
-        for {
-          Rebuilding(sel1, sub1) <- rebuild(sel, sub)
-          (bodies2, sub2) <- rebuild1(bodies, sub1)
-        } yield Rebuilding(Case(sel1, pts zip bodies2), sub2)
-      case _ =>
-        List(Rebuilding(e, sub))
-    }
-
-    // extracting a term itself if it is extractable 
-    val rbs2 =
-      if (NamelessSyntax.isFreeSubTerm(e)) {
-        val fn = nextVar()
-        List(Rebuilding(fn, sub + (fn -> e)))
-      } else
-        List()
-
-    // term is already extracted
-    val rbs3 = for { (k, e1) <- sub if e1 == e } yield Rebuilding(k, sub)
-
-    rbs1 ++ rbs2 ++ rbs3
-  }
-
-  // all combinations of rebuildings a list of expressions 
-  private def rebuild1(es: List[Term], sub: Subst): List[(List[Term], Subst)] =
-    (es :\ ((List[Term](), sub) :: Nil)) { (e, acc) =>
-      for { (es1, sub) <- acc; Rebuilding(t, sub1) <- rebuild(e, sub) } yield (t :: es1, sub1)
-    }
-}
-
-// delegating everything to syntax
-trait PFPSyntax extends Rebuildings {
-  def subst(c: Term, sub: Subst): Term =
-    NamelessSyntax.applySubst(c, sub)
-  def findSubst(from: Term, to: Term): Option[Subst] =
-    NamelessSyntax.findSubst(from, to)
-  def rebuildings(t: MetaTerm): List[Rebuilding] = t match {
-    case t: Term => distinct(termRebuildings(t) filterNot trivialRb(t))
-    case _       => List()
-  }
-  
-  private def distinct(rbs: List[Rebuilding]): List[Rebuilding] = {
-    var result: List[Rebuilding] = Nil
-    val seen = scala.collection.mutable.HashSet[Rebuilding]()
-    for (x <- rbs) {
-      if (seen.find(r => subclass.equiv(r.t, x.t)).isEmpty) {
-        result = x :: result
-        seen += x
-      }
-    }
-    result
-  }
-  
-  // forbid to extract a single variable
-  private def trivialRb(c: MetaTerm)(rb: Rebuilding) =
-    (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
-
   // here we mean subclass in semantical sense (as subset)
   val subclass: PartialOrdering[MetaTerm] = new SimplePartialOrdering[MetaTerm] {
     override def lteq(t1: MetaTerm, t2: MetaTerm) = (t1, t2) match {
       case (t1: Term, t2: Term) => findSubst(t2, t1).isDefined
       case _                    => false
     }
+  }
+  
+}
+
+trait VarGen {
+  var freeVar: Int = 100
+  def nextVar(x: Any = ()): FVar = {
+    freeVar += 1
+    FVar(freeVar)
   }
 }
 
@@ -293,20 +208,6 @@ trait PFPSemantics extends VarGen {
   }
 }
 
-trait MutualGens extends PFPSyntax {
-  def mutualGens(c1: MetaTerm, c2: MetaTerm): List[Rebuilding] = {
-    val nonTrivialRbs = rebuildings(c1)
-    nonTrivialRbs filter { rb => subclass.gteq(rb.t, c2) }
-  }
-}
-
-trait MSG extends MutualGens {
-  def msg(c1: MetaTerm, c2: MetaTerm): Option[Rebuilding] = {
-    val mutual = mutualGens(c1, c2)
-    mutual find { rb => mutual forall { other => subclass.lteq(rb.t, other.t) } }
-  }
-}
-
 trait SimplePartialOrdering[T] extends PartialOrdering[T] {
   override def tryCompare(x: T, y: T): Option[Int] = (lteq(x, y), lteq(y, x)) match {
     case (false, false) =>
@@ -319,3 +220,4 @@ trait SimplePartialOrdering[T] extends PartialOrdering[T] {
       Some(0)
   }
 }
+

@@ -2,6 +2,8 @@ package mrsc.pfp
 
 import mrsc.core._
 
+import NamelessSyntax._
+
 trait PFPRules extends MRSCRules[MetaTerm, Label] {
   type Signal = Option[N]
 
@@ -23,11 +25,11 @@ trait Driving extends PFPRules with PFPSemantics {
     List(driveStep(g.current.conf).graphStep)
 }
 
-trait PositiveDriving extends PFPRules with PFPSyntax with PFPSemantics {
+trait PositiveDriving extends PFPRules with PFPSemantics {
   override def drive(signal: Signal, g: G): List[S] = {
     val ds = driveStep(g.current.conf) match {
       case VariantsMStep(sel, bs) =>
-        val bs1 = bs map { case (ptr, ctr, next) => (ptr, ctr, subst(next, Map(sel -> ctr))) }
+        val bs1 = bs map { case (ptr, ctr, next) => (ptr, ctr, applySubst(next, Map(sel -> ctr))) }
         VariantsMStep(sel, bs1)
       case s =>
         s
@@ -44,7 +46,7 @@ trait AllFoldingCandidates extends FoldingCandidates {
   override def foldingCandidates(n: N): List[N] = n.ancestors
 }
 
-trait Folding extends FoldingCandidates with PFPSyntax {
+trait Folding extends FoldingCandidates {
   override def fold(signal: Signal, g: G): List[S] =
     foldingCandidates(g.current) find { n => subclass.equiv(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S } toList
 }
@@ -55,6 +57,37 @@ trait EmbeddingCandidates extends PFPRules {
 
 trait AllEmbeddingCandidates extends EmbeddingCandidates {
   override def embeddingCandidates(n: N): List[N] = n.ancestors
+}
+
+trait ControlEmbeddingCandidates extends EmbeddingCandidates {
+
+  override def embeddingCandidates(n: N): List[N] =
+    if (isGlobal(n)) {
+      n.ancestors.filter(isGlobal)
+    } else {
+      n.ancestors takeWhile { !isGlobal(_) } filter { !trivial(_) }
+    }
+
+  private def isGlobal(n: N): Boolean = n.conf match {
+    case t: Rebuilding => false
+    case t: Term =>
+      Decomposition.decompose(t) match {
+        case Context(RedexCaseAlt(_, _)) => true
+        case _                           => false
+      }
+  }
+
+  private def trivial(n: N): Boolean = n.conf match {
+    case t: Rebuilding => true
+    case t: Term =>
+      Decomposition.decompose(t) match {
+        case Context(RedexLamApp(lam, app)) => true
+        case Context(_)                     => false
+        // observable
+        case _                              => true
+      }
+  }
+
 }
 
 trait NoWhistle extends PFPRules {
@@ -75,11 +108,173 @@ trait HEByCouplingWhistle extends BinaryWhistle {
   override val ordering = HEByCouplingOrdering
 }
 
-trait NoRebuildings extends PFPRules with PFPSyntax {
+trait RebuildingsGenerator extends VarGen {
+
+  import NamelessSyntax._
+
+  def rebuildings(t: MetaTerm): List[Rebuilding] =
+    t match {
+      case t: Term => distinct(termRebuildings(t) filterNot trivialRb(t))
+      case _       => List()
+    }
+
+  private def distinct(rbs: List[Rebuilding]): List[Rebuilding] = {
+    var result: List[Rebuilding] = Nil
+    val seen = scala.collection.mutable.HashSet[Rebuilding]()
+    for (x <- rbs) {
+      if (seen.find(r => subclass.equiv(r.t, x.t)).isEmpty) {
+        result = x :: result
+        seen += x
+      }
+    }
+    result
+  }
+
+  private def trivialRb(c: MetaTerm)(rb: Rebuilding) =
+    (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
+
+  protected def termRebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)
+
+  private def rebuild(e: Term, sub: Subst): List[Rebuilding] = {
+
+    val rbs1: List[Rebuilding] = e match {
+      case Abs(body) =>
+        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+          yield Rebuilding(Abs(t1), sub1)
+      case App(a1, a2) =>
+        for {
+          Rebuilding(t1, sub1) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+        } yield Rebuilding(App(t1, t2), sub2)
+      case Let(a1, a2) =>
+        for {
+          Rebuilding(t1, sub1) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+        } yield Rebuilding(Let(t1, t2), sub2)
+      case Fix(body) =>
+        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+          yield Rebuilding(Fix(t1), sub1)
+      case Ctr(n, xs) =>
+        for { (ys, sub1) <- rebuild1(xs, sub) }
+          yield Rebuilding(Ctr(n, ys), sub1)
+      case Case(sel, bs) =>
+        val (pts, bodies) = bs.unzip
+        for {
+          Rebuilding(sel1, sub1) <- rebuild(sel, sub)
+          (bodies2, sub2) <- rebuild1(bodies, sub1)
+        } yield Rebuilding(Case(sel1, pts zip bodies2), sub2)
+      case _ =>
+        List(Rebuilding(e, sub))
+    }
+
+    // extracting a term itself if it is extractable 
+    val rbs2 =
+      if (NamelessSyntax.isFreeSubTerm(e)) {
+        val fn = nextVar()
+        List(Rebuilding(fn, sub + (fn -> e)))
+      } else
+        List()
+
+    // term is already extracted
+    val rbs3 = for { (k, e1) <- sub if e1 == e } yield Rebuilding(k, sub)
+
+    rbs1 ++ rbs2 ++ rbs3
+  }
+
+  // all combinations of rebuildings a list of expressions 
+  private def rebuild1(es: List[Term], sub: Subst): List[(List[Term], Subst)] =
+    (es :\ ((List[Term](), sub) :: Nil)) { (e, acc) =>
+      for { (es1, sub) <- acc; Rebuilding(t, sub1) <- rebuild(e, sub) } yield (t :: es1, sub1)
+    }
+}
+
+trait SizedRebuildingsGenerator extends RebuildingsGenerator {
+
+  import NamelessSyntax._
+
+  val genSize: Int
+
+  override def rebuildings(t: MetaTerm): List[Rebuilding] =
+    t match {
+      case t: Term => distinct(termRebuildings(t) filterNot trivialRb(t))
+      case _       => List()
+    }
+
+  private def distinct(rbs: List[Rebuilding]): List[Rebuilding] = {
+    var result: List[Rebuilding] = Nil
+    val seen = scala.collection.mutable.HashSet[Rebuilding]()
+    for (x <- rbs) {
+      if (seen.find(r => subclass.equiv(r.t, x.t)).isEmpty) {
+        result = x :: result
+        seen += x
+      }
+    }
+    result
+  }
+
+  private def trivialRb(c: MetaTerm)(rb: Rebuilding) =
+    (rb.sub.values.toSet + rb.t) exists { subclass.equiv(c, _) }
+
+  override protected def termRebuildings(t: Term): List[Rebuilding] = rebuild(t, Map.empty)
+
+  private def rebuild(e: Term, sub: Subst): List[Rebuilding] = {
+
+    val rbs1: List[Rebuilding] = e match {
+      case Abs(body) =>
+        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+          yield Rebuilding(Abs(t1), sub1)
+      case App(a1, a2) =>
+        for {
+          Rebuilding(t1, sub1) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+        } yield Rebuilding(App(t1, t2), sub2)
+      case Let(a1, a2) =>
+        for {
+          Rebuilding(t1, sub1) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+        } yield Rebuilding(Let(t1, t2), sub2)
+      case Fix(body) =>
+        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+          yield Rebuilding(Fix(t1), sub1)
+      case Ctr(n, xs) =>
+        for { (ys, sub1) <- rebuild1(xs, sub) }
+          yield Rebuilding(Ctr(n, ys), sub1)
+      case Case(sel, bs) =>
+        val (pts, bodies) = bs.unzip
+        for {
+          Rebuilding(sel1, sub1) <- rebuild(sel, sub)
+          (bodies2, sub2) <- rebuild1(bodies, sub1)
+        } yield Rebuilding(Case(sel1, pts zip bodies2), sub2)
+      case _ =>
+        List(Rebuilding(e, sub))
+    }
+
+    // extracting a term itself if it is extractable 
+
+    val rbs2 =
+      if (sub.size <= genSize && NamelessSyntax.isFreeSubTerm(e)) {
+        val fn = nextVar()
+        List(Rebuilding(fn, sub + (fn -> e)))
+      } else
+        List()
+
+    // term is already extracted
+    val rbs3 = for { (k, e1) <- sub if e1 == e } yield Rebuilding(k, sub)
+
+    rbs1 ++ rbs2 ++ rbs3
+  }
+
+  // all combinations of rebuildings a list of expressions 
+  private def rebuild1(es: List[Term], sub: Subst): List[(List[Term], Subst)] =
+    (es :\ ((List[Term](), sub) :: Nil)) { (e, acc) =>
+      for { (es1, sub) <- acc; Rebuilding(t, sub1) <- rebuild(e, sub) } yield (t :: es1, sub1)
+    }
+}
+trait NoRebuildings extends PFPRules {
   override def rebuild(signal: Option[N], g: G) = List()
 }
 
-trait AllRebuildings extends PFPRules with PFPSyntax {
+trait AllRebuildings extends PFPRules with RebuildingsGenerator {
   override def rebuild(signal: Option[N], g: G) = {
     val in = g.current.in
     in match {
@@ -108,7 +303,7 @@ trait LowerAllBinaryGensOnBinaryWhistle extends PFPRules with MutualGens with Bi
     }
 }
 
-trait UpperRebuildingsOnBinaryWhistle extends PFPRules with PFPSyntax with BinaryWhistle {
+trait UpperRebuildingsOnBinaryWhistle extends PFPRules with RebuildingsGenerator with BinaryWhistle {
   override def rebuild(signal: Signal, g: G) =
     signal match {
       case None        => List()
@@ -116,7 +311,7 @@ trait UpperRebuildingsOnBinaryWhistle extends PFPRules with PFPSyntax with Binar
     }
 }
 
-trait DoubleRebuildingsOnBinaryWhistle extends PFPRules with PFPSyntax with BinaryWhistle {
+trait DoubleRebuildingsOnBinaryWhistle extends PFPRules with RebuildingsGenerator with BinaryWhistle {
   override def rebuild(signal: Option[N], g: G) =
     signal match {
       case None =>
@@ -192,7 +387,7 @@ trait UpperAllBinaryGensOrDriveOnBinaryWhistle extends PFPRules with MutualGens 
     }
 }
 
-trait UpperMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
+trait UpperMsgOnBinaryWhistle extends PFPRules with MSGRebuildings with BinaryWhistle {
 
   override def rebuild(signal: Signal, g: G): List[S] = {
     signal match {
@@ -211,8 +406,7 @@ trait UpperMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
   }
 }
 
-trait UpperMsgOrLowerMggOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
-
+trait UpperMsgOrLowerMggOnBinaryWhistle extends PFPRules with MSGRebuildings with BinaryWhistle {
   override def rebuild(signal: Signal, g: G): List[S] = {
     signal match {
       case Some(upper) =>
@@ -232,8 +426,8 @@ trait UpperMsgOrLowerMggOnBinaryWhistle extends PFPRules with MSG with BinaryWhi
   }
 }
 
-trait LowerMsgOrUpperMggOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
-
+trait LowerMsgOrUpperMggOnBinaryWhistle extends PFPRules with MSGRebuildings with BinaryWhistle {
+  import NamelessSyntax._
   override def rebuild(signal: Signal, g: G): List[S] = {
     signal match {
       case Some(upper) =>
@@ -253,7 +447,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle extends PFPRules with MSG with BinaryWhi
   }
 }
 
-trait LowerMsgOrDrivingOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
+trait LowerMsgOrDrivingOnBinaryWhistle extends PFPRules with MSGRebuildings with BinaryWhistle {
 
   override def rebuild(signal: Signal, g: G) = signal match {
     case Some(upper) =>
@@ -268,18 +462,18 @@ trait LowerMsgOrDrivingOnBinaryWhistle extends PFPRules with MSG with BinaryWhis
   }
 }
 
-trait LowerMsgOrUpperMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
+trait LowerMsgOrUpperMsgOnBinaryWhistle extends PFPRules with MSGRebuildings with BinaryWhistle {
 
   override def rebuild(signal: Signal, g: G) = signal match {
     case Some(upper) =>
       val lowerConf = g.current.conf
       val upperConf = upper.conf
       msg(lowerConf, upperConf) match {
-        case Some(rb) =>
+        case Some(rb) if subclass.lt(lowerConf, rb.t) =>
           List(RebuildStep(rb))
         case None =>
           msg(upperConf, lowerConf) match {
-            case Some(rb) =>
+            case Some(rb) if subclass.lt(upperConf, rb.t) =>
               List(RollbackStep(upper.sPath, rb): S)
             case None =>
               throw new Exception("Cannot msg " + upperConf + " and " + lowerConf)
@@ -290,7 +484,7 @@ trait LowerMsgOrUpperMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhi
   }
 }
 
-trait DoubleMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
+trait DoubleMsgOnBinaryWhistle extends PFPRules with MSGRebuildings with BinaryWhistle {
 
   def rebuild(signal: Signal, g: G) = signal match {
     case Some(upper) =>
@@ -300,6 +494,21 @@ trait DoubleMsgOnBinaryWhistle extends PFPRules with MSG with BinaryWhistle {
       rollbacks.toList ++ rebuildings.toList
     case None =>
       List()
+  }
+}
+
+trait MutualGens extends RebuildingsGenerator {
+  def mutualGens(c1: MetaTerm, c2: MetaTerm): List[Rebuilding] = {
+    val nonTrivialRbs = rebuildings(c1)
+    nonTrivialRbs filter { rb => subclass.gteq(rb.t, c2) }
+  }
+}
+
+trait MSGRebuildings extends MSG with RebuildingsGenerator{
+  import NamelessSyntax._
+  def msg(c1: MetaTerm, c2: MetaTerm): Option[Rebuilding] = (c1, c2) match {
+    case (t1: Term, t2: Term) => termMSG(t1, t2)
+    case _                    => None
   }
 }
 

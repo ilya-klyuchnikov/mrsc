@@ -3,8 +3,7 @@ package mrsc.pfp.samples
 import mrsc.core._
 import mrsc.pfp._
 
-case class ClassicSC(val gc: GContext) extends PFPRules
-  with PFPSyntax
+case class SC1(val gc: GContext) extends PFPRules
   with PFPSemantics
   with PositiveDriving
   with AllFoldingCandidates
@@ -13,4 +12,15 @@ case class ClassicSC(val gc: GContext) extends PFPRules
   with HEByCouplingWhistle
   with UpperMsgOrLowerMggOnBinaryWhistle
   
-object ClassicSC extends SC
+object SC1 extends SC
+
+case class SC2(val gc: GContext) extends PFPRules
+  with PFPSemantics
+  with PositiveDriving
+  with AllFoldingCandidates
+  with Folding
+  with ControlEmbeddingCandidates
+  with HEByCouplingWhistle
+  with LowerMsgOrUpperMsgOnBinaryWhistle
+  
+object SC2 extends SC

@@ -9,7 +9,6 @@ import mrsc.pfp._
 
 // only UpperMsg??
 class ClassicSC(val gc: GContext) extends PFPRules
-  with PFPSyntax
   with PFPSemantics
   with PositiveDriving
   with AllFoldingCandidates

@@ -4,7 +4,6 @@ import mrsc.core._
 import mrsc.pfp._
 
 case class AllMSC(val gc: GContext) extends PFPRules
-  with PFPSyntax
   with PFPSemantics
   with Driving
   with AllFoldingCandidates
@@ -17,7 +16,6 @@ object AllMSC extends SC
 
 // All rebuildings but only on whistle
 case class MSC1(val gc: GContext) extends PFPRules
-  with PFPSyntax
   with PFPSemantics
   with Driving
   with AllFoldingCandidates
@@ -29,7 +27,6 @@ case class MSC1(val gc: GContext) extends PFPRules
 object MSC1 extends SC
 
 case class MSC2(val gc: GContext) extends PFPRules
-  with PFPSyntax
   with PFPSemantics
   with Driving
   with AllFoldingCandidates
@@ -41,7 +38,7 @@ case class MSC2(val gc: GContext) extends PFPRules
 object MSC2 extends SC
 
 case class MSC3(val gc: GContext) extends PFPRules
-  with PFPSyntax
+  //with PFPSyntax
   with PFPSemantics
   with Driving
   with AllFoldingCandidates
@@ -53,7 +50,6 @@ case class MSC3(val gc: GContext) extends PFPRules
 object MSC3 extends SC
 
 case class MSC4(val gc: GContext) extends PFPRules
-  with PFPSyntax
   with PFPSemantics
   with Driving
   with AllFoldingCandidates
@@ -64,3 +60,33 @@ case class MSC4(val gc: GContext) extends PFPRules
 
 object MSC4 extends SC
 
+case class MSC5(val gc: GContext) extends PFPRules
+  with SizedRebuildingsGenerator
+  with PFPSemantics
+  with Driving
+  with AllFoldingCandidates
+  with Folding
+  with AllEmbeddingCandidates
+  with HEWhistle
+  with AllRebuildings {
+
+  val genSize = 1
+}
+
+object MSC5 extends SC
+
+case class MSC6(val gc: GContext) extends PFPRules
+  with SizedRebuildingsGenerator
+  with PFPSemantics
+  with Driving
+  with AllFoldingCandidates
+  with Folding
+  with AllEmbeddingCandidates
+  with HEByCouplingWhistle
+  with UpperAllBinaryGensOnBinaryWhistle {
+
+  val genSize = 2
+}
+
+
+object MSC6 extends SC
