@@ -72,6 +72,7 @@ case class SGraph[C, D](
   
   val isComplete = incompleteLeaves.isEmpty
   val current = if (isComplete) null else incompleteLeaves.head
+  lazy val size: Int = completeNodes.size + incompleteLeaves.size
 }
 
 /*! `TNode[C, D, E]` is a very simple and straightforward implementation of

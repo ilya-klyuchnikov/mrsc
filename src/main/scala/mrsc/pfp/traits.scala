@@ -20,6 +20,15 @@ trait PFPRules extends MRSCRules[MetaTerm, Label] {
   }
 }
 
+trait SizeGraphFilter extends PFPRules {
+  val maxGraphSize: Int
+  override def steps(g: G): List[S] = 
+    if (g.size > maxGraphSize)
+      List()
+      else
+      super.steps(g)
+}
+
 trait Driving extends PFPRules with PFPSemantics {
   override def drive(signal: Signal, g: G): List[S] =
     List(driveStep(g.current.conf).graphStep)
