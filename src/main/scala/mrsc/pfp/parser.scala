@@ -95,6 +95,8 @@ object NamedSyntax {
       "(let " + f + " = " + named(v, ctx1) + " in " + named(in, ctx1) + ")"
     case Fix(Abs(t)) =>
       named(t, ctx)
+    case Fix(t) =>
+      "(fix " + named(t) + ")"
     case Ctr(n, args) =>
       n + args.map(named(_, ctx)).mkString("(", ", ", ")")
     case Case(sel, bs) =>
