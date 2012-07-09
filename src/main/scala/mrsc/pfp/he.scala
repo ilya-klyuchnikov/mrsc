@@ -7,6 +7,7 @@ object HE {
 
   def heByDiving(t1: MetaTerm, t2: MetaTerm): Boolean = t1 match {
     case rb: Rebuilding => false
+    case BVar(_) => false
     case _ => t2 match {
       case Ctr(_, args)     => args exists (he(t1, _))
       case Abs(body)        => he(t1, body)
