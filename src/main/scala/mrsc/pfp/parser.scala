@@ -4,8 +4,6 @@ import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
-// For now this PContext is used only during parsing.
-// We lookup corresponding indexes of bound variables.
 case class PContext(l: List[String] = List()) {
   def addName(s: String): PContext = PContext(s :: l)
   def addNames(names: List[String]): PContext = names.foldLeft(this)(_.addName(_))
@@ -20,8 +18,8 @@ case class PContext(l: List[String] = List()) {
     else (addName(n + i), n + i)
 }
 
-// Parser is inspired by code for "Types and Programming Languages" by Pierce.
-// See also https://github.com/ilya-klyuchnikov/tapl-scala for details.
+case class Task(name: String, goal: Term, bindings: GContext)
+
 case class PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
   lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
   lexical.reserved += ("case", "of", "let", "letrec", "in")
@@ -49,9 +47,7 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
     ("case" ~> term <~ "of") ~ ("{" ~> branches <~ "}") ^^ { case sel ~ bs => ctx: PContext => Case(sel(ctx), bs(ctx)) }
 
   lazy val appTerm: PackratParser[Res[Term]] =
-    appTerm ~ aTerm ^^ { case t1 ~ t2 => ctx: PContext => App(t1(ctx), t2(ctx)) } |
-      //"fix" ~> aTerm ^^ { t => ctx: PContext => Fix(t(ctx)) } |
-      aTerm
+    appTerm ~ aTerm ^^ { case t1 ~ t2 => ctx: PContext => App(t1(ctx), t2(ctx)) } | aTerm
 
   lazy val aTerm: PackratParser[Res[Term]] =
     "(" ~> term <~ ")" |
@@ -77,6 +73,23 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
   def inputBindings(s: String) = phrase(bindings)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
     case t                 => sys.error(t.toString)
+  }
+  lazy val task =
+    (topTerm <~ ";") ~ bindings
+
+  def taskFromFile(fileName: String): Task = {
+    import scala.util.parsing.input.{ CharArrayReader, StreamReader }
+    import java.io.{ File, FileReader }
+    import scala.io.Source
+    val text = Source.fromFile(fileName).mkString
+    val scanner = new lexical.Scanner(text)
+    phrase(task)(scanner) match {
+      case t if t.successful =>
+        val term ~ bs = t.get
+        Task(fileName, term, bs)
+      case t =>
+        sys.error(t.toString)
+    }
   }
 }
 
