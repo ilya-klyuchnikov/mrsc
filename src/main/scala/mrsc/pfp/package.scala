@@ -19,4 +19,6 @@ package object pfp {
   implicit def bc(s: String): GContext =
     PFPParsers().inputBindings(s)
 
+  // factory method for supercompilers
+  type PFPSC = GContext => PFPRules
 }

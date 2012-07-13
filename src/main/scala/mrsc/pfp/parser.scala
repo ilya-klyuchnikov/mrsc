@@ -18,7 +18,7 @@ case class PContext(l: List[String] = List()) {
     else (addName(n + i), n + i)
 }
 
-case class Task(name: String, goal: Term, bindings: GContext)
+case class Task(goal: Term, bindings: GContext)
 
 case class PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
   lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
@@ -74,22 +74,12 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
     case t if t.successful => t.get
     case t                 => sys.error(t.toString)
   }
-  lazy val task =
-    (topTerm <~ ";") ~ bindings
+  lazy val task: PackratParser[Task] =
+    (topTerm <~ ";") ~ bindings ^^ Task
 
-  def taskFromFile(fileName: String): Task = {
-    import scala.util.parsing.input.{ CharArrayReader, StreamReader }
-    import java.io.{ File, FileReader }
-    import scala.io.Source
-    val text = Source.fromFile(fileName).mkString
-    val scanner = new lexical.Scanner(text)
-    phrase(task)(scanner) match {
-      case t if t.successful =>
-        val term ~ bs = t.get
-        Task(fileName, term, bs)
-      case t =>
-        sys.error(t.toString)
-    }
+  def inputTask(s: String) = phrase(task)(new lexical.Scanner(s)) match {
+    case t if t.successful => t.get
+    case t                 => sys.error(t.toString)
   }
 }
 

@@ -11,7 +11,7 @@ object tasks {
   def apply(name: String): Task = tasks(name)
 
   task(
-    "lam",
+    "lam1",
     """\x -> x""",
     "")
 
@@ -38,6 +38,7 @@ object tasks {
       """,
     "")
 
+  // repeated variable  
   task(
     "app3", "app <1> <1>",
 
@@ -87,12 +88,46 @@ object tasks {
     fix = \f -> f(fix f);
     """)
 
-  // TODO: fix
   task(
     "iterate",
     """iterate (\n -> S(n)) <1>""",
     """
     iterate = \f -> \x -> Cons(x, (iterate f (f x)));
+    """)
+
+  task(
+    "rev",
+    """rev <1> """,
+    """
+    rev = \x ->
+      case x of {
+        Nil() -> Nil();
+        Cons(x1, xs) -> app (rev xs) Cons(x1, Nil())
+    };
+    app = \x -> \y ->
+      case x of {
+        Nil()  -> y;
+        Cons(x1, xs) -> Cons(x1, (app xs y))
+      };
+    """)
+
+  task(
+    "rev1",
+    """case 
+       case <5> of {Cons(p, q) -> app (rev q) Cons(p, Nil()); Nil() -> Nil()} 
+       of { Cons(r, s) -> Cons(r, (app s Cons(<4>, Nil() ))); Nil() -> Cons(<4>, Nil())}
+    """,
+    """
+    rev = \x ->
+      case x of {
+        Nil() -> Nil();
+        Cons(x1, xs) -> app (rev xs) Cons(x1, Nil())
+    };
+    app = \x -> \y ->
+      case x of {
+        Nil()  -> y;
+        Cons(x1, xs) -> Cons(x1, (app xs y))
+      };
     """)
 
   private def task(name: String, goal: Term, bindings: GContext): Unit = {
