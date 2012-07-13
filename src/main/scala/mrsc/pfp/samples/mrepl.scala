@@ -6,15 +6,11 @@ import scala.annotation.tailrec
 
 // REPL for interactive experiments with
 // single-result supercompilers
-object MREPL {
+object MRSC {
 
-  def msc(sc: SC, t: String) {
-    if (!tasks.tasks.get(t).isDefined) {
-      Console.println("no such task")
-      return
-    }
+  def run(f: String, sc: SC) {
     
-    val task = tasks(t)
+    val task = PFPParsers().taskFromFile(f)
     Console.println(task.name)
     Console.println(task.goal)
 
@@ -27,19 +23,21 @@ object MREPL {
       val tGraph = Transformations.transpose(sGraph)
       val result = Residuator(tGraph).result
 
-      Console.println(tGraph.toString())
-      Console.println(result.toString())
-      Console.println(NamedSyntax.named(result))
+      //Console.println(tGraph.toString())
+      //Console.println(result.toString())
+      //Console.println(NamedSyntax.named(result))
       count += 1
-      Console.println(count)
       uniques = uniques + result
-      Console.println("size = " + uniques.size)
+      Console.println("%s/%s".format(count, uniques.size))
     }
 
+    val results = uniques.toList.sortBy(_.size)
+    for {res <- results} {
+      Console.println(res)
+      Console.println(NamedSyntax.named(res))
+    }
+    
   }
 
-  def ls() {
-    val ts = tasks.tasks.values.toList.sortBy(_.name)
-    ts map { t => Console.println(t.name + ": " + t.goal) }
-  }
+  
 }

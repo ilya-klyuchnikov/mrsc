@@ -14,7 +14,7 @@ class ClassicSC(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEByCouplingWhistle
+  with HE3ByCouplingWhistle
   with UpperMsgOrLowerMggOnBinaryWhistle
 
 @RunWith(classOf[JUnitRunner])

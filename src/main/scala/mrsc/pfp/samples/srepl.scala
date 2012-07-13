@@ -26,22 +26,20 @@ object SREPL {
     val sGraph = graphs.head
     val tGraph = Transformations.transpose(sGraph)
 
-    history = Tracing.history(sGraph).reverse
+    history = history(sGraph).reverse
     current = -1
 
     Console.println(tGraph)
-    Console.print(Console.BOLD)
     val result = Residuator(tGraph).result
     Console.println(result)
     Console.println(NamedSyntax.named(result))
-    Console.print(Console.RESET)
   }
 
   var current = 0
   var history: List[SGraph[_, _]] = _
 
   @tailrec
-  private def trace() {
+  def trace() {
     Console.readLine() match {
       case "" if current < history.size - 1 =>
         clear()
@@ -76,4 +74,7 @@ object SREPL {
     val ts = tasks.tasks.values.toList.sortBy(_.name)
     ts map { runTask(sc, _) }
   }
+  
+  def history(g: SGraph[_, _]): List[SGraph[_, _]] =
+    g :: (g.prev.map(history).getOrElse(Nil))
 }

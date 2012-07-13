@@ -9,7 +9,7 @@ case class AllMSC(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEWhistle
+  with HE3Whistle
   with AllRebuildings
 
 object AllMSC extends SC
@@ -21,7 +21,7 @@ case class MSC1(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEWhistle
+  with HE3Whistle
   with LowerRebuildingsOnBinaryWhistle
 
 object MSC1 extends SC
@@ -32,7 +32,7 @@ case class MSC2(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEWhistle
+  with HE3Whistle
   with LowerAllBinaryGensOnBinaryWhistle
 
 object MSC2 extends SC
@@ -44,7 +44,7 @@ case class MSC3(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEByCouplingWhistle
+  with HE3ByCouplingWhistle
   with LowerAllBinaryGensOnBinaryWhistle
 
 object MSC3 extends SC
@@ -55,7 +55,7 @@ case class MSC4(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEByCouplingWhistle
+  with HE3ByCouplingWhistle
   with UpperAllBinaryGensOnBinaryWhistle
 
 object MSC4 extends SC
@@ -67,7 +67,7 @@ case class MSC5(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEWhistle
+  with HE3Whistle
   with AllRebuildings {
 
   val genSize = 1
@@ -82,11 +82,25 @@ case class MSC6(val gc: GContext) extends PFPRules
   with AllFoldingCandidates
   with Folding
   with AllEmbeddingCandidates
-  with HEByCouplingWhistle
+  with HE3ByCouplingWhistle
   with UpperAllBinaryGensOnBinaryWhistle {
-
   val genSize = 2
 }
 
 
 object MSC6 extends SC
+
+case class AllMSC1(val gc: GContext) extends PFPRules
+  with PFPSemantics
+  with Driving
+  with AllFoldingCandidates
+  with Folding
+  with AllEmbeddingCandidates
+  with HE3Whistle
+  with AllRebuildings
+  with SizeGraphFilter {
+  val maxGraphSize = 20
+}
+
+object AllMSC1 extends SC
+
