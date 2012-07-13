@@ -22,16 +22,27 @@ trait PFPRules extends MRSCRules[MetaTerm, Label] {
 
 trait SizeGraphFilter extends PFPRules {
   val maxGraphSize: Int
-  override def steps(g: G): List[S] = 
+  override def steps(g: G): List[S] =
     if (g.size > maxGraphSize)
       List()
-      else
+    else
       super.steps(g)
 }
 
 trait Driving extends PFPRules with PFPSemantics {
   override def drive(signal: Signal, g: G): List[S] =
     List(driveStep(g.current.conf).graphStep)
+}
+
+trait LetDriving extends PFPRules with PFPSemantics {
+  override def drive(signal: Signal, g: G): List[S] = {
+    val mstep = driveStep(g.current.conf) match {
+      case DecomposeRebuildingMStep(rb) =>
+        FreezeRebuildingMStep(rb)
+      case ms => ms
+    }
+    List(mstep.graphStep)
+  }
 }
 
 trait PositiveDriving extends PFPRules with PFPSemantics {
@@ -536,7 +547,7 @@ trait MutualGens extends RebuildingsGenerator {
   }
 }
 
-trait MSGRebuildings extends MSG with RebuildingsGenerator{
+trait MSGRebuildings extends MSG with RebuildingsGenerator {
   import NamelessSyntax._
   def msg(c1: MetaTerm, c2: MetaTerm): Option[Rebuilding] = (c1, c2) match {
     case (t1: Term, t2: Term) => strictTermMSG(t1, t2)

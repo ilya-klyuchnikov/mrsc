@@ -83,6 +83,7 @@ case class PFPParsers extends StandardTokenParsers with PackratParsers with Impl
   }
 }
 
+// TODO
 object NamedSyntax {
   def named(t: Term, ctx: PContext = PContext()): String = t match {
     case BVar(i)  => ctx.index2Name(i)
@@ -93,9 +94,12 @@ object NamedSyntax {
       "(\\" + x + " -> " + named(t1, ctx1) + ")"
     case App(t1, t2) =>
       "(" + named(t1, ctx) + " " + named(t2, ctx) + ")"
-    case Let(v, in) =>
+    case Let(v: Fix, in) =>
       val (ctx1, f) = ctx.pickFreshName("f")
       "(let " + f + " = " + named(v, ctx1) + " in " + named(in, ctx1) + ")"
+    case Let(v, in) =>
+      val (ctx1, f) = ctx.pickFreshName("f")
+      "(let " + f + " = " + named(v, ctx) + " in " + named(in, ctx1) + ")"
     case Fix(Abs(t)) =>
       named(t, ctx)
     case Fix(t) =>
