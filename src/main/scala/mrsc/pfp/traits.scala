@@ -109,12 +109,12 @@ trait BinaryWhistle extends EmbeddingCandidates {
     embeddingCandidates(g.current) find { n => ordering.lteq(n.conf, g.current.conf) }
 }
 
-trait HEWhistle extends BinaryWhistle {
-  override val ordering = HEOrdering
+trait HE3Whistle extends BinaryWhistle {
+  override val ordering = HE3Ordering
 }
 
-trait HEByCouplingWhistle extends BinaryWhistle {
-  override val ordering = HEByCouplingOrdering
+trait HE3ByCouplingWhistle extends BinaryWhistle {
+  override val ordering = HE3ByCouplingOrdering
 }
 
 trait RebuildingsGenerator extends VarGen {
@@ -160,9 +160,10 @@ trait RebuildingsGenerator extends VarGen {
           Rebuilding(t1, sub1) <- rebuild(a1, sub)
           Rebuilding(t2, sub2) <- rebuild(a2, sub1)
         } yield Rebuilding(Let(t1, t2), sub2)
-      case Fix(body) =>
+      // NOTA BENE HERE!!
+      case Fix(Abs(body)) =>
         for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
-          yield Rebuilding(Fix(t1), sub1)
+          yield Rebuilding(Fix(Abs(t1)), sub1)
       case Ctr(n, xs) =>
         for { (ys, sub1) <- rebuild1(xs, sub) }
           yield Rebuilding(Ctr(n, ys), sub1)

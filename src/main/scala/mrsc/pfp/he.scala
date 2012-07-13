@@ -1,16 +1,25 @@
 package mrsc.pfp
 
-// the strongest version of embedding
-object HE {
-
+// The notion of homeomorphic embedding.
+trait HE {
   def he(t1: MetaTerm, t2: MetaTerm) = heByDiving(t1, t2) || heByCoupling(t1, t2)
+  def heByDiving(t1: MetaTerm, t2: MetaTerm): Boolean
+  def heByCoupling(t1: MetaTerm, t2: MetaTerm): Boolean
+}
+
+// The strongest version of embedding.
+// Refined for Hindley-Milner.
+// The differences are specially marked below.
+object HE3 extends HE {
 
   def heByDiving(t1: MetaTerm, t2: MetaTerm): Boolean = t1 match {
     case rb: Rebuilding => false
+    // The difference
     case BVar(_) => false
     case _ => t2 match {
       case Ctr(_, args)     => args exists (he(t1, _))
       case Abs(body)        => he(t1, body)
+      // The difference
       case App(a1: App, a2) => heByDiving(t1, a1) || he(t1, a2)
       case App(a1, a2)      => he(t1, a1) || he(t1, a2)
       case Let(v, in)       => he(t1, v) || he(t1, in)
@@ -25,6 +34,7 @@ object HE {
     case (BVar(i1), BVar(i2))             => i1 == i2
     case (GVar(n1), GVar(n2))             => n1 == n2
     case (Abs(b1), Abs(b2))               => he(b1, b2)
+    // The difference
     case (a1: App, a2: App)               => heByCoupling(a1.t1, a2.t1) && he(a1.t2, a2.t2)
     case (l1: Let, l2: Let)               => he(l1.v, l2.v) && he(l1.in, l2.in)
     case (Fix(f1), Fix(f2))               => he(f1, f2)
@@ -35,10 +45,11 @@ object HE {
 
 }
 
-object HEOrdering extends SimplePartialOrdering[MetaTerm] {
-  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE.he(t1, t2)
+object HE3Ordering extends SimplePartialOrdering[MetaTerm] {
+  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE3.he(t1, t2)
 }
 
-object HEByCouplingOrdering extends SimplePartialOrdering[MetaTerm] {
-  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE.heByCoupling(t1, t2)
+object HE3ByCouplingOrdering extends SimplePartialOrdering[MetaTerm] {
+  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE3.heByCoupling(t1, t2)
 }
+
