@@ -17,7 +17,8 @@ object multi {
     with SizeGraphFilter
 
   def allDepthBound(depth: Int): PFPSC = gc => AllMSC(gc, depth)  
-    
+  
+  // shows all possible variants of supercompilation of a given program
   def run(f: String, sc: PFPSC) {
     import scala.io.Source
     val text = Source.fromFile(f).mkString
@@ -32,7 +33,7 @@ object multi {
     var uniques: Set[Term] = Set()
     for { sGraph <- graphs } {
       val tGraph = Transformations.transpose(sGraph)
-      val result = Residuator(tGraph).result
+      val result = Residuator1(tGraph).result
       count += 1
       uniques = uniques + result
       Console.println("%s/%s".format(count, uniques.size))

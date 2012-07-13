@@ -30,7 +30,7 @@ object SREPL {
     current = -1
 
     Console.println(tGraph)
-    val result = Residuator(tGraph).result
+    val result = Residuator1(tGraph).result
     Console.println(result)
     Console.println(NamedSyntax.named(result))
   }

@@ -69,7 +69,7 @@ class SimpleSupercompilationSuite extends FunSuite {
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
     info(tGraph.toString())
-    val result = Residuator(tGraph).result
+    val result = Residuator1(tGraph).result
     info(result.toString())
     assert(result === expectedResult)
   }

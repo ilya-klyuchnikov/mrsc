@@ -23,7 +23,8 @@ case class ResContext(l: List[Binding] = List()) {
   }
 }
 
-case class Residuator(val g: TGraph[MetaTerm, Label]) {
+// Standard residuator.
+case class Residuator1(val g: TGraph[MetaTerm, Label]) {
 
   lazy val result: Term = fold(g.root, ResContext())
 
@@ -80,3 +81,5 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
         }
     }
 }
+
+
