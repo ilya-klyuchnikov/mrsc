@@ -34,12 +34,8 @@ object CBNEval {
       App(lazyStep(t1, g), t2)
     case Let(v, body) =>
       termSubstTop(v, body)
-    case Fix(Abs(body)) =>
+    case Fix(body) =>
       termSubstTop(t, body)
-    case Fix(Ctr(_, _)) =>
-      sys.error("unexpected term: " + t)
-    case Fix(t1) =>
-      Fix(lazyStep(t1, g))
     case _ =>
       sys.error("unexpected term: " + t)
   }

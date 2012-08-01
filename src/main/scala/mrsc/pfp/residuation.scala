@@ -36,13 +36,13 @@ case class Residuator1(val g: TGraph[MetaTerm, Label]) {
         case None if g.leaves.exists(_.base == Some(node.tPath)) =>
           val fvars = freeVars(conf)
           val app: Term = (BVar(0) :: fvars).reduceLeft(App)
-          val absBody = {
+          val body = {
             val extCtx = (ctx.addBinding(DefBinding(conf, app)) /: fvars)(_.addVar(_))
             val rawBody = construct(node, extCtx)
             val subst: Subst = freeVars(rawBody).map { fv => fv -> BVar(extCtx.indexForTerm(fv)) }.toMap
             applySubst(rawBody, subst)
           }
-          val abs = (Abs(absBody) /: fvars) { (a, _) => Abs(a) }
+          val abs = (body /: fvars) { (a, _) => Abs(a) }
           Let(Fix(abs), app)
         // recursive node
         case Some(_) =>

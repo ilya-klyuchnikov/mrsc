@@ -44,7 +44,7 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
     caseExpr |
     ("let" ~> lcid) ~ ("=" ~> term) ~ ("in" ~> term) ^^ { case id ~ v ~ in => ctx: PContext => Let(v(ctx), in(ctx.addName(id))) } |
     ("letrec" ~> lcid) ~ ("=" ~> term) ~ ("in" ~> term) ^^
-    { case f ~ body ~ in => ctx: PContext => Let(Fix(Abs(body(ctx.addName(f)))), in(ctx.addName(f))) }
+    { case f ~ body ~ in => ctx: PContext => Let(Fix(body(ctx.addName(f))), in(ctx.addName(f))) }
 
   lazy val caseExpr: PackratParser[Res[Term]] =
     ("case" ~> term <~ "of") ~ ("{" ~> branches <~ "}") ^^ { case sel ~ bs => ctx: PContext => Case(sel(ctx), bs(ctx)) }
@@ -97,16 +97,12 @@ object NamedSyntax {
       "(\\" + x + " -> " + named(t1, ctx1) + ")"
     case App(t1, t2) =>
       "(" + named(t1, ctx) + " " + named(t2, ctx) + ")"
-    case Let(v: Fix, in) =>
+    case Let(Fix(body), in) =>
       val (ctx1, f) = ctx.pickFreshName("f")
-      "(let " + f + " = " + named(v, ctx1) + " in " + named(in, ctx1) + ")"
+      "(letrec " + f + " = " + named(body, ctx1) + " in " + named(in, ctx1) + ")"
     case Let(v, in) =>
       val (ctx1, f) = ctx.pickFreshName("f")
       "(let " + f + " = " + named(v, ctx) + " in " + named(in, ctx1) + ")"
-    case Fix(Abs(t)) =>
-      named(t, ctx)
-    case Fix(t) =>
-      "(fix " + named(t) + ")"
     case Ctr(n, args) =>
       n + args.map(named(_, ctx)).mkString("(", ", ", ")")
     case Case(sel, bs) =>

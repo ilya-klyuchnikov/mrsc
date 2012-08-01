@@ -18,7 +18,7 @@ object NamelessSyntax {
       case Abs(t2)      => Abs(walk(c + 1, t2))
       case App(t1, t2)  => App(walk(c, t1), walk(c, t2))
       case Let(t1, t2)  => Let(walk(c, t1), walk(c + 1, t2))
-      case Fix(t1)      => Fix(walk(c, t1))
+      case Fix(t1)      => Fix(walk(c + 1, t1))
       case Case(t, bs)  => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
       case Ctr(n, args) => Ctr(n, args.map(walk(c, _)))
     }
@@ -34,7 +34,7 @@ object NamelessSyntax {
       case Abs(t2)                       => Abs(walk(c + 1, t2))
       case App(t1, t2)                   => App(walk(c, t1), walk(c, t2))
       case Let(t1, t2)                   => Let(walk(c, t1), walk(c + 1, t2))
-      case Fix(t1)                       => Fix(walk(c, t1))
+      case Fix(t1)                       => Fix(walk(c + 1, t1))
       case Case(t, bs)                   => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
       case Ctr(n, fs)                    => Ctr(n, fs.map(walk(c, _)))
     }
@@ -65,7 +65,7 @@ object NamelessSyntax {
     case Abs(t1)       => isFreeSubTerm(t1, depth + 1)
     case App(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth)
     case Let(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth + 1)
-    case Fix(t1)       => isFreeSubTerm(t1, depth)
+    case Fix(t1)       => isFreeSubTerm(t1, depth + 1)
     case Case(sel, bs) => isFreeSubTerm(sel, depth) && bs.forall{ case (ptr, ti) => isFreeSubTerm(ti, depth + ptr.args.size)}
     case Ctr(n, fs)    => fs.forall(isFreeSubTerm(_, depth))
   }
@@ -181,7 +181,7 @@ trait PFPSemantics extends VarGen {
         DecomposeVarApp(fv, args)
       case context @ Context(RedexCall(f)) =>
         UnfoldMStep(context.replaceHole(gc(f.n)))
-      case context @ Context(RedexFix(t1 @ Fix(Abs(body)))) =>
+      case context @ Context(RedexFix(t1 @ Fix(body))) =>
         UnfoldMStep(context.replaceHole(termSubstTop(t1, body)))
       case context @ Context(RedexLamApp(Abs(t1), App(_, t2))) =>
         TransientMStep(context.replaceHole((termSubstTop(t2, t1))))
@@ -199,8 +199,6 @@ trait PFPSemantics extends VarGen {
       case context @ Context(RedexCaseAlt(sel, Case(_, bs))) =>
         val v = nextVar()
         RebuildMStep(Rebuilding(context.replaceHole(Case(v, bs)), Map(v -> sel)))
-      case context @ Context(RedexFix(t1 @ Fix(_))) =>
-        sys.error("unexpected term")
       case context @ Context(RedexLet(Let(v, body))) =>
         val red1 = termSubstTop(v, body)
         TransientMStep(context.replaceHole(red1))
@@ -220,4 +218,3 @@ trait SimplePartialOrdering[T] extends PartialOrdering[T] {
       Some(0)
   }
 }
-

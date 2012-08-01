@@ -48,7 +48,7 @@ class ParserSuite extends FunSuite {
   }
 
   test("parsing letrec") {
-    testTermParsing("""letrec x = x in x""", Let(Fix(Abs(BVar(0))), BVar(0)))
+    testTermParsing("""letrec x = x in x""", Let(Fix(BVar(0)), BVar(0)))
   }
 
   test("parsing bindings") {
