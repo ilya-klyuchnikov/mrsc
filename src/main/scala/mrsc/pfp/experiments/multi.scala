@@ -16,6 +16,7 @@ object multi {
     with AllRebuildings
     with SizeGraphFilter
 
+  // it doesn't allow to substitute let-expressions during residualization
   case class AllMSC2(val gc: GContext, val maxGraphSize: Int) extends PFPRules
     with PFPSemantics
     with LetDriving
@@ -58,6 +59,7 @@ object multi {
     for { res <- results } {
       Console.println(res)
       Console.println(NamedSyntax.named(res))
+      Console.println()
     }
   }
 

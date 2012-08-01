@@ -24,15 +24,16 @@ case class ResContext(l: List[Binding] = List()) {
 }
 
 // Standard residuator.
+// TODO: parameterize it for lambda dropping!!
 case class Residuator1(val g: TGraph[MetaTerm, Label]) {
-
+  type N = TNode[MetaTerm, Label]
   lazy val result: Term = fold(g.root, ResContext())
 
   def fold(node: TNode[MetaTerm, Label], ctx: ResContext): Term = node.conf match {
     case conf: Term =>
       node.base match {
+        // base node
         case None if g.leaves.exists(_.base == Some(node.tPath)) =>
-          // TODO: parameterize it for lambda dropping!!
           val fvars = freeVars(conf)
           val app: Term = (BVar(0) :: fvars).reduceLeft(App)
           val absBody = {
@@ -43,13 +44,15 @@ case class Residuator1(val g: TGraph[MetaTerm, Label]) {
           }
           val abs = (Abs(absBody) /: fvars) { (a, _) => Abs(a) }
           Let(Fix(abs), app)
-        case None =>
-          construct(node, ctx)
+        // recursive node
         case Some(_) =>
           val i = ctx.indexForTerm(conf)
           val DefBinding(t1, t2) = ctx.getBinding(i)
           val Some(renaming) = findSubst(t1, conf)
           applySubst(t2, renaming)
+        // ordinary node
+        case None =>
+          construct(node, ctx)
       }
     case _ => construct(node, ctx)
   }
@@ -57,9 +60,8 @@ case class Residuator1(val g: TGraph[MetaTerm, Label]) {
   def construct(node: TNode[MetaTerm, Label], ctx: ResContext): Term =
     node.outs match {
       case TEdge(n1, DecomposeLabel(comp)) :: _ =>
-        val subnodes = node.outs map { case TEdge(n, _) => n }
-        val foldedParts = subnodes map { fold(_, ctx) }
-        comp(foldedParts)
+        val subnodes = node.outs.map(_.node)
+        compose(comp, subnodes, ctx)
       case TEdge(n1, CaseBranchLabel(sel, _, _)) :: _ =>
         val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- node.outs) yield {
           // valuable for shifting previous exprs in context
@@ -80,6 +82,9 @@ case class Residuator1(val g: TGraph[MetaTerm, Label]) {
           case c       => sys.error("unexpected " + c)
         }
     }
+
+  def compose(comp: List[Term] => Term, children: List[N], ctx: ResContext) =
+    comp(children.map(fold(_, ctx)))
 }
 
 

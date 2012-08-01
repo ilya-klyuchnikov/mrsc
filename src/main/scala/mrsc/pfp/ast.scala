@@ -28,13 +28,15 @@ case class App(t1: Term, t2: Term) extends Term {
 }
 // Simple let-expression. `v` is represented by `BVar(0)` in `in`.
 case class Let(v: Term, in: Term) extends Term {
+  override def toString = "(let " + v + " in " + in + ")"
   override lazy val size = 1 + v.size + in.size
 }
-// Fix point combinator.
 // Term itself is represented as `BVar(0)` in `t`.
-// Really we use only this Fix(Abs(_)) combination.
-// TODO: refactor for this certain case
+// In terms of TAPL we use only Fix(Abs(_)) combination.
+// Let(Fix(_), e) is a letrec
 case class Fix(t: Term) extends Term {
+  // we use square brackets to disambiguate
+  override def toString = "(#" + t + ")"
   override lazy val size = 1 + t.size
 }
 case class Ctr(name: String, args: List[Term]) extends Term {
@@ -46,7 +48,7 @@ case class Case(sel: Term, branches: List[Branch]) extends Term {
   override lazy val size = sel.size + branches.map{b => b._2.size}.sum
 }
 case class Ptr(name: String, args: List[String]) {
-  override def toString = name + args.mkString("(", ", ", ")") 
+  override def toString = name + args.map(_ => "_").mkString("(", ", ", ")")
 }
 
 // Labels or actions of our LTS.
@@ -64,5 +66,3 @@ case class CaseBranchLabel(sel: Term, ptr: Ptr, alt: Ctr) extends Label {
 case class DecomposeLabel(compose: List[Term] => Term) extends Label {
   override def toString = ""
 }
-
-    
