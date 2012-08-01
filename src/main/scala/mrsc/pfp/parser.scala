@@ -18,9 +18,12 @@ case class PContext(l: List[String] = List()) {
     else (addName(n + i), n + i)
 }
 
-case class Task(goal: Term, bindings: GContext)
+case class Task(goal: Term, bindings: GContext) {
+  override def toString =
+    (goal.toString :: (bindings.map{case (k, v) => k + " = " + v + ";"}).toList).mkString("\n")
+}
 
-case class PFPParsers extends StandardTokenParsers with PackratParsers with ImplicitConversions {
+case class PFPParsers() extends StandardTokenParsers with PackratParsers with ImplicitConversions {
   lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
   lexical.reserved += ("case", "of", "let", "letrec", "in")
 
