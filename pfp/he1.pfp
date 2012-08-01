@@ -1,0 +1,3 @@
+fix (\x -> s x);
+fix = \f -> f (fix f);
+s = \n -> S(n);

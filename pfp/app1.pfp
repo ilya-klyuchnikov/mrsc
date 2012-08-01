@@ -1,0 +1,7 @@
+app <1> <2>;
+
+app = \x -> \y ->
+	case x of {
+        Nil()  -> y;
+        Cons(x, xs) -> Cons(x, (app xs y))
+    };

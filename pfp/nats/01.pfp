@@ -1,0 +1,10 @@
+eq (plus <1> <2>) (plus <3> <4>);
+
+eq = \x -> \y -> case x of {
+  S(x1) -> case y of {S(y1) -> eq x1 y1; Z() -> False()};
+  Z() -> case y of {S(y1) -> False(); Z() -> True()}
+};
+plus = \x -> \y -> case x of {
+  S(x1) -> S(plus x1 y);
+  Z() -> y
+};

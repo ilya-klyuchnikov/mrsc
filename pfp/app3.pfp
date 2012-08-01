@@ -1,0 +1,5 @@
+letrec h = \x -> \y ->
+        case x of {
+          Nil()  -> y;
+          Cons(x, xs) -> Cons(x, h xs y)
+        } in h <1> <2>;

@@ -1,0 +1,6 @@
+unchurch (church <1>);
+church = \n -> case n of {
+  S(n1) -> \f -> \x -> f (church n1 f x);
+  Z()    -> \f -> \x -> x
+};
+unchurch = \n -> n (\x -> S(x)) Z();
