@@ -554,3 +554,11 @@ trait MSGRebuildings extends MSG with RebuildingsGenerator {
   }
 }
 
+trait FoldingOnBinaryWhistle extends PFPRules with BinaryWhistle {
+  override def fold(signal: Signal, g: G): List[S] =
+    signal.map(n => FoldStep(n.sPath): S).toList
+
+  override def rebuild(signal: Signal, g: G): List[S] =
+    Nil
+}
+

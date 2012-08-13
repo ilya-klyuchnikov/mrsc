@@ -1,0 +1,14 @@
+case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}};
+
+fin2 = \x -> case (fin1 x) of {
+   False() -> False();
+   True()  -> case x of {
+     S(x1) -> fin2 x1;
+     Z()   -> True()
+   }
+};
+
+fin1 = \x -> case x of {
+  S(x1) -> fin1(x1);
+  Z()   -> True()
+};
