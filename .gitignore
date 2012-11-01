@@ -1,13 +1,6 @@
-/.scala_dependencies
 /bin
 target/
+.*
 /.idea
 /mrsc.iml
-/.project
-/.classpath
-/.settings
-/.externalToolBuilders
-/.settings
 /todo
-/.cache
-/.idea_modules

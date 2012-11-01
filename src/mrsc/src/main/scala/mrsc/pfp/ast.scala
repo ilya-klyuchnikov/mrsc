@@ -7,49 +7,37 @@ sealed trait Term extends MetaTerm {
   def size: Int
 }
 case class BVar(i: Int) extends Term {
-  override def toString = i.toString
   override lazy val size = 1
 }
 case class FVar(i: Int) extends Term {
-  override def toString = "<" + i + ">"
   override lazy val size = 1
 }
 case class GVar(n: String) extends Term {
-  override def toString = n
   override lazy val size = 1
 }
 case class Abs(t: Term) extends Term {
-  override def toString = "(\\" + t + ")"
   override lazy val size = 1 + t.size
 }
 case class App(t1: Term, t2: Term) extends Term {
-  override def toString = "(" + t1 + " " + t2 + ")"
   override lazy val size = t1.size + t2.size
 }
 // Simple let-expression. `v` is represented by `BVar(0)` in `in`.
 case class Let(v: Term, in: Term) extends Term {
-  override def toString = "(let " + v + " in " + in + ")"
   override lazy val size = 1 + v.size + in.size
 }
 // Term itself is represented as `BVar(0)` in `t`.
 // In terms of TAPL we use only Fix(Abs(_)) combination.
 // Let(Fix(_), e) is a letrec
 case class Fix(t: Term) extends Term {
-  // we use square brackets to disambiguate
-  override def toString = "(#" + t + ")"
   override lazy val size = 1 + t.size
 }
 case class Ctr(name: String, args: List[Term]) extends Term {
-  override def toString = name + args.mkString("(", ", ", ")")
   override lazy val size = 1 + args.map(_.size).sum
 }
 case class Case(sel: Term, branches: List[Branch]) extends Term {
-  override def toString = "case " + sel + " of " + branches.map(b => b._1 + " -> " + b._2).mkString("{", "; ", "}")
   override lazy val size = sel.size + branches.map{b => b._2.size}.sum
 }
-case class Ptr(name: String, args: List[String]) {
-  override def toString = name + args.map(_ => "_").mkString("(", ", ", ")")
-}
+case class Ptr(name: String, args: List[String])
 
 // Labels or actions of our LTS.
 // We put it on graph edges.
