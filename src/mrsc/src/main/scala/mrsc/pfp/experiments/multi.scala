@@ -46,7 +46,7 @@ object multi {
     var uniques: Set[Term] = Set()
     for { sGraph <- graphs } {
       val tGraph = Transformations.transpose(sGraph)
-      val result = Residuator1(tGraph).result
+      val result = Residuator(tGraph).result
       count += 1
       uniques = uniques + result
       //Console.println("%s/%s".format(count, uniques.size))

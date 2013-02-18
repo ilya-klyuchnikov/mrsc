@@ -34,6 +34,6 @@ object repl {
   def showResiduals(file: String, sc: PFPSC) =
     graphs(file, sc).zipWithIndex.foreach { case (sGraph, i) =>
       val tGraph = Transformations.transpose(sGraph)
-      Console.println(Residuator1(tGraph).result)
+      Console.println(Residuator(tGraph).result)
     }
 }

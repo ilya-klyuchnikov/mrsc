@@ -21,7 +21,7 @@ object SimpleChecker {
     var checked = 0
     for { sGraph <- graphs } {
       val tGraph = Transformations.transpose(sGraph)
-      val result = Residuator1(tGraph).result
+      val result = Residuator(tGraph).result
       checked += 1
       check(task, Task(result, Map()))
     }

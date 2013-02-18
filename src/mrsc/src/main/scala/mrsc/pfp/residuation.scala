@@ -25,7 +25,7 @@ case class ResContext(l: List[Binding] = List()) {
 
 // Standard residuator.
 // TODO: parameterize it for lambda dropping!!
-case class Residuator1(val g: TGraph[MetaTerm, Label]) {
+case class Residuator(val g: TGraph[MetaTerm, Label]) {
   type N = TNode[MetaTerm, Label]
   lazy val result: Term = fold(g.root, ResContext())
 
