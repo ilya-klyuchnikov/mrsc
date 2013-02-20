@@ -52,7 +52,7 @@ object Conf {
     (c1, c2).zipped.forall((e1, e2) => e1 == e2 || e2 == Omega)
 
   def gens(c: Conf) =
-    product(c map genExpr) - c
+    product(c map genExpr).filterNot(_ == c)
 
   def oneStepGens(c: Conf): List[Conf] =
     for (i <- List.range(0, c.size) if c(i) != Omega && c(i) >= 0)

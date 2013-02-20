@@ -38,7 +38,7 @@ object Decomposition {
       }
     }
   } catch {
-    case e => throw new Exception("cannot decompose " + t, e)
+    case e: Exception => throw new Exception("cannot decompose " + t, e)
   }
 
   private def createContext(t: Term): Context = t match {
