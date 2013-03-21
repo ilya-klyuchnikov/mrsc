@@ -3,7 +3,7 @@ import Keys._
 
 object MRSCBuild extends Build {
 
-  override lazy val settings = super.settings ++ Seq(scalaVersion := "2.10.0")
+  override lazy val settings = super.settings ++ Seq(scalaVersion := "2.10.1")
 
   lazy val MRSCProject = Project("mrsc", file("src/mrsc"),
     settings = Project.defaultSettings ++ Seq(
