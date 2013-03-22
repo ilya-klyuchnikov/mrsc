@@ -1,11 +1,17 @@
 package mrsc.pfp
 
-import mrsc.core._
+// TODO: merge ast.scala and syntax.scala??
 
+/**
+ * Utility to work with nameless syntax (via indexes).
+ * This implementation is based on the book "Types and Programming Languages".
+ * Residuator utilizes the facility on nameless syntax to work with bound
+ * variables directly.
+ */
 object NamelessSyntax {
 
-  // Given a term t and a function onVar, 
-  // the result of tmMap onVar t is a term of the same shape as t 
+  // Given a term t and a function onVar,
+  // the result of tmMap onVar t is a term of the same shape as t
   // in which every *bound* variable has been replaced by the result of calling onVar on that variable.
   // c = initial "context depth"
   // onVar(c, v) - here c is current context depth
@@ -25,6 +31,8 @@ object NamelessSyntax {
     walk(0, t)
   }
 
+  // in general case the domain of s may be bound var
+  // (for example, in residuator)
   def applySubst(t: Term, s: Subst): Term = {
     def walk(c: Int, t: Term): Term = t match {
       case v: BVar                       => v
@@ -42,6 +50,7 @@ object NamelessSyntax {
   }
 
   // shifts unbound bvars by d
+  // unbound bvars may appear during beta reduction (termSubstTop)
   def termShift(d: Int, t: Term): Term = {
     val f = { (c: Int, v: BVar) => if (v.i >= c) BVar(v.i + d) else BVar(v.i) }
     tmMap(f, t)
@@ -54,6 +63,7 @@ object NamelessSyntax {
   }
 
   // substitute s for 0-var in t
+  // used for reductions
   def termSubstTop(s: Term, t: Term): Term =
     termShift(-1, termSubst(termShift(1, s), t))
 
@@ -72,7 +82,7 @@ object NamelessSyntax {
 
   def findSubst(from: Term, to: Term): Option[Subst] =
     for (sub <- findSubst0(from, to))
-      yield sub.filter { case (k, v) => k != v }
+    yield sub.filter { case (k, v) => k != v }
 
   def findSubst0(from: Term, to: Term): Option[Subst] = (from, to) match {
     case (fv: FVar, _) if isFreeSubTerm(to, 0) =>
@@ -116,7 +126,7 @@ object NamelessSyntax {
 
   private def mergeOptSubst(s1: Option[Subst], s2: Option[Subst]): Option[Subst] =
     for (subst1 <- s1; subst2 <- s2; merged <- mergeSubst(subst1, subst2))
-      yield merged
+    yield merged
 
   private def mergeSubst(sub1: Subst, sub2: Subst): Option[Subst] = {
     val merged1 = sub1 ++ sub2
@@ -150,71 +160,5 @@ object NamelessSyntax {
       case _                    => false
     }
   }
-  
-}
 
-trait VarGen {
-  var freeVar: Int = 100
-  def nextVar(x: Any = ()): FVar = {
-    freeVar += 1
-    FVar(freeVar)
-  }
-}
-
-// Driving without positive information propagation
-trait PFPSemantics extends VarGen {
-  import NamelessSyntax._
-  val gc: GContext
-  def driveStep(t: MetaTerm): MStep = t match {
-    case rb: Rebuilding =>
-      DecomposeRebuildingMStep(rb)
-    case t: Term => Decomposition.decompose(t) match {
-      case ObservableVar(v) =>
-        StopMStep
-      case ObservableCon(c) =>
-        DecomposeCtrMStep(c)
-      case ObservableAbs(l) =>
-        val fv = nextVar()
-        val body1 = termSubstTop(fv, l.t)
-        DecomposeAbsMStep(body1, fv)
-      case ObservableVarApp(fv, args) =>
-        DecomposeVarApp(fv, args)
-      case context @ Context(RedexCall(f)) =>
-        UnfoldMStep(context.replaceHole(gc(f.n)))
-      case context @ Context(RedexFix(t1 @ Fix(body))) =>
-        UnfoldMStep(context.replaceHole(termSubstTop(t1, body)))
-      case context @ Context(RedexLamApp(Abs(t1), App(_, t2))) =>
-        TransientMStep(context.replaceHole((termSubstTop(t2, t1))))
-      case context @ Context(RedexCaseCtr(Ctr(name, args), Case(_, bs))) =>
-        val Some((ptr, body)) = bs.find(_._1.name == name)
-        val next = args.foldRight(body)(termSubstTop(_, _))
-        TransientMStep(context.replaceHole(next))
-      case context @ Context(RedexCaseAlt(v: FVar, Case(_, bs))) =>
-        val xs = for { (ptr @ Ptr(name, args), body) <- bs } yield {
-          val ctr = Ctr(name, args.map(nextVar))
-          val next = ctr.args.foldRight(body)(termSubstTop(_, _))
-          (ptr, ctr, context.replaceHole(next))
-        }
-        VariantsMStep(v, xs)
-      case context @ Context(RedexCaseAlt(sel, Case(_, bs))) =>
-        val v = nextVar()
-        RebuildMStep(Rebuilding(context.replaceHole(Case(v, bs)), Map(v -> sel)))
-      case context @ Context(RedexLet(Let(v, body))) =>
-        val red1 = termSubstTop(v, body)
-        TransientMStep(context.replaceHole(red1))
-    }
-  }
-}
-
-trait SimplePartialOrdering[T] extends PartialOrdering[T] {
-  override def tryCompare(x: T, y: T): Option[Int] = (lteq(x, y), lteq(y, x)) match {
-    case (false, false) =>
-      None
-    case (false, true) =>
-      Some(1)
-    case (true, false) =>
-      Some(-1)
-    case (true, true) =>
-      Some(0)
-  }
 }
