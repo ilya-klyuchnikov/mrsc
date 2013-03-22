@@ -128,6 +128,7 @@ trait HE3ByCouplingWhistle extends BinaryWhistle {
   override val ordering = HE3ByCouplingOrdering
 }
 
+// TODO: move into syntax
 trait RebuildingsGenerator extends VarGen {
 
   import NamelessSyntax._

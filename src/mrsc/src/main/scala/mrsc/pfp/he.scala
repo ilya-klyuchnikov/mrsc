@@ -1,5 +1,6 @@
 package mrsc.pfp
 
+// TODO: move into syntax
 // The notion of homeomorphic embedding.
 trait HE {
   def he(t1: MetaTerm, t2: MetaTerm) = heByDiving(t1, t2) || heByCoupling(t1, t2)

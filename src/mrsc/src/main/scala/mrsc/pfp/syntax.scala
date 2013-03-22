@@ -40,22 +40,6 @@ case class Case(sel: Term, branches: List[Branch]) extends Term {
 }
 case class Ptr(name: String, args: List[String])
 
-// Labels or actions of our LTS.
-// We put it on graph edges.
-sealed trait Label
-case object TransientLabel extends Label {
-  override def toString = "->"
-}
-case object UnfoldLabel extends Label {
-  override def toString = "->*"
-}
-case class CaseBranchLabel(sel: Term, ptr: Ptr, alt: Ctr) extends Label {
-  override def toString = sel + " = " + alt
-}
-case class DecomposeLabel(compose: List[Term] => Term) extends Label {
-  override def toString = ""
-}
-
 // PART 2. Syntax operations
 /**
  * Utility to work with nameless syntax (via indexes).
@@ -244,6 +228,7 @@ private class ContextCase(selector: Context, ce: Case) extends Context(selector.
   override def replaceHole(t: Term) = Case(selector.replaceHole(t), ce.branches)
 }
 
+// Naive (slow) decomposition.
 object Decomposition {
   def decompose(t: Term): TermDecomposition = try {
     linearApp(t) match {

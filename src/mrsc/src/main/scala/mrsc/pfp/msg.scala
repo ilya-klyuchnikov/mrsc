@@ -1,5 +1,6 @@
 package mrsc.pfp
 
+// TODO: move to syntax
 trait MSG extends VarGen {
   import NamelessSyntax._
 
