@@ -3,8 +3,16 @@ package mrsc.pfp
 import mrsc.core._
 import NamelessSyntax._
 
+// This is nice residuator because it is written
+// in fully functional style without generation of
+// new variables.
+// The trick here is that all functions are represented
+// via fixpoint - so for new functions BVar(0) is enough.
+// Residuator exploits the facility of nameless syntax to substitute
+// and shift bound variables.
 sealed trait Binding
 case class DefBinding(term: Term, after: Term) extends Binding
+// Really we put here only variables.
 case class TermBinding(term: Term) extends Binding
 
 // Used only by Residuator
@@ -23,8 +31,8 @@ case class ResContext(l: List[Binding] = List()) {
   }
 }
 
-// Standard residuator.
-// TODO: parameterize it for lambda dropping!!
+// The simplest rediduator.
+// TODO: implement residuator with lambda dropping!!
 case class Residuator(val g: TGraph[MetaTerm, Label]) {
   type N = TNode[MetaTerm, Label]
   lazy val result: Term = fold(g.root, ResContext())
@@ -34,15 +42,20 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
       node.base match {
         // base node
         case None if g.leaves.exists(_.base == Some(node.tPath)) =>
+          // TODO: adjustable for lambda dropping
           val fvars = freeVars(conf)
+          // (((0 v1) v2) v3) ...
           val app: Term = (BVar(0) :: fvars).reduceLeft(App)
           val body = {
-            val extCtx = (ctx.addBinding(DefBinding(conf, app)) /: fvars)(_.addVar(_))
+            // Adding fixpoint binder.
+            val ctx1 = ctx.addBinding(DefBinding(conf, app))
+            // Adding new binders. Expressions already in the context will be shifted.
+            val extCtx = fvars.foldLeft(ctx1)(_.addVar(_))
             val rawBody = construct(node, extCtx)
-            val subst: Subst = freeVars(rawBody).map { fv => fv -> BVar(extCtx.indexForTerm(fv)) }.toMap
+            val subst = freeVars(rawBody).map { fv => fv -> BVar(extCtx.indexForTerm(fv)) }.toMap
             applySubst(rawBody, subst)
           }
-          val abs = (body /: fvars) { (a, _) => Abs(a) }
+          val abs = fvars.foldLeft(body){ (a, _) => Abs(a) }
           Let(Fix(abs), app)
         // recursive node
         case Some(_) =>
@@ -64,10 +77,10 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
         compose(comp, subnodes, ctx)
       case TEdge(n1, CaseBranchLabel(sel, _, _)) :: _ =>
         val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- node.outs) yield {
-          // valuable for shifting previous exprs in context
+          // Adding new binders. Expressions already in the context will be shifted.
           val extCtx = ctx.addBindings(ctr.args.map(TermBinding(_)))
           val rawFolded = fold(n, extCtx)
-          val subst: Subst = freeVars(ctr).map { v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
+          val subst = freeVars(ctr).map{ v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
           val folded = applySubst(rawFolded, subst)
           (ptr, folded)
         }
