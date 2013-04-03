@@ -1,6 +1,5 @@
 import mrsc.pfp._
-import mrsc.pfp.experiments._
-import samples.SC2
+import misc._
 
 // TODO: refactor to several examples
 // TODO: refactor graph pretty-printing and serialization printing to use Show

@@ -1,4 +1,3 @@
-import mrsc.pfp.experiments._
 import misc._
 
 // demonstrates how it is possible to "smoke-test" correctness of

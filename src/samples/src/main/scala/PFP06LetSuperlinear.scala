@@ -1,4 +1,4 @@
-import mrsc.pfp.experiments._
+import misc._
 
 // This example demonstrates/speculates the possibility of superlinear speed-up
 // by introducing let expression (it superlinear in call-by-value setting)
