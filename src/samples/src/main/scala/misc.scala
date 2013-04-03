@@ -1,4 +1,4 @@
-package mrsc.pfp.test
+package misc
 
 import mrsc.pfp._
 import mrsc.core.{Transformations, GraphGenerator}
