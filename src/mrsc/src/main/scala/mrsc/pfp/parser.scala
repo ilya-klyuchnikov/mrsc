@@ -90,8 +90,8 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
 object NamedSyntax {
   def named(t: Term, ctx: PContext = PContext()): String = t match {
     case BVar(i)  => ctx.index2Name(i)
-    case fv: FVar => fv.toString
-    case gv: GVar => gv.toString
+    case fv: FVar => "<" + fv.i.toString + ">"
+    case gv: GVar => gv.n.toString
     case Abs(t1) =>
       val (ctx1, x) = ctx.pickFreshName("x")
       "(\\" + x + " -> " + named(t1, ctx1) + ")"
