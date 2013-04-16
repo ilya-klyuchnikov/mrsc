@@ -2,7 +2,10 @@ package mrsc.pfp
 
 import NamelessSyntax._
 
-// call-by-name step-by-step evaluation
+/**
+ * Call-by-name step-by-step evaluation.
+ * The intended use of this module is for extensive testing
+ */
 object CBNEval {
 
   def isLazyVal(t: Term) = t match {

@@ -1,0 +1,105 @@
+plus = \x -> \y ->
+    case x of {
+        S(x1) -> S(plus x1 y);
+        Z() -> y
+    };
+
+rep = \size -> \el ->
+    case size of {
+      S(x1) -> Cons(el, rep x1 el);
+      Z() -> Nil()
+    };
+
+gt = \x -> \y ->
+    case x of {
+        S(x1) -> case y of {
+          S(y1) -> gt x1 y1;
+          Z() -> TRUE()
+        };
+        Z() -> FALSE()
+    };
+
+lt = \x -> \y ->
+    case y of {
+      Z() -> FALSE();
+      S(y1) ->
+        case x of {
+          Z() -> TRUE();
+          S(x1) -> lt x1 y1
+        }
+    };
+
+at = \list -> \i ->
+    case list of {
+      Cons(x, y) ->
+        case i of {
+          S(i1) -> at y i1;
+          Z() -> x
+        };
+      Nil() -> ERROR()
+    };
+
+length = \list ->
+    case list of {
+        Cons(x, xs) -> S(length xs);
+        Nil() -> Nil()
+    };
+
+segLs = \nlist ->
+    case nlist of {
+        Cons(x, xs) -> Cons(length x, segLs xs);
+        Nil() -> Nil()
+    };
+
+first = \pair ->
+    case pair of {Pair(x, y) -> x};
+
+firstPA = \list ->
+    case list of {
+        Cons(x, xs) -> Cons(first x, firstPA xs);
+        Nil() -> Nil()
+    };
+
+backPermute = \vs -> \is ->
+    case is of {
+        Cons(x, xs) -> Cons(at vs x, backPermute vs xs);
+        Nil() -> Nil()
+    };
+
+reduce = \list -> \f -> \zero ->
+    case list of {
+        Cons(x, xs) -> f x (reduce xs f zero);
+        Nil() -> zero
+    };
+
+app = \l1 -> \l2 ->
+    case l1 of {
+        Cons(x, xs) -> Cons(x, app xs l2);
+        Nil() -> l2
+    };
+
+// values
+flatten = \nlist ->
+    case nlist of {
+        Cons(x, xs) -> app x (flatten xs);
+        Nil() -> Nil()
+    };
+
+reduceNest = \nlist -> \f -> \zero ->
+    case nlist of {
+        Cons(x, xs) -> Cons(reduce x f zero, reduceNest xs f zero);
+        Nil() -> Nil()
+    };
+
+take = \x -> \list ->
+    case x of {
+        S(x1) -> case list of {
+            Cons(y, ys) ->
+                case (take x1 ys) of {
+                    Pair(t, rest) -> Pair(Cons(y, t), rest)
+                };
+            Nil() -> ERROR()
+        };
+        Z() -> Pair(Nil(), list)
+    };
+

@@ -1,6 +1,7 @@
 package mrsc.pfp
 
 import mrsc.core._
+import java.lang.reflect.InvocationTargetException
 
 // PART 1. Labels.
 // TODO: really it is some kind of LTS.
@@ -110,7 +111,8 @@ trait VarGen {
 trait PFPSemantics extends VarGen {
   import NamelessSyntax._
   val gc: GContext
-  def driveStep(t: MetaTerm): MStep = t match {
+  def driveStep(t: MetaTerm): MStep = try {
+    t match {
     case rb: Rebuilding =>
       DecomposeRebuildingMStep(rb)
     case t: Term => Decomposition.decompose(t) match {
@@ -149,6 +151,13 @@ trait PFPSemantics extends VarGen {
         val red1 = termSubstTop(v, body)
         TransientMStep(context.replaceHole(red1))
     }
+  }} catch {
+
+    case e =>
+      import scalaz._
+      import Scalaz._
+      import NamelessShows._
+      throw new InvocationTargetException(e, t.shows)
   }
 }
 

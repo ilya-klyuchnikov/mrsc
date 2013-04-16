@@ -11,4 +11,11 @@ object io {
     (text, task)
   }
 
+  def bingingsFromFile(path: String): GContext = {
+    import scala.io.Source
+    val text = Source.fromFile(path).mkString
+    val bs = PFPParsers().inputBindings(text)
+    bs
+  }
+
 }

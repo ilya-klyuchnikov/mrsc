@@ -1,0 +1,8 @@
+Proving that
+`firstPA (backPermute <1> <2>) = backPermute (firstPA <1>) <2>`
+
+The trick here is WithErrorSemantics trait which propagates errors.
+
+(let (#(\(\case 0 of {Cons(_, _) -> Cons((let (#(\(\case 1 of {Cons(_, _) -> case 2 of {S(_) -> ((5 1) 0); Z() -> case 1 of {Pair(_, _) -> 1}}; Nil() -> ERROR()}))) in ((0 4) 2)), ((4 3) 0)); Nil() -> Nil()}))) in ((0 <1>) <2>))
+
+(let (#(\(\case 0 of {Cons(_, _) -> Cons((let (#(\(\case 1 of {Cons(_, _) -> case 2 of {S(_) -> ((5 1) 0); Z() -> case 1 of {Pair(_, _) -> 1}}; Nil() -> ERROR()}))) in ((0 4) 2)), ((4 3) 0)); Nil() -> Nil()}))) in ((0 <1>) <2>))

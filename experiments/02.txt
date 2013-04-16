@@ -1,0 +1,9 @@
+proving that
+
+segLs (rep <1> <2>) == rep <1> (length <2>)
+
+Just simple supercompilation.
+
+(let (#(\(\case 1 of {S(_) -> Cons((let (#(\case 0 of {Cons(_, _) -> S((3 0)); Nil() -> Nil()})) in (0 2)), ((3 0) 1)); Z() -> Nil()}))) in ((0 <1>) <2>))
+
+(let (#(\(\case 1 of {S(_) -> Cons((let (#(\case 0 of {Cons(_, _) -> S((3 0)); Nil() -> Nil()})) in (0 2)), ((3 0) 1)); Z() -> Nil()}))) in ((0 <1>) <2>))

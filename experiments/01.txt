@@ -1,0 +1,62 @@
+Using definitions in `pfp/arrays/def.pfp` we want to prove that
+`at (rep <1> <2>) <3> == <2>`.
+
+Of course, this property doesn't hold in general.
+If `<1> = 0` then we get an error. Or if `<3> > <2>` then we also get an error.
+Just supercompiling `at (rep <1> <2>) <3>` in the vacuum, we get following program:
+
+```
+(let (#(\(\(\case 2 of {S(_) -> case 1 of {S(_) -> (((5 1) 3) 0); Z() -> 2};
+    Z() -> ERROR()})))) in (((0 <1>) <2>) <3>))
+```
+
+So this equivalence holds under some conditions. We can code this conditions and supercompile
+taking these conditions into account.
+
+A simple way to code conditions in this example is to say that
+
+```
+gt <1> Z() ==> TRUE();
+lt <3> <1> ==> TRUE();
+```
+
+That is, evaluation of these configurations always terminates and the result is TRUE().
+
+The next idea is to supercompile goal and conditions together. Then to prune nodes when any of conditions gives FALSE().
+(That is, to prune paths of computation that break conditions).
+
+In this example we get:
+
+at (rep <1> <2>) <3>,  gt <1> Z(), lt <3> <1>
+|
+|  <1> = Z()
+|____(.., FALSE, FALSE) <== PRUNE
+|
+|  <1> = S(<101>)
+|__ case <3> of {S(_) -> ((at ((rep <101>) <2>)) 0); Z() -> <2>}, TRUE(), case <3> of {Z() -> TRUE(); S(_) -> ((lt 0) <101>)}
+   |
+   |  <3> = Z()
+   |____ <2>, TRUE(), TRUE()
+   |
+   |  <3> = S(<102>)
+   |____ at (rep <101> <2>) <102>, TRUE(), lt <102> <101>
+
+||
+
+at (rep <1> <2>) <3>,  gt <1> Z(), lt <3> <1>
+|
+|  <1> = S(<101>)
+|__ case <3> of {S(_) -> ((at ((rep <101>) <2>)) 0); Z() -> <2>}, TRUE(), case <3> of {Z() -> TRUE(); S(_) -> ((lt 0) <101>)}
+   |
+   |  <3> = Z()
+   |____ <2>, TRUE(), TRUE()
+   |
+   |  <3> = S(<102>)
+   |____ at (rep <101> <2>) <102>, TRUE(), lt <102> <101>
+
+The final step is to show that computation of conditions for any path of the final graph of configurations always terminate
+and the result is TRUE().
+
+The simplest way is to show that computation terminates.
+
+The subtle case is non-termination. I need an example showing this subtle case.

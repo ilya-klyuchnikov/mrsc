@@ -1,0 +1,137 @@
+package mrsc.pfp
+
+import mrsc.core._
+import javax.swing.JFrame
+import com.mxgraph.swing.mxGraphComponent
+import com.mxgraph.view.mxStylesheet
+import com.mxgraph.util.mxConstants
+
+// pretty printing with shows
+trait PFPGraphPrettyPrinter {
+  import scalaz._
+  import Scalaz._
+  implicit def termShow[T <: MetaTerm]: Show[T]
+
+  def toString(tg: TGraph[MetaTerm, Label]): String = {
+    val focus = tg.focus
+    toString(tg.root, focus)
+  }
+
+  def toStringDense(tg: TGraph[MetaTerm, Label]): String = {
+    val focus = tg.focus
+    toStringDense(tg.root, focus)(tg)
+  }
+
+  def labelToString(l: Label): String =
+    l match {
+      case TransientLabel => "->"
+      case UnfoldLabel => "->*"
+      case CaseBranchLabel(sel, ptr, alt) => sel.shows + " = " + alt.shows
+      case _ => ""
+    }
+
+  def toString(node: TNode[MetaTerm, Label], focus: Option[TPath], indent: String = ""): String = {
+    val sb = new StringBuilder()
+
+    sb.append(indent + "|__" + node.conf.shows)
+    if (node.base.isDefined) {
+      sb.append("*")
+    }
+    if (focus == Some(node.tPath)) {
+      sb.append(" <===")
+    }
+    for (edge <- node.outs) {
+      sb.append("\n  " + indent + "|" + labelToString(edge.driveInfo))
+      sb.append("\n" + toString(edge.node, focus, indent + "  "))
+    }
+    sb.toString
+  }
+
+  // not showing transient reductions
+  def toStringDense(node: TNode[MetaTerm, Label], focus: Option[TPath], indent: String = "")(implicit g: TGraph[MetaTerm, Label]): String = {
+
+    node.outs match {
+      case TEdge(n, UnfoldLabel) :: Nil if !g.leaves.exists(_.base == Some(node.tPath)) =>
+        toStringDense(n, focus, indent)
+      case TEdge(n, TransientLabel) :: Nil if !g.leaves.exists(_.base == Some(node.tPath)) =>
+        toStringDense(n, focus, indent)
+      case _ =>
+        val sb = new StringBuilder()
+        sb.append(indent + "|__" + node.conf.shows)
+        if (node.base.isDefined) {
+          sb.append("*")
+        }
+        if (focus == Some(node.tPath)) {
+          sb.append(" <===")
+        }
+        for (edge <- node.outs) {
+          sb.append("\n  " + indent + "|" + labelToString(edge.driveInfo))
+          sb.append("\n" + toStringDense(edge.node, focus, indent + "  "))
+        }
+        sb.toString
+    }
+
+  }
+}
+
+trait PFPGraphUI {
+
+  import scalaz._
+  import Scalaz._
+
+  import com.mxgraph.view.mxGraph
+  import com.mxgraph.layout.hierarchical.mxHierarchicalLayout
+
+  implicit def termShow[T <: MetaTerm]: Show[T]
+
+  def labelToString(l: Label): String =
+    l match {
+      case TransientLabel => "->"
+      case UnfoldLabel => "->*"
+      case CaseBranchLabel(sel, ptr, alt) => sel.shows + " = " + alt.shows
+      case _ => ""
+    }
+
+  def createMxGraph(tg: TGraph[MetaTerm, Label]): mxGraph = {
+    val style = new mxStylesheet
+    style.getDefaultEdgeStyle.put(mxConstants.STYLE_SPACING, "20")
+    style.getDefaultVertexStyle.put(mxConstants.STYLE_FONTFAMILY, "Courier")
+    style.getDefaultVertexStyle.put(mxConstants.STYLE_FONTSIZE, "12")
+    style.getDefaultEdgeStyle.put(mxConstants.STYLE_FONTFAMILY, "Courier")
+    val graph: mxGraph = new mxGraph(style)
+    val map = collection.mutable.Map[TPath, AnyRef]()
+    val gparent = graph.getDefaultParent
+
+    def createNode(node: TNode[MetaTerm, Label]): AnyRef = {
+      val text = node.conf.shows
+      val v = graph.insertVertex(gparent, null, text, 0, 0, 7*text.length + 10, 30)
+      map(node.tPath) = v
+      for (edge <- node.outs) {
+        val v1 = createNode(edge.node)
+        graph.insertEdge(gparent, null, labelToString(edge.driveInfo), v, v1)
+      }
+      node.base.foreach { p =>
+        graph.insertEdge(gparent, null, "  ", map(p), v, "endArrow=none;strokeColor=red")
+        graph.getModel.setStyle(v, "strokeColor=red")
+        graph.getModel.setStyle(map(p), "strokeColor=red")
+      }
+      v
+    }
+
+    graph.getModel.beginUpdate
+    createNode(tg.root)
+    val layout = new mxHierarchicalLayout(graph)
+    layout.execute(graph.getDefaultParent)
+    graph.getModel.endUpdate
+
+    graph
+  }
+
+  def showMxGraph(tg: TGraph[MetaTerm, Label]) {
+    val frame = new JFrame("mrsc")
+    frame.getContentPane.add(new mxGraphComponent(createMxGraph(tg)))
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+    frame.setSize(800, 600)
+    frame.setVisible(true)
+  }
+}
