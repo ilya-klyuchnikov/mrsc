@@ -111,8 +111,7 @@ trait VarGen {
 trait PFPSemantics extends VarGen {
   import NamelessSyntax._
   val gc: GContext
-  def driveStep(t: MetaTerm): MStep = try {
-    t match {
+  def driveStep(t: MetaTerm): MStep = t match {
     case rb: Rebuilding =>
       DecomposeRebuildingMStep(rb)
     case t: Term => Decomposition.decompose(t) match {
@@ -151,13 +150,6 @@ trait PFPSemantics extends VarGen {
         val red1 = termSubstTop(v, body)
         TransientMStep(context.replaceHole(red1))
     }
-  }} catch {
-
-    case e =>
-      import scalaz._
-      import Scalaz._
-      import NamelessShows._
-      throw new InvocationTargetException(e, t.shows)
   }
 }
 

@@ -1,7 +1,6 @@
 package mrsc.pfp
 
-import scalaz._
-import Scalaz._
+import scalaz.Show
 
 object NamelessShows {
 
@@ -33,5 +32,5 @@ object NamelessShows {
       
   }
 
-  implicit def TermShow[T <: MetaTerm]: Show[T] = shows(s)
+  implicit def TermShow[T <: MetaTerm]: Show[T] = Show.shows(s)
 }

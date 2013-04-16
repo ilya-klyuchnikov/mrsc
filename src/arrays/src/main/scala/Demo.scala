@@ -23,6 +23,7 @@ trait WithErrorSemantics extends PFPSemantics {
 trait Demo {
 
   val bindings: GContext
+  implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
 
   val prettyPrinter = new PFPGraphPrettyPrinter {
     implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
@@ -52,9 +53,9 @@ trait Demo {
 
   def run(in: String) {
     val goal: Term = in
-    println("   " + goal.shows(NamelessShows.TermShow))
+    println("   " + goal.shows)
     val deforested = deforest(bindings, goal)
-    println("=> " + deforested.shows(NamelessShows.TermShow))
+    println("=> " + deforested.shows)
     println()
   }
 

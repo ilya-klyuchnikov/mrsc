@@ -1,6 +1,7 @@
 package mrsc.pfp
 
 import mrsc.core._
+
 import javax.swing.JFrame
 import com.mxgraph.swing.mxGraphComponent
 import com.mxgraph.view.mxStylesheet
