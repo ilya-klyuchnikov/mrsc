@@ -5,6 +5,7 @@ import javax.swing.JFrame
 import com.mxgraph.swing.mxGraphComponent
 import com.mxgraph.view.mxStylesheet
 import com.mxgraph.util.mxConstants
+import java.awt.event.{WindowEvent, WindowAdapter}
 
 // pretty printing with shows
 trait PFPGraphPrettyPrinter {
@@ -127,11 +128,25 @@ trait PFPGraphUI {
     graph
   }
 
-  def showMxGraph(tg: TGraph[MetaTerm, Label]) {
+  var opened = 0
+
+  object closer extends WindowAdapter {
+    override def windowClosing( e: WindowEvent ) {
+      opened -= 1
+      if (opened == 0) {
+        System.exit(0)
+      }
+    }
+  }
+
+  def showMxGraph(tg: TGraph[MetaTerm, Label], autoExit: Boolean = true) {
     val frame = new JFrame("mrsc")
     frame.getContentPane.add(new mxGraphComponent(createMxGraph(tg)))
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
     frame.setSize(800, 600)
     frame.setVisible(true)
+    if (autoExit) {
+      frame.addWindowListener(closer)
+      opened += 1
+    }
   }
 }

@@ -6,6 +6,10 @@ import mrsc.pfp._
 // 2nd and 3rd transformations prove equivalence
 object PFP04Deforestation extends scala.App {
 
+  val mxUI = new PFPGraphUI {
+    implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
+  }
+
   def deforest(bindings: GContext, goal: Term) = {
     case class Deforester(val gc: GContext)
       extends PFPRules
@@ -18,7 +22,9 @@ object PFP04Deforestation extends scala.App {
 
     val rules = new Deforester(bindings)
     val g = GraphGenerator(rules, goal).toList.head
-    Residuator(Transformations.transpose(g)).result
+    val tg = Transformations.transpose(g)
+    mxUI.showMxGraph(tg)
+    Residuator(tg).result
   }
 
   val bindings: GContext =

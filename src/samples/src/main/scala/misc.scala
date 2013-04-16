@@ -19,7 +19,7 @@ object SimpleChecker {
     import scala.io.Source
     val text = Source.fromFile(f).mkString
     val task0 = PFPParsers().inputTask(text)
-    val task = Task(f, task0.goal, task0.bindings)
+    val task = task0.copy(name = f)
     Console.println(text)
     Console.println(task.goal)
 
@@ -31,7 +31,7 @@ object SimpleChecker {
       val tGraph = Transformations.transpose(sGraph)
       val result = Residuator(tGraph).result
       checked += 1
-      check(task, Task("", result, Map()))
+      check(task, Task(result, Map()))
     }
 
     Console.println("OK, checked %d results".format(checked))
@@ -141,9 +141,6 @@ object SREPL {
   def history(g: SGraph[_, _]): List[SGraph[_, _]] =
     g :: (g.prev.map(history).getOrElse(Nil))
 }
-
-
-case class Task(name: String, goal: Term, bindings: GContext)
 
 object tasks {
 
@@ -272,7 +269,7 @@ object tasks {
     """)
 
   private def task(name: String, goal: Term, bindings: GContext): Unit = {
-    val t = Task(name, goal, bindings)
+    val t = Task(goal, bindings, name)
     tasks = tasks + (t.name -> t)
   }
 

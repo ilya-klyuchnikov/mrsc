@@ -18,7 +18,7 @@ case class PContext(l: List[String] = List()) {
     else (addName(n + i), n + i)
 }
 
-case class Task(goal: Term, bindings: GContext) {
+case class Task(goal: Term, bindings: GContext, name: String = "") {
   override def toString =
     (goal.toString :: (bindings.map{case (k, v) => k + " = " + v + ";"}).toList).mkString("\n")
 }
@@ -78,7 +78,7 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
     case t                 => sys.error(t.toString)
   }
   lazy val task: PackratParser[Task] =
-    (topTerm <~ ";") ~ bindings ^^ Task
+    (topTerm <~ ";") ~ bindings ^^ {case goal ~ bs => Task(goal, bs)}
 
   def inputTask(s: String) = phrase(task)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
