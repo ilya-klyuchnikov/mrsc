@@ -59,6 +59,7 @@ object Ex06 extends scala.App with Demo {
   run("reduce (flatten <1>) <2> <3>")
 }
 
+// this seems to be a challenge
 // case NestedArrayValues(Def(NRepArray(segs, Def(d@RepArray(l,v))))) => {   //see  (*)
 //   val l1 = segs.bs.reduce
 //   d.elem.replicate(l1,v)
@@ -67,7 +68,3 @@ object Ex07 extends scala.App with Demo {
   val bindings: GContext = io.bingingsFromFile("pfp/arrays/defs.pfp")
   //run("take <1> <2>")
 }
-
-
-
-

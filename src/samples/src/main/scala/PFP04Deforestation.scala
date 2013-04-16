@@ -11,15 +11,6 @@ object PFP04Deforestation extends scala.App {
   }
 
   def deforest(bindings: GContext, goal: Term) = {
-    case class Deforester(val gc: GContext)
-      extends PFPRules
-      with PFPSemantics
-      with Driving
-      with AllFoldingCandidates
-      with Folding
-      with NoWhistle
-      with NoRebuildings
-
     val rules = new Deforester(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)

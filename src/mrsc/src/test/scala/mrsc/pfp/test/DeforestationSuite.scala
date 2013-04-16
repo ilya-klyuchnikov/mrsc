@@ -7,14 +7,6 @@ import org.junit.runner.RunWith
 import mrsc.core._
 import mrsc.pfp._
 
-case class Deforester(val gc: GContext) extends PFPRules
-  with PFPSemantics
-  with Driving
-  with AllFoldingCandidates
-  with Folding
-  with NoWhistle
-  with NoRebuildings
-
 @RunWith(classOf[JUnitRunner])
 class DeforestationSuite extends FunSuite {
 
