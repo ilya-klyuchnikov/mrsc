@@ -89,23 +89,23 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
 // TODO
 object NamedSyntax {
   def named(t: Term, ctx: PContext = PContext()): String = t match {
-    case BVar(i)  => ctx.index2Name(i)
+    case BVar(i, _)  => ctx.index2Name(i)
     case fv: FVar => "<" + fv.i.toString + ">"
     case gv: GVar => gv.n.toString
-    case Abs(t1) =>
+    case Abs(t1, _) =>
       val (ctx1, x) = ctx.pickFreshName("x")
       "(\\" + x + " -> " + named(t1, ctx1) + ")"
-    case App(t1, t2) =>
+    case App(t1, t2, _) =>
       "(" + named(t1, ctx) + " " + named(t2, ctx) + ")"
-    case Let(Fix(body), in) =>
+    case Let(Fix(body, _), in, _) =>
       val (ctx1, f) = ctx.pickFreshName("f")
       "(letrec " + f + " = " + named(body, ctx1) + " in " + named(in, ctx1) + ")"
-    case Let(v, in) =>
+    case Let(v, in, _) =>
       val (ctx1, f) = ctx.pickFreshName("f")
       "(let " + f + " = " + named(v, ctx) + " in " + named(in, ctx1) + ")"
-    case Ctr(n, args) =>
+    case Ctr(n, args, _) =>
       n + args.map(named(_, ctx)).mkString("(", ", ", ")")
-    case Case(sel, bs) =>
+    case Case(sel, bs, _) =>
       "case " + named(sel, ctx) + " of " +
         (bs.map {
           case (p @ Ptr(n, args), t) =>

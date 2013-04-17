@@ -62,7 +62,7 @@ case class DecomposeAbsMStep(body: Term, fv: FVar) extends MStep {
 }
 // Application of an unknown function. Drilling into arguments.
 case class DecomposeVarApp(fv: FVar, args: List[Term]) extends MStep {
-  val compose = (ls: List[Term]) => ls.reduce(App)
+  val compose = (ls: List[Term]) => ls.reduce(App(_, _))
   val graphStep = AddChildNodesStep[MetaTerm, Label]((fv :: args) map { (_, DecomposeLabel(compose)) })
 }
 // Pattern matching.
@@ -129,13 +129,13 @@ trait PFPSemantics extends VarGen {
         UnfoldMStep(context.replaceHole(gc(f.n)))
       case context @ Context(RedexFix(t1)) =>
         UnfoldMStep(context.replaceHole(termSubstTop(t1, t1.t)))
-      case context @ Context(RedexLamApp(Abs(t1), App(_, t2))) =>
+      case context @ Context(RedexLamApp(Abs(t1, _), App(_, t2, _))) =>
         TransientMStep(context.replaceHole((termSubstTop(t2, t1))))
-      case context @ Context(RedexCaseCtr(Ctr(name, args), Case(_, bs))) =>
+      case context @ Context(RedexCaseCtr(Ctr(name, args, _), Case(_, bs, _))) =>
         val Some((ptr, body)) = bs.find(_._1.name == name)
         val next = args.foldRight(body)(termSubstTop(_, _))
         TransientMStep(context.replaceHole(next))
-      case context @ Context(RedexCaseAlt(v: FVar, Case(_, bs))) =>
+      case context @ Context(RedexCaseAlt(v: FVar, Case(_, bs, _))) =>
         val xs = for { (ptr @ Ptr(name, args), body) <- bs } yield {
           val ctr = Ctr(name, args.map(nextVar))
           val next = ctr.args.foldRight(body)(termSubstTop(_, _))
@@ -143,10 +143,10 @@ trait PFPSemantics extends VarGen {
         }
         VariantsMStep(v, xs)
       // variable application
-      case context @ Context(RedexCaseAlt(sel, Case(_, bs))) =>
+      case context @ Context(RedexCaseAlt(sel, Case(_, bs, _))) =>
         val v = nextVar()
         RebuildMStep(Rebuilding(context.replaceHole(Case(v, bs)), Map(v -> sel)))
-      case context @ Context(RedexLet(Let(v, body))) =>
+      case context @ Context(RedexLet(Let(v, body, _))) =>
         val red1 = termSubstTop(v, body)
         TransientMStep(context.replaceHole(red1))
     }

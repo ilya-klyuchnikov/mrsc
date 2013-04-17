@@ -1,44 +1,61 @@
 package mrsc.pfp
 
 // PART 1. AST
-sealed trait MetaTerm
-case class Rebuilding(t: Term, sub: Subst) extends MetaTerm
+sealed trait MetaTerm { self =>
+  val ticks: Int
+}
+case class Rebuilding(t: Term, sub: Subst, ticks: Int = 0) extends MetaTerm
 
 sealed trait Term extends MetaTerm {
   def size: Int
 }
-case class BVar(i: Int) extends Term {
+case class BVar(i: Int, ticks: Int = 0) extends Term {
   override lazy val size = 1
 }
-case class FVar(i: Int) extends Term {
+case class FVar(i: Int, ticks: Int = 0) extends Term {
   override lazy val size = 1
 }
-case class GVar(n: String) extends Term {
+case class GVar(n: String, ticks: Int = 0) extends Term {
   override lazy val size = 1
 }
-case class Abs(t: Term) extends Term {
+case class Abs(t: Term, ticks: Int = 0) extends Term {
   override lazy val size = 1 + t.size
 }
-case class App(t1: Term, t2: Term) extends Term {
+case class App(t1: Term, t2: Term, ticks: Int = 0) extends Term {
   override lazy val size = t1.size + t2.size
 }
 // Simple let-expression. `v` is represented by `BVar(0)` in `in`.
-case class Let(v: Term, in: Term) extends Term {
+case class Let(v: Term, in: Term, ticks: Int = 0) extends Term {
   override lazy val size = 1 + v.size + in.size
 }
 // Term itself is represented as `BVar(0)` in `t`.
 // In terms of TAPL we use only Fix(Abs(_)) combination.
 // Let(Fix(_), e) is a letrec
-case class Fix(t: Term) extends Term {
+case class Fix(t: Term, ticks: Int = 0) extends Term {
   override lazy val size = 1 + t.size
 }
-case class Ctr(name: String, args: List[Term]) extends Term {
+case class Ctr(name: String, args: List[Term], ticks: Int = 0) extends Term {
   override lazy val size = 1 + args.map(_.size).sum
 }
-case class Case(sel: Term, branches: List[Branch]) extends Term {
+case class Case(sel: Term, branches: List[Branch], ticks: Int = 0) extends Term {
   override lazy val size = sel.size + branches.map{b => b._2.size}.sum
 }
 case class Ptr(name: String, args: List[String])
+
+object Ticks {
+  def incrTicks[T <: MetaTerm](t: T, delta: Int): T = (t match {
+    case t: Rebuilding => t.copy(ticks = t.ticks + delta)
+    case t: BVar => t.copy(ticks = t.ticks + delta)
+    case t: FVar => t.copy(ticks = t.ticks + delta)
+    case t: GVar => t.copy(ticks = t.ticks + delta)
+    case t: Abs => t.copy(ticks = t.ticks + delta)
+    case t: App => t.copy(ticks = t.ticks + delta)
+    case t: Let => t.copy(ticks = t.ticks + delta)
+    case t: Fix => t.copy(ticks = t.ticks + delta)
+    case t: Ctr => t.copy(ticks = t.ticks + delta)
+    case t: Case => t.copy(ticks = t.ticks + delta)
+  }).asInstanceOf[T]
+}
 
 // PART 2. Syntax operations
 /**
@@ -57,15 +74,16 @@ object NamelessSyntax {
   private def tmMap(onVar: (Int, BVar) => Term, t: Term): Term = {
     // c - current context depth
     def walk(c: Int, t: Term): Term = t match {
-      case v: BVar      => onVar(c, v)
-      case v: FVar      => v
-      case v: GVar      => v
-      case Abs(t2)      => Abs(walk(c + 1, t2))
-      case App(t1, t2)  => App(walk(c, t1), walk(c, t2))
-      case Let(t1, t2)  => Let(walk(c, t1), walk(c + 1, t2))
-      case Fix(t1)      => Fix(walk(c + 1, t1))
-      case Case(t, bs)  => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
-      case Ctr(n, args) => Ctr(n, args.map(walk(c, _)))
+      // SIC! onVar is responsible for adjusting ticks
+      case v: BVar             => onVar(c, v)
+      case v: FVar             => v
+      case v: GVar             => v
+      case Abs(t2, ticks)      => Abs(walk(c + 1, t2), ticks)
+      case App(t1, t2, ticks)  => App(walk(c, t1), walk(c, t2), ticks)
+      case Let(t1, t2, ticks)  => Let(walk(c, t1), walk(c + 1, t2), ticks)
+      case Fix(t1, ticks)      => Fix(walk(c + 1, t1), ticks)
+      case Case(t, bs, ticks)  => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) }, ticks)
+      case Ctr(n, args, ticks) => Ctr(n, args.map(walk(c, _)), ticks)
     }
     walk(0, t)
   }
@@ -74,16 +92,17 @@ object NamelessSyntax {
   // (for example, in residuator)
   def applySubst(t: Term, s: Subst): Term = {
     def walk(c: Int, t: Term): Term = t match {
-      case v: BVar                       => v
-      case v: FVar if s.get(v).isDefined => termShift(c, s(v))
-      case v: FVar                       => v
-      case v: GVar                       => v
-      case Abs(t2)                       => Abs(walk(c + 1, t2))
-      case App(t1, t2)                   => App(walk(c, t1), walk(c, t2))
-      case Let(t1, t2)                   => Let(walk(c, t1), walk(c + 1, t2))
-      case Fix(t1)                       => Fix(walk(c + 1, t1))
-      case Case(t, bs)                   => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) })
-      case Ctr(n, fs)                    => Ctr(n, fs.map(walk(c, _)))
+      case v: BVar                           => v
+      // ticks propagation
+      case v: FVar if s.get(v).isDefined     => Ticks.incrTicks(termShift(c, s(v)), v.ticks)
+      case v: FVar                           => v
+      case v: GVar                           => v
+      case Abs(t2, ticks)                    => Abs(walk(c + 1, t2), ticks)
+      case App(t1, t2, ticks)                => App(walk(c, t1), walk(c, t2), ticks)
+      case Let(t1, t2, ticks)                => Let(walk(c, t1), walk(c + 1, t2), ticks)
+      case Fix(t1, ticks)                    => Fix(walk(c + 1, t1), ticks)
+      case Case(t, bs, ticks)                => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) }, ticks)
+      case Ctr(n, fs, ticks)                 => Ctr(n, fs.map(walk(c, _)), ticks)
     }
     walk(0, t)
   }
@@ -91,13 +110,13 @@ object NamelessSyntax {
   // shifts unbound bvars by d
   // unbound bvars may appear during beta reduction (termSubstTop)
   def termShift(d: Int, t: Term): Term = {
-    val f = { (c: Int, v: BVar) => if (v.i >= c) BVar(v.i + d) else BVar(v.i) }
+    val f = { (c: Int, v: BVar) => if (v.i >= c) BVar(v.i + d, v.ticks) else v }
     tmMap(f, t)
   }
 
   // replaces BVar(0) in t by s
   private def termSubst(s: Term, t: Term): Term = {
-    val onVar = { (c: Int, v: BVar) => if (v.i == c) termShift(c, s) else v }
+    val onVar = { (c: Int, v: BVar) => if (v.i == c) Ticks.incrTicks(termShift(c, s), v.ticks) else v }
     tmMap(onVar, t)
   }
 
@@ -108,15 +127,15 @@ object NamelessSyntax {
 
   // can this subterm be extracted?
   def isFreeSubTerm(t: Term, depth: Int = 0): Boolean = t match {
-    case BVar(i)       => i < depth
-    case GVar(_)       => true
-    case FVar(_)       => true
-    case Abs(t1)       => isFreeSubTerm(t1, depth + 1)
-    case App(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth)
-    case Let(t1, t2)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth + 1)
-    case Fix(t1)       => isFreeSubTerm(t1, depth + 1)
-    case Case(sel, bs) => isFreeSubTerm(sel, depth) && bs.forall{ case (ptr, ti) => isFreeSubTerm(ti, depth + ptr.args.size)}
-    case Ctr(n, fs)    => fs.forall(isFreeSubTerm(_, depth))
+    case BVar(i, _)       => i < depth
+    case GVar(_, _)       => true
+    case FVar(_, _)       => true
+    case Abs(t1, _)       => isFreeSubTerm(t1, depth + 1)
+    case App(t1, t2, _)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth)
+    case Let(t1, t2, _)   => isFreeSubTerm(t1, depth) && isFreeSubTerm(t2, depth + 1)
+    case Fix(t1, _)       => isFreeSubTerm(t1, depth + 1)
+    case Case(sel, bs, _) => isFreeSubTerm(sel, depth) && bs.forall{ case (ptr, ti) => isFreeSubTerm(ti, depth + ptr.args.size)}
+    case Ctr(n, fs, _)    => fs.forall(isFreeSubTerm(_, depth))
   }
 
   def findSubst(from: Term, to: Term): Option[Subst] =
@@ -126,19 +145,19 @@ object NamelessSyntax {
   def findSubst0(from: Term, to: Term): Option[Subst] = (from, to) match {
     case (fv: FVar, _) if isFreeSubTerm(to, 0) =>
       Some(Map(fv -> to))
-    case (Abs(t1), Abs(t2)) =>
+    case (Abs(t1, _), Abs(t2, _)) =>
       findSubst0(t1, t2)
-    case (App(h1, t1), App(h2, t2)) =>
+    case (App(h1, t1, _), App(h2, t2, _)) =>
       val s1 = findSubst0(h1, h2)
       val s2 = findSubst0(t1, t2)
       mergeOptSubst(s1, s2)
-    case (Let(v1, t1), Let(v2, t2)) =>
+    case (Let(v1, t1, _), Let(v2, t2, _)) =>
       val s1 = findSubst0(v1, v2)
       val s2 = findSubst0(t1, t2)
       mergeOptSubst(s1, s2)
-    case (Fix(t1), Fix(t2)) =>
+    case (Fix(t1, _), Fix(t2, _)) =>
       findSubst0(t1, t2)
-    case (Case(sel1, bs1), Case(sel2, bs2)) =>
+    case (Case(sel1, bs1, _), Case(sel2, bs2, _)) =>
       if (bs1.map(_._1) == bs2.map(_._1)) {
         var sub = findSubst0(sel1, sel2)
         for (((_, t1), (_, t2)) <- bs1.zip(bs2)) {
@@ -149,16 +168,16 @@ object NamelessSyntax {
       } else {
         None
       }
-    case (Ctr(n1, fs1), Ctr(n2, fs2)) if n1 == n2 =>
+    case (Ctr(n1, fs1, _), Ctr(n2, fs2, _)) if n1 == n2 =>
       var sub: Option[Subst] = Some(Map())
       for ((t1, t2) <- fs1.zip(fs2)) {
         val sub1 = findSubst0(t1, t2)
         sub = mergeOptSubst(sub, sub1)
       }
       sub
-    case (BVar(i), BVar(j)) if i == j =>
+    case (BVar(i, _), BVar(j, _)) if i == j =>
       Some(Map())
-    case (GVar(i), GVar(j)) if i == j =>
+    case (GVar(i, _), GVar(j, _)) if i == j =>
       Some(Map())
     case _ => None
   }
@@ -181,15 +200,15 @@ object NamelessSyntax {
     findSubst(t1, t2).isDefined && findSubst(t2, t1).isDefined
 
   def freeVars(t: Term): List[FVar] = t match {
-    case fv @ FVar(_)  => List(fv)
-    case BVar(_)       => List()
-    case GVar(_)       => List()
-    case Abs(t1)       => freeVars(t1)
-    case App(t1, t2)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
-    case Let(t1, t2)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
-    case Fix(t1)       => freeVars(t1)
-    case Ctr(_, args)  => args.map(freeVars).flatten.distinct
-    case Case(sel, bs) => (freeVars(sel) :: bs.map(_._2).map(freeVars)).flatten.distinct
+    case fv @ FVar(_, _)  => List(fv)
+    case BVar(_, _)       => List()
+    case GVar(_, _)       => List()
+    case Abs(t1, _)       => freeVars(t1)
+    case App(t1, t2, _)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
+    case Let(t1, t2, _)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
+    case Fix(t1, _)       => freeVars(t1)
+    case Ctr(_, args, _)  => args.map(freeVars).flatten.distinct
+    case Case(sel, bs, _) => (freeVars(sel) :: bs.map(_._2).map(freeVars)).flatten.distinct
   }
 
   // here we mean subclass in semantical sense (as subset)
@@ -246,16 +265,16 @@ object Decomposition {
   }
 
   private def createContext(t: Term): Context = t match {
-    case v: GVar                              => new ContextHole(RedexCall(v))
-    case let: Let                             => new ContextHole(RedexLet(let))
-    case fix: Fix                             => new ContextHole(RedexFix(fix))
-    case app @ App(l: Abs, arg)               => new ContextHole(RedexLamApp(l, app))
-    case ce @ Case(v: FVar, _)                => new ContextHole(RedexCaseAlt(v, ce))
-    case ce @ Case(a: App, _) if headVar_?(a) => new ContextHole(RedexCaseAlt(a, ce))
-    case ce @ Case(c: Ctr, _)                 => new ContextHole(RedexCaseCtr(c, ce))
-    case ce @ Case(s, _)                      => new ContextCase(createContext(s), ce)
-    case a @ App(h, _)                        => new ContextApp(createContext(h), a)
-    case _                                    => sys.error("unexpected context: " + t)
+    case v: GVar                                 => new ContextHole(RedexCall(v))
+    case let: Let                                => new ContextHole(RedexLet(let))
+    case fix: Fix                                => new ContextHole(RedexFix(fix))
+    case app @ App(l: Abs, arg, _)               => new ContextHole(RedexLamApp(l, app))
+    case ce @ Case(v: FVar, _, _)                => new ContextHole(RedexCaseAlt(v, ce))
+    case ce @ Case(a: App, _, _) if headVar_?(a) => new ContextHole(RedexCaseAlt(a, ce))
+    case ce @ Case(c: Ctr, _, _)                 => new ContextHole(RedexCaseCtr(c, ce))
+    case ce @ Case(s, _, _)                      => new ContextCase(createContext(s), ce)
+    case a @ App(h, _, _)                        => new ContextApp(createContext(h), a)
+    case _                                       => sys.error("unexpected context: " + t)
   }
 
   private def headVar_?(app: App): Boolean = app.t1 match {
@@ -265,8 +284,8 @@ object Decomposition {
   }
 
   def linearApp(t: Term): Option[(FVar, List[Term])] = t match {
-    case fv @ FVar(_) => Some((fv, List()))
-    case App(h, a)    => linearApp(h) map { case (h, args) => (h, args :+ a) }
-    case _            => None
+    case fv @ FVar(_, _) => Some((fv, List()))
+    case App(h, a, _)    => linearApp(h) map { case (h, args) => (h, args :+ a) }
+    case _               => None
   }
 }

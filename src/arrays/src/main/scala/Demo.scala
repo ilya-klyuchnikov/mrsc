@@ -12,7 +12,7 @@ trait WithErrorSemantics extends PFPSemantics {
       case rb: Rebuilding =>
         super.driveStep(t)
       case t: Term => Decomposition.decompose(t) match {
-        case context @ Context(RedexCaseCtr(`ERROR`, Case(_, bs))) =>
+        case context @ Context(RedexCaseCtr(`ERROR`, _)) =>
           TransientMStep(context.replaceHole(ERROR))
         case _ =>
           super.driveStep(t)

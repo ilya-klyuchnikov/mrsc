@@ -45,7 +45,7 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
           // TODO: adjustable for lambda dropping
           val fvars = freeVars(conf)
           // (((0 v1) v2) v3) ...
-          val app: Term = (BVar(0) :: fvars).reduceLeft(App)
+          val app: Term = (BVar(0) :: fvars).reduceLeft(App(_, _))
           val body = {
             // Adding fixpoint binder.
             val ctx1 = ctx.addBinding(DefBinding(conf, app))

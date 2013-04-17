@@ -21,22 +21,22 @@ trait MSG extends VarGen {
     case (t1, t2) if t1 == t2 =>
       Some(TMSG(e1, List()))
 
-    case (Ctr(n1, args1), Ctr(n2, args2)) if n1 == n2 =>
+    case (Ctr(n1, args1, _), Ctr(n2, args2, _)) if n1 == n2 =>
       for ((genArgs, sub) <- merge((args1, args2).zipped.map { generalize }))
         yield TMSG(Ctr(n1, genArgs), sub)
 
-    case (Abs(body1), Abs(body2)) =>
+    case (Abs(body1, _), Abs(body2, _)) =>
       for (TMSG(genBody, sub) <- generalize(body1, body2))
         yield TMSG(Abs(genBody), sub)
 
-    case (App(h1, arg1), App(h2, arg2)) => {
+    case (App(h1, arg1, _), App(h2, arg2, _)) => {
       for {
         TMSG(genHead, sub1) <- generalize(h1, h2)
         TMSG(genArg, sub2) <- generalize(arg1, arg2)
       } yield TMSG(App(genHead, genArg), sub1 ++ sub2)
     }
 
-    case (Case(sel1, bs1), Case(sel2, bs2)) => {
+    case (Case(sel1, bs1, _), Case(sel2, bs2, _)) => {
       val samePatterns = (bs1 map (_._1.name)) == (bs2 map (_._1.name))
       if (samePatterns) {
         for {
@@ -48,13 +48,13 @@ trait MSG extends VarGen {
       }
     }
 
-    case (Let(v1, in1), Let(v2, in2)) =>
+    case (Let(v1, in1, _), Let(v2, in2, _)) =>
       for {
         TMSG(vGen, vSub) <- generalize(v1, v2)
         TMSG(inGen, inSub) <- generalize(v1, v2)
       } yield TMSG(Let(vGen, inGen), vSub ++ inSub)
 
-    case (Fix(body1), Fix(body2)) =>
+    case (Fix(body1, _), Fix(body2, _)) =>
       for (TMSG(genBody, sub) <- generalize(body1, body2))
         yield TMSG(Abs(genBody), sub)
 

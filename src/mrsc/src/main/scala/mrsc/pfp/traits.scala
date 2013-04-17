@@ -159,29 +159,29 @@ trait RebuildingsGenerator extends VarGen {
   private def rebuild(e: Term, sub: Subst): List[Rebuilding] = {
 
     val rbs1: List[Rebuilding] = e match {
-      case Abs(body) =>
-        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+      case Abs(body, _) =>
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
           yield Rebuilding(Abs(t1), sub1)
-      case App(a1, a2) =>
+      case App(a1, a2, _) =>
         for {
-          Rebuilding(t1, sub1) <- rebuild(a1, sub)
-          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+          Rebuilding(t1, sub1, _) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2, _) <- rebuild(a2, sub1)
         } yield Rebuilding(App(t1, t2), sub2)
-      case Let(a1, a2) =>
+      case Let(a1, a2, _) =>
         for {
-          Rebuilding(t1, sub1) <- rebuild(a1, sub)
-          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+          Rebuilding(t1, sub1, _) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2, _) <- rebuild(a2, sub1)
         } yield Rebuilding(Let(t1, t2), sub2)
-      case Fix(body) =>
-        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+      case Fix(body, _) =>
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
           yield Rebuilding(Fix(t1), sub1)
-      case Ctr(n, xs) =>
+      case Ctr(n, xs, _) =>
         for { (ys, sub1) <- rebuild1(xs, sub) }
           yield Rebuilding(Ctr(n, ys), sub1)
-      case Case(sel, bs) =>
+      case Case(sel, bs, _) =>
         val (pts, bodies) = bs.unzip
         for {
-          Rebuilding(sel1, sub1) <- rebuild(sel, sub)
+          Rebuilding(sel1, sub1, _) <- rebuild(sel, sub)
           (bodies2, sub2) <- rebuild1(bodies, sub1)
         } yield Rebuilding(Case(sel1, pts zip bodies2), sub2)
       case _ =>
@@ -205,7 +205,7 @@ trait RebuildingsGenerator extends VarGen {
   // all combinations of rebuildings a list of expressions 
   private def rebuild1(es: List[Term], sub: Subst): List[(List[Term], Subst)] =
     (es :\ ((List[Term](), sub) :: Nil)) { (e, acc) =>
-      for { (es1, sub) <- acc; Rebuilding(t, sub1) <- rebuild(e, sub) } yield (t :: es1, sub1)
+      for { (es1, sub) <- acc; Rebuilding(t, sub1, _) <- rebuild(e, sub) } yield (t :: es1, sub1)
     }
 }
 
@@ -241,29 +241,29 @@ trait SizedRebuildingsGenerator extends RebuildingsGenerator {
   private def rebuild(e: Term, sub: Subst): List[Rebuilding] = {
 
     val rbs1: List[Rebuilding] = e match {
-      case Abs(body) =>
-        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+      case Abs(body, _) =>
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
           yield Rebuilding(Abs(t1), sub1)
-      case App(a1, a2) =>
+      case App(a1, a2, _) =>
         for {
-          Rebuilding(t1, sub1) <- rebuild(a1, sub)
-          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+          Rebuilding(t1, sub1, _) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2, _) <- rebuild(a2, sub1)
         } yield Rebuilding(App(t1, t2), sub2)
-      case Let(a1, a2) =>
+      case Let(a1, a2, _) =>
         for {
-          Rebuilding(t1, sub1) <- rebuild(a1, sub)
-          Rebuilding(t2, sub2) <- rebuild(a2, sub1)
+          Rebuilding(t1, sub1, _) <- rebuild(a1, sub)
+          Rebuilding(t2, sub2, _) <- rebuild(a2, sub1)
         } yield Rebuilding(Let(t1, t2), sub2)
-      case Fix(body) =>
-        for { Rebuilding(t1, sub1) <- rebuild(body, sub) }
+      case Fix(body, _) =>
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
           yield Rebuilding(Fix(t1), sub1)
-      case Ctr(n, xs) =>
+      case Ctr(n, xs, _) =>
         for { (ys, sub1) <- rebuild1(xs, sub) }
           yield Rebuilding(Ctr(n, ys), sub1)
-      case Case(sel, bs) =>
+      case Case(sel, bs, _) =>
         val (pts, bodies) = bs.unzip
         for {
-          Rebuilding(sel1, sub1) <- rebuild(sel, sub)
+          Rebuilding(sel1, sub1, _) <- rebuild(sel, sub)
           (bodies2, sub2) <- rebuild1(bodies, sub1)
         } yield Rebuilding(Case(sel1, pts zip bodies2), sub2)
       case _ =>
@@ -288,7 +288,7 @@ trait SizedRebuildingsGenerator extends RebuildingsGenerator {
   // all combinations of rebuildings a list of expressions 
   private def rebuild1(es: List[Term], sub: Subst): List[(List[Term], Subst)] =
     (es :\ ((List[Term](), sub) :: Nil)) { (e, acc) =>
-      for { (es1, sub) <- acc; Rebuilding(t, sub1) <- rebuild(e, sub) } yield (t :: es1, sub1)
+      for { (es1, sub) <- acc; Rebuilding(t, sub1, _) <- rebuild(e, sub) } yield (t :: es1, sub1)
     }
 }
 trait NoRebuildings extends PFPRules {
@@ -299,7 +299,7 @@ trait AllRebuildings extends PFPRules with RebuildingsGenerator {
   override def rebuild(signal: Option[N], g: G) = {
     val in = g.current.in
     in match {
-      case SEdge(SNode(Rebuilding(_, _), _, _, _), _) =>
+      case SEdge(SNode(Rebuilding(_, _, _), _, _, _), _) =>
         List()
       case _ =>
         rebuildings(g.current.conf) map { x => RebuildStep(x): S }
@@ -353,7 +353,7 @@ trait UpperAllBinaryGensOnBinaryWhistle extends PFPRules with MutualGens with Bi
       case Some(upper) =>
         val in = upper.in
         in match {
-          case SEdge(SNode(Rebuilding(_, _), _, _, _), _) =>
+          case SEdge(SNode(Rebuilding(_, _, _), _, _, _), _) =>
             List()
           case _ =>
             mutualGens(upper.conf, g.current.conf) map { RollbackStep(upper.sPath, _): S }
@@ -395,7 +395,7 @@ trait UpperAllBinaryGensOrDriveOnBinaryWhistle extends PFPRules with MutualGens 
       case Some(upper) =>
         val in = upper.in
         in match {
-          case SEdge(SNode(Rebuilding(_, _), _, _, _), _) =>
+          case SEdge(SNode(Rebuilding(_, _, _), _, _, _), _) =>
             List()
           case _ =>
             val rollbacks = mutualGens(upper.conf, g.current.conf) map { RollbackStep(upper.sPath, _): S }
@@ -438,7 +438,7 @@ trait UpperMsgOrLowerMggOnBinaryWhistle extends PFPRules with MSGRebuildings wit
             List(RollbackStep(upper.sPath, rb): S)
           case None =>
             val cands = rebuildings(currentConf)
-            val mgg = cands find { case Rebuilding(c1, _) => cands forall { case Rebuilding(c2, _) => subclass.lteq(c2, c1) } }
+            val mgg = cands find { case Rebuilding(c1, _, _) => cands forall { case Rebuilding(c2, _, _) => subclass.lteq(c2, c1) } }
             mgg.map(RebuildStep(_): S).toList
         }
       case None =>
@@ -459,7 +459,7 @@ trait LowerMsgOrUpperMggOnBinaryWhistle extends PFPRules with MSGRebuildings wit
             List(RebuildStep(rb): S)
           case None =>
             val cands = rebuildings(upperConf)
-            val mgg = cands find { case Rebuilding(c1, _) => cands forall { case Rebuilding(c2, _) => subclass.lteq(c2, c1) } }
+            val mgg = cands find { case Rebuilding(c1, _, _) => cands forall { case Rebuilding(c2, _, _) => subclass.lteq(c2, c1) } }
             mgg.map(RollbackStep(upper.sPath, _): S).toList
         }
       case None =>
