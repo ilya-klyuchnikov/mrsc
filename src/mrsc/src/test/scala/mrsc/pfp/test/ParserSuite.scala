@@ -1,12 +1,8 @@
 package mrsc.pfp.test
 
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
-
 import mrsc.pfp._
 
-@RunWith(classOf[JUnitRunner])
 class ParserSuite extends FunSuite {
 
   test("parsing free variable") {

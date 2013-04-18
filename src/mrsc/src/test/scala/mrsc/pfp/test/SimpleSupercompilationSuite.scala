@@ -1,8 +1,6 @@
 package mrsc.pfp.test
 
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
 
 import mrsc.core._
 import mrsc.pfp._
@@ -17,7 +15,6 @@ class ClassicSC(val gc: GContext) extends PFPRules
   with HE3ByCouplingWhistle
   with UpperMsgOrLowerMggOnBinaryWhistle
 
-@RunWith(classOf[JUnitRunner])
 class SimpleSupercompilationSuite extends FunSuite {
 
   test("append residuation") {

@@ -9,7 +9,6 @@ object MRSCBuild extends Build {
     settings = Project.defaultSettings ++ Seq(
       libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.0-RC2",
       libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-      libraryDependencies += "junit" % "junit" % "4.8.1" % "test",
       unmanagedBase := file("lib"),
       fork := true,
       baseDirectory in run := file(".")

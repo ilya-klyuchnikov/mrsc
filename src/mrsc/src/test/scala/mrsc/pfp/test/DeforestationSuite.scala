@@ -1,13 +1,10 @@
 package mrsc.pfp.test
 
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
 
 import mrsc.core._
 import mrsc.pfp._
 
-@RunWith(classOf[JUnitRunner])
 class DeforestationSuite extends FunSuite {
 
   test("build graph for append") {

@@ -1,8 +1,6 @@
 package mrsc.pfp.test
 
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
 
 import mrsc.pfp._
 import NamelessShows._
