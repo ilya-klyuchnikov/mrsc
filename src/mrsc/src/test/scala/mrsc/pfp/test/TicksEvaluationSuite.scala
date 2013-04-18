@@ -24,8 +24,8 @@ class TicksEvaluationSuite extends FunSuite {
 
     val (ticks1, evaled1) = CBNEvalWithTicks.eval(e1, bindings)
     val (ticks2, evaled2) = CBNEvalWithTicksResidual.eval(e2, Map())
-    info(s(e2))
-    info(ticks1.toString)
+    info(s"${s(e1)} ==> ${ticks1} ticks")
+    info(s"${s(e2)} ==> ${ticks2} ticks")
     assert(evaled1 === evaled2)
     assert(ticks1 === ticks2)
   }

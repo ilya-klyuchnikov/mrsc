@@ -123,7 +123,7 @@ object CBNEvalWithTicksResidual {
     case _            => false
   }
 
-  // one-step reduction evaluation
+  // TODO: ensure that tick is taken into account exactly once
   def lazyStep(t: Term, g: GContext): (Int, Term) = t match {
     case _ if isLazyVal(t) =>
       (t.ticks, t)
@@ -149,9 +149,9 @@ object CBNEvalWithTicksResidual {
   def eval(t: Term, g: GContext): (Int, Term) = lazyStep(t, g) match {
     case (ticks, Abs(_, _)) =>
       (ticks, t)
-    case (ticks, Ctr(n, fs, _)) =>
+    case (ticks, Ctr(n, fs, cTicks)) =>
       val (ts, args) = fs.map(eval(_, g)).unzip
-      (ticks + ts.sum, Ctr(n, args))
+      (cTicks + ticks + ts.sum, Ctr(n, args))
     case (ticks1, t1) =>
       val (ticks2, t2) = eval(t1, g)
       (ticks1 + ticks2, t2)
