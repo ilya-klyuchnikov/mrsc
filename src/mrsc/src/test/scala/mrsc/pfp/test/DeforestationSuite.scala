@@ -18,11 +18,7 @@ class DeforestationSuite extends FunSuite {
       """
     val goal: Term = "app <1> <2>"
     val rules = new Deforester(bindings)
-    val graphs = GraphGenerator(rules, goal)
-    for (g <- graphs) {
-      val tg = Transformations.transpose(g)
-      info(tg.toString)
-    }
+    GraphGenerator(rules, goal).toList
   }
 
   test("build graph for double append") {
@@ -36,12 +32,7 @@ class DeforestationSuite extends FunSuite {
       """
     val goal: Term = "app (app <1> <2>) <3> "
     val rules = new Deforester(bindings)
-    val graphs = GraphGenerator(rules, goal)
-    for (g <- graphs) {
-      val tg = Transformations.transpose(g)
-      info("")
-      info(tg.toString)
-    }
+    val graphs = GraphGenerator(rules, goal).toList
   }
 
   test("constructor residuation") {
@@ -73,9 +64,7 @@ class DeforestationSuite extends FunSuite {
     val expectedResult: Term = """letrec h = \x -> h x in h <2>"""
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
     val result: Term = Residuator(tGraph).result
-    info(result.toString())
     assert(expectedResult === result)
   }
 
@@ -101,9 +90,7 @@ class DeforestationSuite extends FunSuite {
       """
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
     val result: Term = Residuator(tGraph).result
-    info(result.toString())
     assert(expectedResult === result)
   }
 
@@ -131,9 +118,7 @@ class DeforestationSuite extends FunSuite {
       """
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
     val result: Term = Residuator(tGraph).result
-    info(result.toString())
     assert(expectedResult === result)
   }
 
@@ -164,9 +149,7 @@ class DeforestationSuite extends FunSuite {
       """
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
     val result: Term = Residuator(tGraph).result
-    info(result.toString())
     assert(expectedResult === result)
   }
 
@@ -190,9 +173,7 @@ class DeforestationSuite extends FunSuite {
       """
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
     val result: Term = Residuator(tGraph).result
-    info(result.toString())
     assert(expectedResult === result)
   }
 
@@ -200,9 +181,7 @@ class DeforestationSuite extends FunSuite {
     val rules = new Deforester(bindings)
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
     val result = Residuator(tGraph).result
-    info(result.toString())
     assert(result === expectedResult)
   }
 }

@@ -65,9 +65,7 @@ class SimpleSupercompilationSuite extends FunSuite {
     val rules = new ClassicSC(bindings)
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
-    info(tGraph.toString())
     val result = Residuator(tGraph).result
-    info(result.toString())
     assert(result === expectedResult)
   }
 }
