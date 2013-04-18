@@ -435,6 +435,10 @@ object repl {
   import Scalaz._
   import NamelessShows._
 
+  val mxUI = new PFPGraphUI {
+    implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
+  }
+
   def graphs(file: String, sc: PFPSC): Iterator[SGraph[MetaTerm, Label]] = {
     val (_, task) = io.taskFromFile(file)
     val rules = sc(task.bindings)
@@ -461,10 +465,15 @@ object repl {
       }
     }
 
-  def showResiduals(file: String, sc: PFPSC) =
+  def showResiduals(file: String, sc: PFPSC, showGraphs: Boolean = false) =
     graphs(file, sc).zipWithIndex.foreach { case (sGraph, i) =>
       val tGraph = Transformations.transpose(sGraph)
-      Console.println(Residuator(tGraph).result.shows)
+      if (showGraphs) {
+        mxUI.showMxGraph(tGraph)
+      }
+      val res = Residuator(tGraph).result
+      Console.println(res.shows)
+      Console.println(NamedSyntax.named(res))
     }
 }
 

@@ -1,0 +1,18 @@
+app = \x -> \y ->
+    case x of {
+        Nil()  -> y;
+        Cons(x, xs) -> Cons(x, (app xs y))
+    };
+
+fin2 = \x -> case (fin1 x) of {
+   False() -> False();
+   True()  -> case x of {
+     S(x1) -> fin2 x1;
+     Z()   -> True()
+   }
+};
+
+fin1 = \x -> case x of {
+  S(x1) -> fin1(x1);
+  Z()   -> True()
+};

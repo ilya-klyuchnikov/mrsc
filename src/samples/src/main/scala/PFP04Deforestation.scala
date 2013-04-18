@@ -2,6 +2,7 @@ import scalaz._
 import Scalaz._
 import mrsc.core._
 import mrsc.pfp._
+import NamelessShows._
 
 // 2nd and 3rd transformations prove equivalence
 object PFP04Deforestation extends scala.App {
@@ -31,25 +32,25 @@ object PFP04Deforestation extends scala.App {
 
   def sample1 {
     val goal1: Term = "app <1> <2>"
-    println("   " + goal1.shows(NamelessShows.TermShow))
+    println("   " + goal1.shows)
     val deforested1 = deforest(bindings, goal1)
-    println("=> " + deforested1.shows(NamelessShows.TermShow))
+    println("=> " + deforested1.shows)
     println()
   }
 
   def sample2 {
     val goal2: Term = "app (app <1> <2>) <3>"
-    println("   " + goal2.shows(NamelessShows.TermShow))
+    println("   " + goal2.shows)
     val deforested2 = deforest(bindings, goal2)
-    println("=> " + deforested2.shows(NamelessShows.TermShow))
+    println("=> " + deforested2.shows)
     println()
   }
 
   def sample3 {
     val goal3: Term = "app <1> (app <2> <3>)"
-    println("   " + goal3.shows(NamelessShows.TermShow))
+    println("   " + goal3.shows)
     val deforested3 = deforest(bindings, goal3)
-    println("=> " + deforested3.shows(NamelessShows.TermShow))
+    println("=> " + deforested3.shows)
     println()
   }
 

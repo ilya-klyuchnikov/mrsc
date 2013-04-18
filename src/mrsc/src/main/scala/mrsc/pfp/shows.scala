@@ -8,7 +8,7 @@ object NamelessShows {
     p.name + p.args.map(_ => "_").mkString("(", ", ", ")")
 
   // "toString" for terms
-  private def s(t: MetaTerm): String = t match {
+  def s(t: MetaTerm): String = "*" * t.ticks +  (t match {
     case BVar(i, _) =>
       i.toString
     case FVar(i, _) =>
@@ -30,7 +30,7 @@ object NamelessShows {
     case Rebuilding(t, sub, _) =>
       s(t) + "/" + sub.map( kv => s(kv._1) + " -> " + s(kv._2)).mkString("[", ", ", "]")
       
-  }
+  })
 
   implicit def TermShow[T <: MetaTerm]: Show[T] = Show.shows(s)
 }

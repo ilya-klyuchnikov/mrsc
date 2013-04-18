@@ -33,7 +33,7 @@ case class ResContext(l: List[Binding] = List()) {
 
 // The simplest rediduator.
 // TODO: implement residuator with lambda dropping!!
-case class Residuator(val g: TGraph[MetaTerm, Label]) {
+case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
   type N = TNode[MetaTerm, Label]
   lazy val result: Term = fold(g.root, ResContext())
 
@@ -73,6 +73,7 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
   def construct(node: TNode[MetaTerm, Label], ctx: ResContext): Term =
     node.outs match {
       case TEdge(n1, DecomposeLabel(comp)) :: _ =>
+        // TODO: Is it correct for let-expressions and ticks??
         val subnodes = node.outs.map(_.node)
         compose(comp, subnodes, ctx)
       case TEdge(n1, CaseBranchLabel(sel, _, _)) :: _ =>
@@ -86,7 +87,8 @@ case class Residuator(val g: TGraph[MetaTerm, Label]) {
         }
         Case(sel, bs1)
       case TEdge(n1, UnfoldLabel) :: Nil =>
-        fold(n1, ctx)
+        val folded = fold(n1, ctx)
+        if (withTicks) Ticks.incrTicks(folded, 1) else folded
       case TEdge(n1, TransientLabel) :: Nil =>
         fold(n1, ctx)
       case List() =>

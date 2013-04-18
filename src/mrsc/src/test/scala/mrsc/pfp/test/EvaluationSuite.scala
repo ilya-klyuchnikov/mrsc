@@ -8,16 +8,9 @@ import mrsc.pfp._
 
 @RunWith(classOf[JUnitRunner])
 class EvaluationSuite extends FunSuite {
+  val bindings = io.bingingsFromFile("pfp/defs/list.pfp")
+
   test("simple evaluation #1") {
-    val bindingsIn =
-      """
-      app = \x -> \y ->
-        case x of {
-          Nil()  -> y;
-          Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
-      """
-    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
     val goal = PFPParsers().inputTerm("app Nil() Nil()")
     val expected = PFPParsers().inputTerm("Nil()")
     info(goal.toString())
@@ -28,15 +21,6 @@ class EvaluationSuite extends FunSuite {
   }
 
   test("simple evaluation #2") {
-    val bindingsIn =
-      """
-      app = \x -> \y ->
-        case x of {
-          Nil()  -> y;
-          Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
-      """
-    val bindings: GContext = PFPParsers().inputBindings(bindingsIn)
     val goal = PFPParsers().inputTerm("app Cons(A(), Nil()) Nil()")
     val expected = PFPParsers().inputTerm("Cons(A(), Nil())")
     info(goal.toString())

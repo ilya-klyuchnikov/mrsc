@@ -1,0 +1,20 @@
+Tick operations.
+
+What is done:
+- Terms are adjusted with ticks. There is an option in residualizer to insert ticks.
+
+Items to research/develop:
+- Residual program with ticks stores information about cost model of original program,
+  so during evaluation of residual program it is possible to calculate the number of ticks
+  of execution of the original program.
+
+Open questions/todos:
+- Check correctness of operations with ticks during residualization. How do we substitute ticks?
+  Especially, fully evaluated constructors with ticks.
+- If residual program with ticks is correct, how should we evaluate it (with data) to get the same
+  number of ticks as original program.
+- Rigth now there is a falling test in TicksEvaluationSuite.
+- What is very good, that it is very easy to write tests that check that our models are correct.
+
+Parsers should be extended to handle ticks.
+Substitution: Map[FVar, Term] => Map[Int, Term] (bad for testing renaming)

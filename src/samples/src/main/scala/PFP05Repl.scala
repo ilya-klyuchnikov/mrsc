@@ -31,10 +31,10 @@ object PFP05Repl extends scala.App {
   Console.println("### the top expression")
   val (_, t1) = io.taskFromFile("pfp/s001/fin2a.pfp")
   Console.println(t1.goal.shows)
-  repl.showResiduals("pfp/s001/fin2a.pfp", SC2)
+  repl.showResiduals("pfp/s001/fin2a.pfp", SC2, true)
 
   Console.println("### renaming of the bottom expression")
   val (_, t2) = io.taskFromFile("pfp/s001/fin2b.pfp")
   Console.println(t2.goal.shows)
-  repl.showResiduals("pfp/s001/fin2b.pfp", SC2)
+  repl.showResiduals("pfp/s001/fin2b.pfp", SC2, true)
 }
