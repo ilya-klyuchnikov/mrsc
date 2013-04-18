@@ -107,15 +107,20 @@ trait PFPGraphUI {
     def createNode(node: TNode[MetaTerm, Label]): AnyRef = {
       val text = node.conf.shows
       val v = graph.insertVertex(gparent, null, text, 0, 0, 7*text.length + 10, 30)
+      node.conf match {
+        case x: Rebuilding =>
+          graph.getModel.setStyle(v, "fillColor=white;")
+        case _ =>
+      }
       map(node.tPath) = v
       for (edge <- node.outs) {
         val v1 = createNode(edge.node)
         graph.insertEdge(gparent, null, labelToString(edge.driveInfo), v, v1)
       }
       node.base.foreach { p =>
-        graph.insertEdge(gparent, null, "  ", map(p), v, "endArrow=none;strokeColor=red")
-        graph.getModel.setStyle(v, "strokeColor=red")
-        graph.getModel.setStyle(map(p), "strokeColor=red")
+        graph.insertEdge(gparent, null, "  ", map(p), v, "endArrow=none;strokeColor=red;")
+        graph.getModel.setStyle(v, "strokeColor=red;")
+        graph.getModel.setStyle(map(p), "strokeColor=red;")
       }
       v
     }
