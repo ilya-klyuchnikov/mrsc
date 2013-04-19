@@ -5,8 +5,9 @@ import org.scalatest.FunSuite
 import mrsc.pfp._
 import NamelessShows._
 import mrsc.core._
+import mrsc.test.DebugInfo
 
-class TicksEvaluationSuite extends FunSuite {
+class TicksEvaluationSuite extends FunSuite with DebugInfo {
   case class SC2(val gc: GContext) extends PFPRules
   with PFPSemantics
   with PositiveDriving
@@ -24,8 +25,8 @@ class TicksEvaluationSuite extends FunSuite {
 
     val (ticks1, evaled1) = CBNEvalWithTicks.eval(e1, bindings)
     val (ticks2, evaled2) = CBNEvalWithTicksResidual.eval(e2, Map())
-    info(s"${s(e1)} ==> ${ticks1} ticks")
-    info(s"${s(e2)} ==> ${ticks2} ticks")
+    debug(s"${s(e1)} ==> ${ticks1} ticks")
+    debug(s"${s(e2)} ==> ${ticks2} ticks")
     assert(evaled1 === evaled2)
     assert(ticks1 === ticks2)
   }
