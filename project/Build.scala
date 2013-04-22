@@ -7,7 +7,7 @@ object MRSCBuild extends Build {
 
   lazy val MRSCProject = Project("mrsc", file("src/mrsc"),
     settings = Project.defaultSettings ++ Seq(
-      libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.0-RC2",
+      libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.0",
       libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test",
       unmanagedBase := file("lib"),
       fork := true,
@@ -25,7 +25,7 @@ object MRSCBuild extends Build {
 
   lazy val ArraysProject = Project("arrays", file("src/arrays"),
     settings = Project.defaultSettings ++ Seq(
-      libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.0-RC2",
+      libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.0",
       fork := true,
       baseDirectory in run := file(".")
     )
