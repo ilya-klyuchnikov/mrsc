@@ -1,4 +1,4 @@
-package mrsc.test
+package mrsc.core.test
 
 import org.scalatest.Spec
 

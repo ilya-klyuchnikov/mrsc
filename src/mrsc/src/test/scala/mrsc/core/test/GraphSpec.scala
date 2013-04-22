@@ -1,20 +1,16 @@
-package mrsc.test
+package mrsc.core.test
 
 import org.scalatest.Spec
 
 import mrsc.core._
 
-object GraphSpec {
+class GraphSpec extends Spec {
 
   def mkGraph(root: SNode[Int, Int] = null,
-    nodes: List[SNode[Int, Int]] = List(),
-    leaves: List[SNode[Int, Int]] = List()) = {
+              nodes: List[SNode[Int, Int]] = List(),
+              leaves: List[SNode[Int, Int]] = List()) = {
     SGraph(List(), leaves, nodes)
   }
-}
-
-class GraphSpec extends Spec {
-  import mrsc.test.GraphSpec.mkGraph
 
   var graph1, graph1a, graph2, graph2a: SGraph[Int, Int] = _
   var tgraph1, tgraph2: TGraph[Int, Int] = _
@@ -51,7 +47,7 @@ class GraphSpec extends Spec {
     val e1 = TEdge[Int, Int](n1, 1)
     val n0 = TNode[Int, Int](conf = 0, outs = List(e1, e2), base = None, tPath = List())
 
-    it("TGraph is contructed by enumerating root and leaves") {
+    it("TGraph is constructed by enumerating root and leaves") {
       tgraph1 = TGraph(root = n0, leaves = List(n1, n2))
     }
 
@@ -62,7 +58,7 @@ class GraphSpec extends Spec {
     }
   }
 
-  describe("Top subtrees cannnot be reused in different TGraphs, so extra top subtrees are created") {
+  describe("Top subtrees cannot be reused in different TGraphs, so extra top subtrees are created") {
     val n4 = TNode[Int, Int](conf = 4, outs = List(), base = Some(List()), tPath = List(0, 1))
     val n3 = TNode[Int, Int](conf = 3, outs = List(), base = Some(List(0, 1)), tPath = List(0, 0))
     val e3 = TEdge[Int, Int](n3, 3)
@@ -74,7 +70,7 @@ class GraphSpec extends Spec {
     val n0 = TNode[Int, Int](conf = 0, outs = List(e1, e2), base = None, tPath = List())
     TGraph(root = n0, leaves = List(n2, n3, n4))
 
-    it("TGraph is contructed by enumerating root and leaves") {
+    it("TGraph is constructed by enumerating root and leaves") {
       tgraph2 = TGraph(root = n0, leaves = List(n2, n3, n4))
     }
 

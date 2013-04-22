@@ -1,4 +1,4 @@
-package mrsc.test
+package mrsc.core.test
 
 import org.scalatest.Spec
 import mrsc.core._
@@ -111,9 +111,6 @@ class GraphOperationsSpec extends Spec {
   }
 
   describe("Produced graphs") {
-    //"be equal to each other" in {
-    //  g1 === g2
-    //}
     it("be equal to sample graph") {
       val tgraph1 = Transformations.transpose(g1)
       val tgraph2 = Transformations.transpose(g2)
