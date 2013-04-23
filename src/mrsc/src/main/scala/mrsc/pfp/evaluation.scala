@@ -155,5 +155,10 @@ object CBNEvalWithTicksResidual {
   }
 
   def eval(t: Term, g: GContext): (Int, Term) =
-    eval1(t, 0)
+    eval1(t, 0) match {
+      case (ticks, Ctr(n, fs, cTicks)) =>
+        val (ts, args) = fs.map(eval(_, g)).unzip
+        (cTicks + ticks + ts.sum, Ctr(n, args))
+      case p => p
+    }
 }
