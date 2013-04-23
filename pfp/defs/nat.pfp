@@ -1,0 +1,32 @@
+plus = \x -> \y -> case x of {
+  S(x1) -> S(plus x1 y);
+  Z() -> y
+};
+
+eq = \x -> \y -> case x of {
+  S(x1) -> case y of {S(y1) -> eq x1 y1; Z() -> False()};
+  Z() -> case y of {S(y1) -> False(); Z() -> True()}
+};
+
+even = \x -> case x of {
+  S(x1) -> odd(x1);
+  Z() -> True()
+};
+
+odd = \x -> case x of {
+  S(x1) -> even(x1);
+  Z() -> False()
+};
+
+fin1 = \x -> case x of {
+  S(x1) -> fin1(x1);
+  Z()   -> True()
+};
+
+fin2 = \x -> case (fin1 x) of {
+   False() -> False();
+   True()  -> case x of {
+     S(x1) -> fin2 x1;
+     Z()   -> True()
+   }
+};

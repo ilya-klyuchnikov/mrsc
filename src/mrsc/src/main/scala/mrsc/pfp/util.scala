@@ -156,3 +156,25 @@ trait PFPGraphUI {
     }
   }
 }
+
+object NatRepl {
+  val bindings = io.bingingsFromFile("pfp/defs/nat.pfp")
+
+  def main (args: Array[String]) {
+    val in = args(0)
+    val goal = PFPParsers().inputTerm(in)
+    val rules = new InteractiveMRSC(bindings)
+    val sGraph = GraphGenerator(rules, goal).toList.head
+
+    val tGraph = Transformations.transpose(sGraph)
+    val simpleResidual = Residuator(tGraph).result
+    val tickedResidual = Residuator(tGraph, true).result
+
+    println(rules.prettyPrinter.toString(tGraph))
+    println(rules.userSteps)
+
+    println(NamedSyntax.named(simpleResidual))
+    println(NamedSyntax.named(tickedResidual))
+  }
+
+}
