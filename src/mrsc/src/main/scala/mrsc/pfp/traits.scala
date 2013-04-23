@@ -20,6 +20,15 @@ trait PFPRules extends MRSCRules[MetaTerm, Label] {
   }
 }
 
+trait DepthGraphFilter extends PFPRules {
+  val maxDepth: Int
+  override def steps(g: G): List[S] =
+    if (g.depth > maxDepth)
+      List()
+    else
+      super.steps(g)
+}
+
 trait SizeGraphFilter extends PFPRules {
   val maxGraphSize: Int
   override def steps(g: G): List[S] =

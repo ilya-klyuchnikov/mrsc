@@ -55,6 +55,19 @@ object Ticks {
     case t: Ctr => t.copy(ticks = t.ticks + delta)
     case t: Case => t.copy(ticks = t.ticks + delta)
   }).asInstanceOf[T]
+
+  def zeroTicks[T <: MetaTerm](t: T): T = (t match {
+    case t: Rebuilding => t.copy(ticks = 0)
+    case t: BVar => t.copy(ticks = 0)
+    case t: FVar => t.copy(ticks = 0)
+    case t: GVar => t.copy(ticks = 0)
+    case t: Abs => t.copy(ticks = 0)
+    case t: App => t.copy(ticks = 0)
+    case t: Let => t.copy(ticks = 0)
+    case t: Fix => t.copy(ticks = 0)
+    case t: Ctr => t.copy(ticks = 0)
+    case t: Case => t.copy(ticks = 0)
+  }).asInstanceOf[T]
 }
 
 // PART 2. Syntax operations

@@ -106,9 +106,7 @@ object CBNEvalWithTicks {
   }
 }
 
-// Tries to compute ticks of execution of original program based on the
-// residual program.
-// TODO: it is likely that current code is incorrect and too naive.
+// Simplification
 object CBNEvalWithTicksResidual {
 
   def isLazyVal(t: Term) = t match {
@@ -126,7 +124,7 @@ object CBNEvalWithTicksResidual {
   // TODO: ensure that tick is taken into account exactly once
   def lazyStep(t: Term, g: GContext): (Int, Term) = t match {
     case _ if isLazyVal(t) =>
-      (t.ticks, t)
+      (t.ticks, Ticks.zeroTicks(t))
     case Case(Ctr(name, args, _), bs, _) =>
       val Some((ptr, body)) = bs.find(_._1.name == name)
       (t.ticks, args.foldRight(body)(termSubstTop(_, _)))
@@ -141,19 +139,21 @@ object CBNEvalWithTicksResidual {
     case Let(v, body, ticks) =>
       (ticks, termSubstTop(v, body))
     case Fix(body, ticks) =>
-      (ticks, termSubstTop(t, body))
+      (ticks, termSubstTop(Ticks.zeroTicks(t) , body))
     case _ =>
       sys.error("unexpected term: " + t)
   }
 
-  def eval(t: Term, g: GContext): (Int, Term) = lazyStep(t, g) match {
-    case (ticks, Abs(_, _)) =>
+  def eval1(t: Term, ticks: Int): (Int, Term) = {
+    //println(ticks + ", " + NamelessShows.s(t))
+    if (isLazyVal(t)) {
       (ticks, t)
-    case (ticks, Ctr(n, fs, cTicks)) =>
-      val (ts, args) = fs.map(eval(_, g)).unzip
-      (cTicks + ticks + ts.sum, Ctr(n, args))
-    case (ticks1, t1) =>
-      val (ticks2, t2) = eval(t1, g)
-      (ticks1 + ticks2, t2)
+    } else {
+      val (ticks1, t1) = lazyStep(t, Map())
+      eval1(t1, ticks + ticks1)
+    }
   }
+
+  def eval(t: Term, g: GContext): (Int, Term) =
+    eval1(t, 0)
 }
