@@ -86,7 +86,7 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
       val tickedResidual = Residuator(tGraph, true).result
       checked += 1
       //info(s"checking output #$checked")
-      info(prettyPrinter.toString(tGraph))
+      //info(prettyPrinter.toString(tGraph))
       //info(NamedSyntax.named(tickedResidual))
       checkCorrectness(goal, simpleResidual, seed)
       checkTicks(goal, tickedResidual, seed)
@@ -174,29 +174,15 @@ class MRSCNatSuite extends MRSCNatHelper {
 
   test("tick normalization") {
     val t1 = PFPParsers().inputTerm(
-      """(letrec f1 = (\x3 -> (letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> ((f2 x10) x5); Z() -> case x5 of {S(x10) -> (f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in (f1 <1>))"""
+      """(letrec f1 = (\x3 -> **(letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> (f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in (f1 <1>))"""
     )
-
-    info(t1.toString)
-    info(s(t1))
-    val t1Ticked =
-      Let(Fix(Abs(Let(Fix(Abs(Abs(Case(BVar(1,0),List((Ptr("S",List("x10")),App(App(BVar(3,0),BVar(0,0),0),BVar(1,0),1)), (Ptr("Z",List()),Case(BVar(0,0),List((Ptr("S",List("x10")),App(BVar(5,0),BVar(0,0),0)), (Ptr("Z",List()),Ctr("True",List(),0))),0))),0),0),0),0),App(App(BVar(0,0),BVar(1,0),0),BVar(1,0),0),2),0),0),App(BVar(0,0),FVar(1,0),0),0)
-
-    val t1TickedA =
-      Let(Fix(Abs(Let(Fix(Abs(Abs(Case(BVar(1,0),List((Ptr("S",List("x10")),App(App(BVar(3,0),BVar(0,0),0),BVar(1,0),1)), (Ptr("Z",List()),Case(BVar(0,0),List((Ptr("S",List("x10")),App(BVar(5,0),BVar(0,0),2)), (Ptr("Z",List()),Ctr("True",List(),0))),0))),0),0),0),0),App(App(BVar(0,0),BVar(1,0),0),BVar(1,0),0),0),0),0),App(BVar(0,0),FVar(1,0),2),0)
-
-
-
-    info("(letrec f1 = (\\x3 -> **(letrec f2 = (\\x4 -> (\\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> (f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in (f1 <x1>))}))")
-
-    info(NamedSyntax.named(t1Ticked))
-    info("(letrec f1 = (\\x3 -> (letrec f2 = (\\x4 -> (\\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> **(f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in **(f1 <x1>))}))")
-    info(NamedSyntax.named(t1TickedA))
-
-    info("++++")
-
-    checkImprovement(t1Ticked, t1TickedA, 10)
-    checkImprovement(t1TickedA, t1Ticked, 10)
+    val t2 = PFPParsers().inputTerm(
+      """(letrec f1 = (\x3 -> (letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> **(f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in **(f1 <1>))"""
+    )
+    info(NamedSyntax.named(t1))
+    info(NamedSyntax.named(t2))
+    checkImprovement(t1, t2, 10)
+    checkImprovement(t2, t1, 10)
   }
 
   // TODO: after tick normalization we should be able to prove that these are improvement lemmas

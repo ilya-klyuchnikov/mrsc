@@ -24,45 +24,47 @@ case class Task(goal: Term, bindings: GContext, name: String = "") {
 }
 
 case class PFPParsers() extends StandardTokenParsers with PackratParsers with ImplicitConversions {
-  lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">")
+  lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">", "*")
   lexical.reserved += ("case", "of", "let", "letrec", "in")
 
   lazy val lcid: PackratParser[String] = ident ^? { case id if id.charAt(0).isLower => id }
   lazy val ucid: PackratParser[String] = ident ^? { case id if id.charAt(0).isUpper => id }
   lazy val eof: PackratParser[String] = elem("<eof>", _ == lexical.EOF) ^^ { _.chars }
 
-  type Res[A] = PContext => A
+  type PC = PContext
+  type Res[A] = PC => A
 
-  lazy val bindings: PackratParser[GContext] =
-    (binding *) ^^ { bs => Map(bs: _*) }
+  lazy val bindings: PackratParser[GContext] = (binding *) ^^ { bs => Map(bs: _*) }
 
-  lazy val binding: PackratParser[(String, Term)] =
-    (lcid <~ "=") ~ (term <~ ";") ^^ { case f ~ body => (f, body(PContext())) }
+  lazy val binding: PackratParser[(String, Term)] = (lcid <~ "=") ~ (term <~ ";") ^^ { case f ~ body => (f, body(PContext())) }
 
   lazy val term: PackratParser[Res[Term]] = appTerm |
-    ("\\" ~> lcid) ~ ("->" ~> term) ^^ { case v ~ t => ctx: PContext => Abs(t(ctx.addName(v))) } |
-    caseExpr |
-    ("let" ~> lcid) ~ ("=" ~> term) ~ ("in" ~> term) ^^ { case id ~ v ~ in => ctx: PContext => Let(v(ctx), in(ctx.addName(id))) } |
-    ("letrec" ~> lcid) ~ ("=" ~> term) ~ ("in" ~> term) ^^
-    { case f ~ body ~ in => ctx: PContext => Let(Fix(body(ctx.addName(f))), in(ctx.addName(f))) }
-
-  lazy val caseExpr: PackratParser[Res[Term]] =
-    ("case" ~> term <~ "of") ~ ("{" ~> branches <~ "}") ^^ { case sel ~ bs => ctx: PContext => Case(sel(ctx), bs(ctx)) }
+    withTicks {
+      "\\" ~ lcid ~ "->" ~ term ^^ { case _ ~ v ~ _ ~ t => ctx: PC => Abs(t(ctx.addName(v))) } |
+      "case" ~ term ~ "of" ~ "{" ~ branches ~ "}" ^^ { case _ ~ sel ~ _ ~ _ ~ bs ~ _ => ctx: PC => Case(sel(ctx), bs(ctx)) } |
+      "let" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ id ~ _ ~ v ~ _ ~ in => ctx: PC => Let(v(ctx), in(ctx.addName(id))) } |
+      "letrec" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ f ~ _ ~ body ~ _ ~ in => ctx: PC => Let(Fix(body(ctx.addName(f))), in(ctx.addName(f))) }
+    }
 
   lazy val appTerm: PackratParser[Res[Term]] =
-    appTerm ~ aTerm ^^ { case t1 ~ t2 => ctx: PContext => App(t1(ctx), t2(ctx)) } | aTerm
+    appTerm ~ aTerm ^^ { case t1 ~ t2 => ctx: PC => App(t1(ctx), t2(ctx)) } | aTerm
 
   lazy val aTerm: PackratParser[Res[Term]] =
-    "(" ~> term <~ ")" |
-      "<" ~> numericLit <~ ">" ^^ { id => ctx: PContext => FVar(id.toInt) } |
-      lcid ^^ { i => ctx: PContext => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
-      (ucid ~ ("(" ~> repsep(term, ",") <~ ")")) ^^ { case n ~ ts => ctx: PContext => Ctr(n, ts.map(_(ctx))) }
+    withTicks {
+      "(" ~> term <~ ")" |
+      "<" ~> numericLit <~ ">" ^^ { id => ctx: PC => FVar(id.toInt) } |
+      lcid ^^ { i => ctx: PC => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
+      (ucid ~ ("(" ~> repsep(term, ",") <~ ")")) ^^ { case n ~ ts => ctx: PC => Ctr(n, ts.map(_(ctx))) }
+    }
+
+  def withTicks(p: PackratParser[Res[Term]]): PackratParser[Res[Term]] =
+    (rep("*")) ~ p ^^ {case ts ~ t => ctx: PC => Ticks.incrTicks(t(ctx), ts.size)}
 
   lazy val branches: PackratParser[Res[List[Branch]]] =
-    rep1sep(branch, ";") ^^ { cs => ctx: PContext => cs.map { c => c(ctx) } }
+    rep1sep(branch, ";") ^^ { cs => ctx: PC => cs.map { c => c(ctx) } }
 
   lazy val branch: PackratParser[Res[Branch]] =
-    ptr ~ ("->" ~> term) ^^ { case (ptr @ Ptr(name, bs)) ~ t => ctx: PContext => (ptr, t(ctx.addNames(bs.map(_.toString)))) }
+    ptr ~ ("->" ~> term) ^^ { case (ptr @ Ptr(name, bs)) ~ t => ctx: PC => (ptr, t(ctx.addNames(bs.map(_.toString)))) }
 
   lazy val ptr: PackratParser[Ptr] =
     (ucid ~ ("(" ~> repsep(lcid, ",") <~ ")")) ^^ { case n ~ args => Ptr(n, args) }
