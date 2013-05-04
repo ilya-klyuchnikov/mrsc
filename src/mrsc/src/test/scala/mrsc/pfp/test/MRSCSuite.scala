@@ -105,8 +105,8 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     val simpleResidual = Residuator(tGraph).result
     val tickedResidual = Residuator(tGraph, true).result
 
-    info(prettyPrinter.toString(tGraph))
-    info(NamedSyntax.named(tickedResidual))
+    //info(prettyPrinter.toString(tGraph))
+    //info(NamedSyntax.named(tickedResidual))
     checkCorrectness(goal, simpleResidual, 2)
     checkTicks(goal, tickedResidual, 2)
   }
@@ -222,6 +222,10 @@ class MRSCNatSuite extends MRSCNatHelper {
     checkDebug("fin1 <1>", List(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
   }
 
+  test("fin2 x") {
+    checkAll("fin2 <1>", 7, 4)
+  }
+
   test("even x") {
     checkAllDepth("even <1>", 8, 4)
   }
@@ -237,4 +241,6 @@ class MRSCNatSuite extends MRSCNatHelper {
   test("eq (plus x x) x") {
     checkAllDepth("eq (plus <1> <1>) <1>", 3, 4)
   }
+
+
 }

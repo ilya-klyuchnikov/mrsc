@@ -11,7 +11,8 @@ object MRSCBuild extends Build {
       libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test",
       unmanagedBase := file("lib"),
       fork := true,
-      baseDirectory in run := file(".")
+      baseDirectory in run := file("."),
+      testOptions in Test += Tests.Argument("-oD")
     )
   )
 
