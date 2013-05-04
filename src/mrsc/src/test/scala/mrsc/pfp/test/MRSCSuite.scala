@@ -223,7 +223,7 @@ class MRSCNatSuite extends MRSCNatHelper {
   }
 
   test("fin2 x") {
-    checkAll("fin2 <1>", 7, 4)
+    checkAllDepth("fin2 <1>", 7, 4)
   }
 
   test("even x") {
