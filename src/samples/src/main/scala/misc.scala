@@ -445,10 +445,14 @@ object repl {
     GraphGenerator(rules, task.goal, false)
   }
 
+  val prettyPrinter = new PFPGraphPrettyPrinter {
+    implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
+  }
+
   def showGraphs(file: String, sc: PFPSC) =
     for {sGraph <- graphs(file, sc)} {
       val tGraph = Transformations.transpose(sGraph)
-      Console.println(tGraph)
+      Console.println(prettyPrinter.toString(tGraph))
     }
 
   def showFoldings(file: String, sc: PFPSC) =

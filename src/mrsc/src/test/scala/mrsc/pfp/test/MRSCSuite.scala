@@ -31,7 +31,50 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     case h :: t => for(xh <- h; xt <- cartesianProduct(t)) yield xh :: xt
   }
 
-  def checkAll(in: String, depth: Int, seed: Int) {
+  def checkAllSc(in: String, sc: PFPSC, seed: Int) {
+    val goal = PFPParsers().inputTerm(in)
+    info(s"${s(goal)}")
+    val rules = sc(bindings)
+    val graphs = GraphGenerator(rules, goal)
+    var checked = 0
+    for { sGraph <- graphs } {
+      val tGraph = Transformations.transpose(sGraph)
+      val simpleResidual = Residuator(tGraph).result
+      val tickedResidual = Residuator(tGraph, true).result
+      checked += 1
+      //info(s"checking output #$checked")
+      //info(prettyPrinter.toString(tGraph))
+      info(NamedSyntax.named(tickedResidual))
+      checkCorrectness(goal, simpleResidual, seed)
+      checkTicks(goal, tickedResidual, seed)
+    }
+    info(s"checked $checked outputs")
+  }
+
+  def checkImprovementSc(in1: String, in2: String, sc: PFPSC, seed: Int) {
+    val goal1 = PFPParsers().inputTerm(in1)
+    val goal2 = PFPParsers().inputTerm(in2)
+    info(s"${s(goal1)}")
+    info(s"${s(goal2)}")
+    val rules = sc(bindings)
+    val sGraph1 = GraphGenerator(rules, goal1).toList.head
+    val tGraph1 = Transformations.transpose(sGraph1)
+    val tickedResidual1 = Residuator(tGraph1, true).result
+
+    val sGraph2 = GraphGenerator(rules, goal2).toList.head
+    val tGraph2 = Transformations.transpose(sGraph2)
+    val tickedResidual2 = Residuator(tGraph2, true).result
+
+    info(s"${s(tickedResidual1)}")
+    info(s"${s(tickedResidual2)}")
+
+    info(s"${NamedSyntax.named(tickedResidual1)}")
+    info(s"${NamedSyntax.named(tickedResidual2)}")
+
+    checkImprovement(tickedResidual1, tickedResidual2, seed)
+  }
+
+  def checkAllDepth(in: String, depth: Int, seed: Int) {
     val goal = PFPParsers().inputTerm(in)
     info(s"${s(goal)}, depth=${depth}, seed=${seed}")
     val rules = new DepthBoundMRSC(bindings, depth)
@@ -43,7 +86,7 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
       val tickedResidual = Residuator(tGraph, true).result
       checked += 1
       //info(s"checking output #$checked")
-      //info(prettyPrinter.toString(tGraph))
+      info(prettyPrinter.toString(tGraph))
       //info(NamedSyntax.named(tickedResidual))
       checkCorrectness(goal, simpleResidual, seed)
       checkTicks(goal, tickedResidual, seed)
@@ -81,6 +124,28 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     }
   }
 
+  def checkImprovement(t1: Term, t2: Term, seed: Int) {
+    import NamelessSyntax._
+
+    val fvs = freeVars(t1)
+    val subs = allSubs(fvs, seed)
+
+    for {sub <- subs} {
+      val e1 = applySubst(t1, sub)
+      val e2 = applySubst(t2, sub)
+
+      //info(s(e1))
+      //info(s(e2))
+      //info(NamedSyntax.named(e2))
+
+      val (ticks1, evaled1) = CBNEvalWithTicks.eval(e1, bindings)
+      val (ticks2, evaled2) = CBNEvalWithTicksResidual.eval(e2, Map())
+      assert(evaled1 === evaled2)
+      //info(s"$ticks1, $ticks2")
+      assert(ticks1 <= ticks2)
+    }
+  }
+
   def checkTicks(goal: Term, residual: Term, seed: Int) {
     import NamelessSyntax._
 
@@ -106,20 +171,70 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
 
 class MRSCNatSuite extends MRSCNatHelper {
 
+
+  test("tick normalization") {
+    val t1 = PFPParsers().inputTerm(
+      """(letrec f1 = (\x3 -> (letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> ((f2 x10) x5); Z() -> case x5 of {S(x10) -> (f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in (f1 <1>))"""
+    )
+
+    info(t1.toString)
+    info(s(t1))
+    val t1Ticked =
+      Let(Fix(Abs(Let(Fix(Abs(Abs(Case(BVar(1,0),List((Ptr("S",List("x10")),App(App(BVar(3,0),BVar(0,0),0),BVar(1,0),1)), (Ptr("Z",List()),Case(BVar(0,0),List((Ptr("S",List("x10")),App(BVar(5,0),BVar(0,0),0)), (Ptr("Z",List()),Ctr("True",List(),0))),0))),0),0),0),0),App(App(BVar(0,0),BVar(1,0),0),BVar(1,0),0),2),0),0),App(BVar(0,0),FVar(1,0),0),0)
+
+    val t1TickedA =
+      Let(Fix(Abs(Let(Fix(Abs(Abs(Case(BVar(1,0),List((Ptr("S",List("x10")),App(App(BVar(3,0),BVar(0,0),0),BVar(1,0),1)), (Ptr("Z",List()),Case(BVar(0,0),List((Ptr("S",List("x10")),App(BVar(5,0),BVar(0,0),2)), (Ptr("Z",List()),Ctr("True",List(),0))),0))),0),0),0),0),App(App(BVar(0,0),BVar(1,0),0),BVar(1,0),0),0),0),0),App(BVar(0,0),FVar(1,0),2),0)
+
+
+
+    info("(letrec f1 = (\\x3 -> **(letrec f2 = (\\x4 -> (\\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> (f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in (f1 <x1>))}))")
+
+    info(NamedSyntax.named(t1Ticked))
+    info("(letrec f1 = (\\x3 -> (letrec f2 = (\\x4 -> (\\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> **(f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in **(f1 <x1>))}))")
+    info(NamedSyntax.named(t1TickedA))
+
+    info("++++")
+
+    checkImprovement(t1Ticked, t1TickedA, 10)
+    checkImprovement(t1TickedA, t1Ticked, 10)
+  }
+
+  // TODO: after tick normalization we should be able to prove that these are improvement lemmas
+  test("improvement lemmas") {
+    checkImprovementSc(
+      "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}}",
+      "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}}",
+      SC2,
+      5
+    )
+
+
+    checkImprovementSc(
+      "case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}",
+      "case S(S(<1>)) of {S(x) -> (fin2 x); Z() -> True()}",
+      SC2,
+      5
+    )
+  }
+
   test("fin1 x") {
-    checkAll("fin1 <1>", 7, 4)
+    checkAllDepth("fin1 <1>", 7, 4)
     checkDebug("fin1 <1>", List(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
   }
 
   test("even x") {
-    checkAll("even <1>", 8, 4)
+    checkAllDepth("even <1>", 8, 4)
   }
 
   test("even (plus x y)") {
-    checkAll("even (plus <1> <2>)", 8, 4)
+    checkAllDepth("even (plus <1> <2>)", 8, 4)
   }
 
   test("even (plus x x)") {
-    checkAll("even (plus <1> <1>)", 9, 4)
+    checkAllDepth("even (plus <1> <1>)", 9, 4)
+  }
+
+  test("eq (plus x x) x") {
+    checkAllDepth("eq (plus <1> <1>) <1>", 3, 4)
   }
 }

@@ -86,3 +86,36 @@ case class DepthBoundMRSC(val gc: GContext, val maxDepth: Int) extends PFPRules
   with NoWhistle
   with AllRebuildings
   with DepthGraphFilter
+
+case class SC1(val gc: GContext) extends PFPRules
+with PFPSemantics
+with PositiveDriving
+with AllFoldingCandidates
+with Folding
+with AllEmbeddingCandidates
+with HE3ByCouplingWhistle
+with UpperMsgOrLowerMggOnBinaryWhistle
+
+object SC1 extends PFPSC
+
+case class SC2(val gc: GContext) extends PFPRules
+with PFPSemantics
+with PositiveDriving
+with AllFoldingCandidates
+with Folding
+with ControlEmbeddingCandidates
+with HE3ByCouplingWhistle
+with LowerMsgOrUpperMsgOnBinaryWhistle
+
+object SC2 extends PFPSC
+
+case class SC3(val gc: GContext) extends PFPRules
+with PFPSemantics
+with PositiveDriving
+with AllFoldingCandidates
+with Folding
+with ControlEmbeddingCandidates
+with HE3ByCouplingWhistle
+with UpperMsgOrLowerMsgOnBinaryWhistle
+
+object SC3 extends PFPSC
