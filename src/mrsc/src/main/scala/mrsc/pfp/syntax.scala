@@ -68,6 +68,100 @@ object Ticks {
     case t: Ctr => t.copy(ticks = 0)
     case t: Case => t.copy(ticks = 0)
   }).asInstanceOf[T]
+
+  // tick improvement
+  private def i(t1: Term, t2: Term): Boolean = (t1, t2) match {
+    case (BVar(_, ticks1), BVar(_, ticks2)) =>
+      ticks1 <= ticks2
+    case (FVar(_, ticks1), FVar(_, ticks2)) =>
+      ticks1 <= ticks2
+    case (GVar(_, ticks1), GVar(_, ticks2)) =>
+      ticks1 <= ticks2
+    case (Abs(t1, ticks1), Abs(t2, ticks2)) =>
+      ticks1 <= ticks2 && i(t1, t2)
+    case (App(h1, t1,  ticks1), App(h2, t2, ticks2)) =>
+      ticks1 <= ticks2 && i(h1, h2) && i(t1, t2)
+    case (Let(e1, in1, ticks1), Let(e2, in2, ticks2)) =>
+      ticks1 <= ticks2 && i(e1, e2) && i(in1, in2)
+    case (Fix(e1, ticks1), Fix(e2, ticks2)) =>
+      ticks1 <= ticks2 && i(e1, e2)
+    case (Ctr(_, args1, ticks1), Ctr(_, args2, ticks2)) =>
+      ticks1 <= ticks2 && (args1 zip args2).forall{case (e1, e2) => i(e1, e2)}
+    case (Case(sel1, bs1, ticks1), Case(sel2, bs2, ticks2)) =>
+      ticks1 <= ticks2 && i(sel1, sel2) && (bs1 zip bs2).forall{case ((_, e1), (_, e2)) => i(e1, e2)}
+    case _ => false
+  }
+
+  def isImprovement(t1: Term, t2: Term) = i(t1, t2)
+
+  def reset(t: Term): Term = (t match {
+    case t: BVar => t.Z
+    case t: FVar => t.Z
+    case t: GVar => t.Z
+    case Abs(e, _) => Abs(reset(e))
+    case App(e1, e2, _) => App(reset(e1), reset(e2))
+    case Let(e1, e2, _) => Let(reset(e1), reset(e2))
+    case Fix(e1, _) => Fix(reset(e1))
+    case Ctr(n, args, _) => Ctr(n, args.map(reset))
+    case Case(sel, bs, _) => Case(reset(sel), bs.map {case (p, e) => (p, reset(e))})
+  })
+
+  implicit class TickOps(t: Term) {
+    def I(delta: Int) = Ticks.incrTicks(t, delta)
+    def Z = Ticks.zeroTicks(t)
+  }
+}
+
+// There possible cases when we need multi-result rules and maybe back rules
+object TicksNorm {
+  import Ticks._
+  import NamelessSyntax._
+  // normalization rule
+  type NRule = PartialFunction[Term, Term]
+  type WRule = PartialFunction[(Int, Term), Term]
+
+  val caseNorm: NRule = {
+    case Case(sel, bs, ticks) if sel.ticks > 0 || ticks > 0 =>
+      Case(sel.Z, bs.map {case (p, e) => (p, e.I(ticks + sel.ticks))})
+  }
+
+  // TODO: Generalize to arbitrary arity
+  def letRecNorm1: NRule = {
+    case Let(Fix(Abs(e1, aTicks), fTicks), app@App(BVar(0, _), e2, _), lTicks) if e1.ticks > 0 =>
+      var rule: WRule =
+        {case (c, app@App(BVar(v, _), e2, _)) if v == c + 1 => app.I(e1.ticks)}
+      val e1Norm = rewrite(rule, e1.Z)
+      Let(Fix(Abs(e1Norm, aTicks), fTicks), app.I(e1.ticks), lTicks)
+  }
+
+  def letNorm: NRule = {
+    case Let(e1, e2, ticks) if ticks > 0 =>
+      Let(e1, e2.I(ticks))
+  }
+
+  def nrule2wrule(nr: NRule): WRule = {case (_, t) if nr.isDefinedAt(t) => nr(t)}
+  val normRules: List[NRule] = List(caseNorm, letRecNorm1, letNorm)
+  val wRules = normRules.map(nrule2wrule)
+
+  private def cycle(t: Term): Term = {
+    var out = t
+    for (wr <- wRules) {
+      out = rewrite(wr, out)
+    }
+    out
+  }
+
+  def norm(t: Term): Term = {
+    var before = t
+    var after = t
+
+    do {
+      before = after
+      after = cycle(before)
+    } while (after != before)
+
+    after
+  }
 }
 
 // PART 2. Syntax operations
@@ -78,6 +172,23 @@ object Ticks {
  * variables directly.
  */
 object NamelessSyntax {
+
+  def rewrite(rule: PartialFunction[(Int, Term), Term], t: Term): Term = {
+    // c - current context depth
+    def walk(c: Int, t: Term): Term = t match {
+      case x if rule isDefinedAt (c, t) => rule (c, t)
+      case v: BVar             => v
+      case v: FVar             => v
+      case v: GVar             => v
+      case Abs(t2, ticks)      => Abs(walk(c + 1, t2), ticks)
+      case App(t1, t2, ticks)  => App(walk(c, t1), walk(c, t2), ticks)
+      case Let(t1, t2, ticks)  => Let(walk(c, t1), walk(c + 1, t2), ticks)
+      case Fix(t1, ticks)      => Fix(walk(c + 1, t1), ticks)
+      case Case(t, bs, ticks)  => Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) }, ticks)
+      case Ctr(n, args, ticks) => Ctr(n, args.map(walk(c, _)), ticks)
+    }
+    walk(0, t)
+  }
 
   // Given a term t and a function onVar,
   // the result of tmMap onVar t is a term of the same shape as t

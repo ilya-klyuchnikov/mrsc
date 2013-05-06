@@ -51,7 +51,41 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     info(s"checked $checked outputs")
   }
 
-  def checkImprovementSc(in1: String, in2: String, sc: PFPSC, seed: Int) {
+  def checkImprovementSc(in1: String, in2: String, sc: PFPSC) {
+    val goal1 = PFPParsers().inputTerm(in1)
+    val goal2 = PFPParsers().inputTerm(in2)
+    info(s"${s(goal1)}")
+    info(s"${s(goal2)}")
+    val rules = sc(bindings)
+    val sGraph1 = GraphGenerator(rules, goal1).toList.head
+    val tGraph1 = Transformations.transpose(sGraph1)
+    val tickedResidual1 = Residuator(tGraph1, true).result
+
+    val sGraph2 = GraphGenerator(rules, goal2).toList.head
+    val tGraph2 = Transformations.transpose(sGraph2)
+    val tickedResidual2 = Residuator(tGraph2, true).result
+
+
+    info(s"${s(tickedResidual1)}")
+    info(s"${s(tickedResidual2)}")
+
+    val residual1 = Ticks.reset(tickedResidual1)
+    val residual2 = Ticks.reset(tickedResidual2)
+
+    val tickedResidual1N = TicksNorm.norm(tickedResidual1)
+    val tickedResidual2N = TicksNorm.norm(tickedResidual2)
+
+    info(s"${NamedSyntax.named(tickedResidual1)}")
+    info(s"${NamedSyntax.named(tickedResidual2)}")
+
+    assert(residual1 === residual2)
+    info("normalized")
+    info(s"${NamedSyntax.named(tickedResidual1N)}")
+    info(s"${NamedSyntax.named(tickedResidual2N)}")
+    assert(Ticks.isImprovement(tickedResidual1N, tickedResidual2N))
+  }
+
+  def checkAllImprovementSc(in1: String, in2: String, sc: PFPSC, seed: Int) {
     val goal1 = PFPParsers().inputTerm(in1)
     val goal2 = PFPParsers().inputTerm(in2)
     info(s"${s(goal1)}")
@@ -187,20 +221,28 @@ class MRSCNatSuite extends MRSCNatHelper {
 
   // TODO: after tick normalization we should be able to prove that these are improvement lemmas
   test("improvement lemmas") {
-    checkImprovementSc(
+    /*
+    checkAllImprovementSc(
       "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}}",
       "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}}",
       SC2,
       5
     )
-
+    */
 
     checkImprovementSc(
+      "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}}",
+      "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}}",
+      SC2
+    )
+
+    /*
+    checkAllImprovementSc(
       "case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}",
       "case S(S(<1>)) of {S(x) -> (fin2 x); Z() -> True()}",
       SC2,
       5
-    )
+    )*/
   }
 
   test("fin1 x") {
