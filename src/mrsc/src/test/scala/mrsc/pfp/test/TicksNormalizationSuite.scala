@@ -9,8 +9,8 @@ class TicksNormalizationSuite extends FunSuite with DebugInfo {
 
   def testNorm(t: Term, expected: Term) {
     val tNorm = TicksNorm.norm(t)
-    info(s"\n${named(t)} => \n${named(tNorm)}")
-    assert(expected === tNorm)
+    info(s"${tNorm.size} normalized terms")
+    assert(tNorm(expected))
   }
 
   test("case expression normalization 1") {
@@ -18,9 +18,7 @@ class TicksNormalizationSuite extends FunSuite with DebugInfo {
     val t2: Term = "case <1> of {Z() -> *Z(); S(x) -> *S(x)}"
     val t1Ruled = TicksNorm.caseNorm(t1)
     assert(t2 === t1Ruled)
-
-    val t1Norm = TicksNorm.norm(t1)
-    assert(t2 === t1Norm)
+    testNorm(t1, t2)
   }
 
   test("case expression normalization 2") {
@@ -29,8 +27,7 @@ class TicksNormalizationSuite extends FunSuite with DebugInfo {
     val t1Ruled = TicksNorm.caseNorm(t1)
     assert(t2 === t1Ruled)
 
-    val t1Norm = TicksNorm.norm(t1)
-    assert(t2 === t1Norm)
+    testNorm(t1, t2)
   }
 
   test("letrec 1") {
@@ -40,8 +37,7 @@ class TicksNormalizationSuite extends FunSuite with DebugInfo {
     info(s"${named(t1)} => ${named(t1Ruled)}")
     assert(t2 === t1Ruled)
 
-    val t1Norm = TicksNorm.norm(t1)
-    assert(t2 === t1Norm)
+    testNorm(t1, t2)
   }
 
   test("letrec 2") {
@@ -53,8 +49,7 @@ class TicksNormalizationSuite extends FunSuite with DebugInfo {
     info(s"\n${named(t1)} => \n${named(t1Ruled)}")
     assert(t2 === t1Ruled)
 
-    val t1Norm = TicksNorm.norm(t1)
-    assert(t2 === t1Norm)
+    testNorm(t1, t2)
   }
 
   test("normalization") {

@@ -80,8 +80,8 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
 
     assert(residual1 === residual2)
     info("normalized")
-    info(s"${NamedSyntax.named(tickedResidual1N)}")
-    info(s"${NamedSyntax.named(tickedResidual2N)}")
+    //info(s"${NamedSyntax.named(tickedResidual1N)}")
+    //info(s"${NamedSyntax.named(tickedResidual2N)}")
     assert(Ticks.isImprovement(tickedResidual1N, tickedResidual2N))
   }
 

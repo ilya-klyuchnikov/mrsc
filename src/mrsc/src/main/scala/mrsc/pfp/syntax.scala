@@ -92,6 +92,14 @@ object Ticks {
     case _ => false
   }
 
+  def isImprovement(s1: Set[Term], s2: Set[Term]): Boolean = {
+    for (t1 <- s1; t2 <- s2) {
+      if (isImprovement(t1, t2)) return true
+    }
+    false
+  }
+
+  // without normalization
   def isImprovement(t1: Term, t2: Term) = i(t1, t2)
 
   def reset(t: Term): Term = (t match {
@@ -143,17 +151,20 @@ object TicksNorm {
   val normRules: List[NRule] = List(caseNorm, letRecNorm1, letNorm)
   val wRules = normRules.map(nrule2wrule)
 
-  private def cycle(t: Term): Term = {
-    var out = t
-    for (wr <- wRules) {
-      out = rewrite(wr, out)
+  private def cycle(s: Set[Term]): Set[Term] = {
+    var out = s
+    for {
+      term <- s
+      wr <- wRules
+    } {
+      out += rewrite(wr, term)
     }
     out
   }
 
-  def norm(t: Term): Term = {
-    var before = t
-    var after = t
+  def norm(t: Term): Set[Term] = {
+    var before = Set(t)
+    var after = Set(t)
 
     do {
       before = after
