@@ -7,6 +7,9 @@ object MRSCBuild extends Build {
 
   lazy val MRSCProject = Project("mrsc", file("src/mrsc"),
     settings = Project.defaultSettings ++ Seq(
+      organization := "mrsc",
+      name := "mrsc",
+      version := "0.5",
       libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.0",
       libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test",
       unmanagedBase := file("lib"),
