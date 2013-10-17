@@ -1,12 +1,9 @@
 package mrsc.test
 
 import org.specs2._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
 import mrsc.core._
 
-@RunWith(classOf[JUnitRunner])
 class GraphOperationsSpec extends mutable.Specification {
 
   args(sequential = true)

@@ -1,8 +1,6 @@
 package mrsc.test
 
 import org.specs2._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
 import mrsc.core._
 
@@ -15,7 +13,6 @@ object GraphSpec extends mutable.Specification {
   }  
 }
 
-@RunWith(classOf[JUnitRunner])
 class GraphSpec extends mutable.Specification {
   import mrsc.test.GraphSpec.mkGraph
   

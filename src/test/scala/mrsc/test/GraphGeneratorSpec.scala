@@ -1,8 +1,6 @@
 package mrsc.test
 
 import org.specs2._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
 import mrsc.core._
 
@@ -26,7 +24,6 @@ object TinyRules extends GraphRewriteRules[Int, String] {
   }
 }
 
-@RunWith(classOf[JUnitRunner])
 class GraphGeneratorSpec extends mutable.Specification {
   args(sequential = true)
 
