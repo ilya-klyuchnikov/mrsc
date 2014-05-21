@@ -10,7 +10,7 @@ object MRSCBuild extends Build {
     settings = Project.defaultSettings ++ Seq(
       organization := "mrsc",
       name := "mrsc",
-      version := "0.5",
+      version := "0.5.1",
       libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.6",
       libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.5" % "test",
       unmanagedBase := file("lib"),
