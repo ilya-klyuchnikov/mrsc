@@ -2,5 +2,5 @@
 target/
 .*
 /.idea
-/mrsc.iml
+/.idea-modules
 /todo
