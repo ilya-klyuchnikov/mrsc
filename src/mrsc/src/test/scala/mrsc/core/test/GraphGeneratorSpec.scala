@@ -1,6 +1,6 @@
 package mrsc.core.test
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 
 import mrsc.core._
 
@@ -24,7 +24,7 @@ object TinyRules extends GraphRewriteRules[Int, String] {
   }
 }
 
-class GraphGeneratorSpec extends Spec {
+class GraphGeneratorSpec extends FunSpec {
 
   val graph: TGraph[Int, String] = {
     val n1 = TNode[Int, String](conf = 11, outs = List(), base = Some(List()), tPath = List(0))
