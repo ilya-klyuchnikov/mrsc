@@ -103,7 +103,7 @@ object SREPL {
 
   @tailrec
   def trace() {
-    Console.readLine() match {
+    scala.io.StdIn.readLine() match {
       case "" if current < history.size - 1 =>
         clear()
         current += 1
@@ -123,8 +123,8 @@ object SREPL {
   }
 
   private def clear() {
-    Console.println("\033[2J")
-    Console.println("\033[0;0H")
+    Console.println("\u001b[2J")
+    Console.println("\u001b[0;0H")
     Console.flush()
   }
 

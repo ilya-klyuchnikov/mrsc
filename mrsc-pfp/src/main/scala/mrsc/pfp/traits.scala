@@ -1,5 +1,7 @@
 package mrsc.pfp
 
+import scala.language.postfixOps
+
 import mrsc.core._
 
 import NamelessSyntax._

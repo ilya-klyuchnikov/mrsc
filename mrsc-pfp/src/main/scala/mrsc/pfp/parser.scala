@@ -1,5 +1,7 @@
 package mrsc.pfp
 
+import scala.language.postfixOps
+
 import scala.util.parsing.combinator.ImplicitConversions
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers

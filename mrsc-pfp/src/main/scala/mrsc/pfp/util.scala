@@ -101,7 +101,7 @@ trait PFPGraphUI {
     style.getDefaultVertexStyle.put(mxConstants.STYLE_FONTSIZE, "12")
     style.getDefaultEdgeStyle.put(mxConstants.STYLE_FONTFAMILY, "Courier")
     val graph: mxGraph = new mxGraph(style)
-    val map = collection.mutable.Map[TPath, AnyRef]()
+    val map = scala.collection.mutable.Map[TPath, AnyRef]()
     val gparent = graph.getDefaultParent
 
     def createNode(node: TNode[MetaTerm, Label]): AnyRef = {

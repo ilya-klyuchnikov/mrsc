@@ -1,5 +1,7 @@
 package mrsc.core.test
 
+import scala.language.postfixOps
+
 import org.scalatest.FunSpec
 
 import mrsc.core._

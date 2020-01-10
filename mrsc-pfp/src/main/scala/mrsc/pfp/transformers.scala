@@ -39,7 +39,7 @@ case class InteractiveMRSC(val gc: GContext) extends PFPRules
     for {(step, i) <- allSteps.zipWithIndex} {
       Console.println(s"[$i] ${showStep(step)}")
     }
-    val idx = Console.readInt()
+    val idx = scala.io.StdIn.readInt()
     userSteps = userSteps :+ idx
     allSteps(idx) :: Nil
   }

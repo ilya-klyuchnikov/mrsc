@@ -2,9 +2,9 @@ lazy val MRSCCore = (project in file("mrsc-core"))
   .settings(
     organization := "mrsc",
     name := "mrsc-core",
-    version := "0.5.2",
-    scalaVersion := "2.12.6",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    version := "0.5.3",
+    scalaVersion := "2.13.1",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test",
     fork := true,
     Test / baseDirectory in run := file("."),
     Test / testOptions += Tests.Argument("-oD"),
@@ -15,9 +15,9 @@ lazy val MRSCCounters = (project in file("mrsc-counters"))
   .settings(
     organization := "mrsc",
     name := "mrsc-counters",
-    version := "0.5.2",
-    scalaVersion := "2.12.6",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    version := "0.5.3",
+    scalaVersion := "2.13.1",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test",
     fork := true,
     Test / baseDirectory in run := file("."),
     Test / testOptions += Tests.Argument("-oD")
@@ -28,11 +28,11 @@ lazy val MRSCPfp = (project in file("mrsc-pfp"))
   .settings(
     organization := "mrsc",
     name := "mrsc-pfp",
-    version := "0.5.2",
-    scalaVersion := "2.12.6",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6",
-    libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.13",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    version := "0.5.3",
+    scalaVersion := "2.13.1",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
+    libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.29",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test",
     unmanagedBase := file("lib"),
     fork := true,
     Test / baseDirectory := file("."),
@@ -44,10 +44,10 @@ lazy val MRSCSamples = (project in file("mrsc-samples"))
   .settings(
     organization := "mrsc",
     name := "mrsc-samples",
-    version := "0.5.2",
-    scalaVersion := "2.12.6",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6",
-    libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.13",
+    version := "0.5.3",
+    scalaVersion := "2.13.1",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
+    libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.29",
     fork := true,
     Test / baseDirectory in run := file(".")
   )

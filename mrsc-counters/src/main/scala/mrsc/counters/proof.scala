@@ -5,7 +5,7 @@ import mrsc.core._
 // Generates Isabelle proof using a graph of configurations. 
 object ProofGenerator {
   def generate(protocol: Protocol, graph: SGraph[Conf, _]): String = {
-    val confs: List[Conf] = graph.completeNodes.map { _.conf } distinct;
+    val confs: List[Conf] = graph.completeNodes.map(_.conf).distinct
     val baseConfs: List[Conf] = confs.filter { c1 => confs.forall { c2 => c1 == c2 || !Conf.instanceOf(c1, c2) } }
 
     val setType = protocol.start.map { _ => "nat" } mkString ("(", " * ", ")")
