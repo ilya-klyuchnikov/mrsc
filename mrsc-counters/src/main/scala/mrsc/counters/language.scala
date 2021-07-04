@@ -23,25 +23,33 @@ sealed trait Expr {
 }
 
 case class Num(i: Int) extends Expr {
-  def +(comp: Expr) = comp match {
+  override def +(comp: Expr): Expr = comp match {
     case Omega  => Omega
     case Num(j) => Num(i + j)
   }
-  def -(comp: Expr) = comp match {
+  override def -(comp: Expr): Expr = comp match {
     case Omega  => Omega
     case Num(j) => Num(i - j)
   }
-  def ===(j: Int) = i == j
-  def >=(j: Int) = i >= j
-  override def toString = i.toString
+  override def ===(j: Int): Boolean =
+    i == j
+  override def >=(j: Int): Boolean =
+    i >= j
+  override def toString: String =
+    i.toString
 }
 
 case object Omega extends Expr {
-  def +(comp: Expr) = Omega
-  def -(comp: Expr) = Omega
-  def >=(comp: Int) = true
-  def ===(j: Int) = true
-  override def toString = "ω"
+  override def +(comp: Expr): Expr =
+    Omega
+  override def -(comp: Expr): Expr =
+    Omega
+  override def >=(comp: Int) =
+    true
+  override def ===(j: Int) =
+    true
+  override def toString: String =
+    "ω"
 }
 
 // The "syntax" of language of configurations.
@@ -49,9 +57,9 @@ case object Omega extends Expr {
 // the encoding of Java protocol for encoding of 4 commands.
 object Conf {
   def instanceOf(c1: Conf, c2: Conf): Boolean =
-    (c1, c2).zipped.forall((e1, e2) => e1 == e2 || e2 == Omega)
+    c1.lazyZip(c2).forall((e1, e2) => e1 == e2 || e2 == Omega)
 
-  def gens(c: Conf) =
+  def gens(c: Conf): List[List[Expr]] =
     product(c map genExpr).filterNot(_ == c)
 
   def oneStepGens(c: Conf): List[Conf] =

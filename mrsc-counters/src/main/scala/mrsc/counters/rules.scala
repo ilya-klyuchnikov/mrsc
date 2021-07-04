@@ -70,6 +70,6 @@ class FastMRCountersRules(protocol: Protocol, l: Int) extends MRCountersRules(pr
     else
       super.steps(g)
 
-  private def size(g: G) =
+  private def size(g: G): Int =
     g.completeNodes.size + g.incompleteLeaves.size
 }

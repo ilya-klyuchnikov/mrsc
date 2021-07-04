@@ -18,7 +18,7 @@ case object Synapse extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, d, v) if d >= 1 && v >= 1 => true
     case List(i, d, v) if d >= 2           => true
     case _                                 => false
@@ -34,7 +34,7 @@ case object Synapse extends Protocol {
     |  "synapse (i, d, Suc v) ==> synapse (i + d + v, (Suc 0), 0)" |
     |  "synapse (Suc i, d, v) ==> synapse (i + d + v, (Suc 0), 0)"
     |
-    |inductive unsafe :: "(nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat) => bool" where
     |  "unsafe (x, Suc y, Suc z)" |
     |  "unsafe (x, Suc (Suc y), z)"
     """.stripMargin
@@ -60,7 +60,7 @@ case object MSI extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, m, s) if m >= 1 && s >= 1 => true
     case List(i, m, s) if m >= 2           => true
     case _                                 => false
@@ -76,7 +76,7 @@ case object MSI extends Protocol {
     |  "msi (i, m, Suc s) ==> msi (i + m + s, Suc 0, 0)" |
     |  "msi (Suc i, m, s) ==> msi (i, 0, Suc (m + s))"
     |
-    |inductive unsafe :: "(nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat) => bool" where
     |  "unsafe (x, Suc y, Suc z)" |
     |  "unsafe (x, Suc (Suc y), z)"
     """.stripMargin
@@ -118,7 +118,7 @@ case object MOSI extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, o, s, m) if o >= 2           => true
     case List(i, o, s, m) if m >= 2           => true
     case List(i, o, s, m) if s >= 1 && m >= 1 => true
@@ -141,10 +141,10 @@ case object MOSI extends Protocol {
     |  "mosi (i, o', s, Suc m) ==> mosi (Suc i, o', s, m)" |
     |  "mosi (i, Suc o', s, m) ==> mosi (Suc i, o', s, m)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where
     |  "unsafe (i, Suc (Suc o'), s, m)" |
     |  "unsafe (i, o', s, Suc (Suc m))" |
-    |  "unsafe (i, o', Suc s, Suc m)" 
+    |  "unsafe (i, o', Suc s, Suc m)"
     """.stripMargin
 }
 
@@ -170,7 +170,7 @@ case object MESI extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, e, s, m) if m >= 2           => true
     case List(i, e, s, m) if s >= 1 && m >= 1 => true
     case _                                    => false
@@ -187,9 +187,9 @@ case object MESI extends Protocol {
     |  "mesi (i, e, Suc s, m) ==> mesi (i + e + s + m, Suc 0, 0, 0)" |
     |  "mesi (Suc i, e, s, m) ==> mesi (i + e + s + m, Suc 0, 0, 0)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where
     |  "unsafe (i, e, s, Suc (Suc m))" |
-    |  "unsafe (i, e, Suc s, Suc m)" 
+    |  "unsafe (i, e, Suc s, Suc m)"
     """.stripMargin
 }
 
@@ -215,7 +215,7 @@ case object MOESI extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, m, s, e, o) if m >= 1 && (e + s + o) >= 1 => true
     case List(i, m, s, e, o) if m >= 2                     => true
     case List(i, m, s, e, o) if e >= 2                     => true
@@ -233,7 +233,7 @@ case object MOESI extends Protocol {
     |  "moesi (i, m, Suc s, e, o') ==> moesi (i + m + s + e + o', 0, 0, Suc 0, 0)" |
     |  "moesi (Suc i, m, s, e, o') ==> moesi (i + m + s + e + o', 0, 0, Suc 0, 0)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat * nat) => bool" where
     |  "unsafe (i, Suc m, Suc s, e, o')" |
     |  "unsafe (i, Suc m, s, Suc e, o')" |
     |  "unsafe (i, Suc m, s, e, Suc o')" |
@@ -284,7 +284,7 @@ case object Illinois extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, e, d, s) if d >= 1 && s >= 1 => true
     case List(i, e, d, s) if d >= 2           => true
     case _                                    => false
@@ -305,9 +305,9 @@ case object Illinois extends Protocol {
     |  r8: "illinois (Suc i, e, d, s) ==> illinois (i + e + d + s, 0, Suc 0, 0)" |
     |  r9: "illinois (i, e, Suc d, s) ==> illinois (Suc i, e, d, s)" |
     |  r10: "illinois (i, e, d, Suc s) ==> illinois (Suc i, e, d, s)" |
-    |  r11: "illinois (i, Suc e, d, s) ==> illinois (Suc i, e, d, s)" 
+    |  r11: "illinois (i, Suc e, d, s) ==> illinois (Suc i, e, d, s)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where
     |  "unsafe (i, e, Suc d, Suc s)" |
     |  "unsafe (i, e, Suc (Suc d), s)"
     """.stripMargin
@@ -331,7 +331,7 @@ case object Berkley extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, n, u, e) if e >= 1 && u + n >= 1 => true
     case List(i, n, u, e) if e >= 2               => true
     case _                                        => false
@@ -348,7 +348,7 @@ case object Berkley extends Protocol {
     |  wh1: "berkley (i, Suc n, u, e) ==> berkley (i + n + u, 0, 0, Suc e)" |
     |  wh2: "berkley (i, n, Suc u, e) ==> berkley (i + n + u, 0, 0, Suc e)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where
     |  "unsafe (i, Suc n, u, Suc e)" |
     |  "unsafe (i, n, Suc u, Suc e)" |
     |  "unsafe (i, n, u, Suc (Suc e))"
@@ -385,7 +385,7 @@ case object Firefly extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, e, s, d) if d >= 1 && s + e >= 1 => true
     case List(i, e, s, d) if e >= 2               => true
     case List(i, e, s, d) if d >= 2               => true
@@ -404,9 +404,9 @@ case object Firefly extends Protocol {
     |  rm32: "firefly (Suc i, e, Suc s, d) ==> firefly (i, 0, Suc (e + s), d)" |
     |  wh2:  "firefly (i, Suc e, s, d) ==> firefly (i, e, s, Suc d)" |
     |  wh3:  "firefly (i, e, Suc s, d) ==> firefly (i, Suc e, 0, d)" |
-    |  wm:   "firefly (Suc i, e, s, d) ==> firefly (i + e + s + d, 0, 0, Suc 0)" 
+    |  wm:   "firefly (Suc i, e, s, d) ==> firefly (i + e + s + d, 0, 0, Suc 0)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat) => bool" where
     |  "unsafe (i, Suc e, s, Suc d)" |
     |  "unsafe (i, e, Suc s, Suc d)" |
     |  "unsafe (i, Suc (Suc e), s, d)" |
@@ -461,7 +461,7 @@ case object Futurebus extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if sU >= 1 && eU + eM >= 1 => true
     case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if eU + eM >= 2            => true
     case List(i, sU, eU, eM, pR, pW, pEMR, pEMW, pSU) if pR >= 1 && pW >= 1      => true
@@ -486,7 +486,7 @@ case object Futurebus extends Protocol {
     |  wh2:  "futurebus (i, sU, Suc eU, eM, pR, pW, pEMR, pEMW, pSU) ==> futurebus (i, sU, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)" |
     |  wh3:  "futurebus (i, Suc sU, eU, eM, pR, pW, pEMR, pEMW, pSU) ==> futurebus (i + sU, 0, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat * nat) => bool" where
     |  "unsafe (i, Suc sU, Suc eU, eM, pR, pW, pEMR, pEMW, pSU)" |
     |  "unsafe (i, Suc sU, eU, Suc eM, pR, pW, pEMR, pEMW, pSU)" |
     |  "unsafe (i, sU, Suc (Suc eU), eM, pR, pW, pEMR, pEMW, pSU)" |
@@ -537,7 +537,7 @@ case object Xerox extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(i, sc, sd, d, e) if d >= 1 && (e + sc + sd) >= 1 => true
     case List(i, sc, sd, d, e) if e >= 1 && (sc + sd) >= 1     => true
     case List(i, sc, sd, d, e) if d >= 2                       => true
@@ -566,14 +566,14 @@ case object Xerox extends Protocol {
     |  wh3:  "xerox (i, sc, Suc sd, d, e) ==> xerox (Suc i, sc, sd, d, e)" |
     |  wh4:  "xerox (i, sc, sd, d, Suc e) ==> xerox (Suc i, sc, sd, d, e)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat * nat) => bool" where
     |  "unsafe (i, Suc sc, sd, Suc d, e)" |
     |  "unsafe (i, sc, Suc sd, Suc d, e)" |
     |  "unsafe (i, sc, sd, Suc d, Suc e)" |
     |  "unsafe (i, Suc sc, sd, d, Suc e)" |
     |  "unsafe (i, sc, Suc sd, d, Suc e)" |
     |  "unsafe (i, sc, sd, Suc (Suc d), e)" |
-    |  "unsafe (i, sc, sd, d, Suc (Suc e))" 
+    |  "unsafe (i, sc, sd, d, Suc (Suc e))"
     """.stripMargin
 }
 
@@ -621,7 +621,7 @@ case object Java extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(nb, race, i, b, o, in, out, w) if o + out >= 2 => true
     case _                                                   => false
   }
@@ -642,7 +642,7 @@ case object Java extends Protocol {
     |  rel2:  "java (nb, Suc (Suc 0), i, b, o', in', Suc out, w) ==> java (nb, Suc (Suc (Suc (Suc 0))), Suc i, b, o', in', out, w)" |
     |  go:  "java (nb, Suc (Suc (Suc (Suc 0))), i, b, o', in', out, Suc w) ==> java (nb, Suc (Suc (Suc (Suc 0))), Suc i, b, Suc o', in', out, w)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat * nat * nat * nat * nat) => bool" where
     |  "unsafe (nb, race, i, b, Suc (Suc o'), in', out, w)" |
     |  "unsafe (nb, race, i, b, Suc o', in', Suc out, w)" |
     |  "unsafe (nb, race, i, b, o', in', Suc (Suc out), w)"
@@ -679,7 +679,7 @@ case object ReaderWriter extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(x2, x3, x4, x5, x6, x7) if x3 >= 1 && x4 >= 1 => true
     case _                                                  => false
   }
@@ -695,9 +695,9 @@ case object ReaderWriter extends Protocol {
     |  r3: "rw (x2, Suc x3, x4, x5, x6, x7) ==> rw (Suc x2, x3, x4, Suc x5, x6, x7)" |
     |  r4: "rw (x2, x3, Suc x4, x5, x6, x7) ==> rw (x2, x3, x4, Suc x5, x6, x7)" |
     |  r5: "rw (x2, x3, x4, Suc x5, x6, x7) ==> rw (x2, x3, x4, x5, Suc x6, x7)" |
-    |  r6: "rw (x2, x3, x4, Suc x5, x6, x7) ==> rw (x2, x3, x4, x5, x6, Suc x7)" 
+    |  r6: "rw (x2, x3, x4, Suc x5, x6, x7) ==> rw (x2, x3, x4, x5, x6, Suc x7)"
     |
-    |inductive unsafe :: "(nat * nat * nat * nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat * nat * nat * nat) => bool" where
     |  "unsafe (x2, Suc x3, Suc x4, x5, x6, x7)"
     """.stripMargin
 }
@@ -724,7 +724,7 @@ case object DataRace extends Protocol {
       },
     )
 
-  def unsafe(c: Conf) = c match {
+  def unsafe(c: Conf): Boolean = c match {
     case List(out, cs, scs) if cs >= 1 && scs >= 1 => true
     case _                                         => false
   }
@@ -740,7 +740,7 @@ case object DataRace extends Protocol {
     |  "datarace (out, Suc cs, scs) ==> datarace (Suc out, cs, scs)" |
     |  "datarace (out, cs, Suc scs) ==> datarace (Suc out, cs, scs)"
     |
-    |inductive unsafe :: "(nat * nat * nat) => bool" where 
+    |inductive unsafe :: "(nat * nat * nat) => bool" where
     |  "unsafe (out, Suc cs, Suc scs)"
     """.stripMargin
 

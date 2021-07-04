@@ -1,5 +1,7 @@
 package mrsc
 
+import scala.language.implicitConversions
+
 package object counters {
   type Conf = List[Expr]
   type TransitionRule = PartialFunction[Conf, Conf]
