@@ -1,9 +1,9 @@
 package mrsc.core.test
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 import mrsc.core._
 
-class GraphOperationsSpec extends FunSpec {
+class GraphOperationsSpec extends AnyFunSpec {
 
   var g1, g2: SGraph[Int, String] = _
   var tg1, tg2: TGraph[Int, String] = _

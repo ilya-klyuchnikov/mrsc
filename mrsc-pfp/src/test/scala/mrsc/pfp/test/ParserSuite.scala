@@ -2,7 +2,7 @@ package mrsc.pfp.test
 
 import mrsc.pfp._
 
-class ParserSuite extends org.scalatest.FunSuite {
+class ParserSuite extends org.scalatest.funsuite.AnyFunSuite {
 
   test("parsing free variable") {
     testTermParsing("<1>", FVar(1))
@@ -176,7 +176,7 @@ class ParserSuite extends org.scalatest.FunSuite {
 
   private def testTermParsing(in: String, expected: Term): Unit = {
     val parsed = PFPParsers().inputTerm(in)
-    info(in + " ==> " + parsed.toString())
+    info(in + " ==> " + parsed.toString)
     assert(parsed === expected)
   }
 

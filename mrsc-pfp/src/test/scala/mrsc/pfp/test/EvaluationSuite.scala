@@ -1,29 +1,29 @@
 package mrsc.pfp.test
 
-import org.scalatest.FunSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 import mrsc.pfp._
 
-class EvaluationSuite extends FunSuite {
-  val bindings = io.bingingsFromFile("pfp/defs/list.pfp")
+class EvaluationSuite extends AnyFunSuite {
+  val bindings: GContext =
+    io.bingingsFromFile("pfp/defs/list.pfp")
 
   test("simple evaluation #1") {
     val goal = PFPParsers().inputTerm("app Nil() Nil()")
     val expected = PFPParsers().inputTerm("Nil()")
-    info(goal.toString())
-    info(expected.toString())
+    info(goal.toString)
+    info(expected.toString)
     val evaled = CBNEval.eval(goal, bindings)
-    info(evaled.toString())
+    info(evaled.toString)
     assert(evaled === expected)
   }
 
   test("simple evaluation #2") {
     val goal = PFPParsers().inputTerm("app Cons(A(), Nil()) Nil()")
     val expected = PFPParsers().inputTerm("Cons(A(), Nil())")
-    info(goal.toString())
-    info(expected.toString())
+    info(goal.toString)
+    info(expected.toString)
     val evaled = CBNEval.eval(goal, bindings)
-    info(evaled.toString())
+    info(evaled.toString)
     assert(evaled === expected)
   }
 

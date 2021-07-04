@@ -1,11 +1,11 @@
 package mrsc.pfp.test
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import mrsc.core._
 import mrsc.pfp._
 
-class DeforestationSuite extends FunSuite {
+class DeforestationSuite extends AnyFunSuite {
 
   test("build graph for append") {
     val bindings: GContext =
@@ -14,7 +14,7 @@ class DeforestationSuite extends FunSuite {
         case x of {
           Nil()  -> y;
           Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
+        };
       """
     val goal: Term = "app <1> <2>"
     val rules = new Deforester(bindings)
@@ -28,7 +28,7 @@ class DeforestationSuite extends FunSuite {
         case x of {
           Nil()  -> y;
           Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
+        };
       """
     val goal: Term = "app (app <1> <2>) <3> "
     val rules = new Deforester(bindings)
@@ -75,7 +75,7 @@ class DeforestationSuite extends FunSuite {
         case x of {
           Nil()  -> y;
           Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
+        };
       """
     val rules = new Deforester(bindings)
     val goal: Term = "app <1> <2>"
@@ -129,7 +129,7 @@ class DeforestationSuite extends FunSuite {
         case x of {
           Nil()  -> y;
           Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
+        };
       """
     val rules = new Deforester(bindings)
     val goal: Term = "app (app <1> <2>) <3>"
@@ -138,7 +138,7 @@ class DeforestationSuite extends FunSuite {
       """
       letrec h0 = \x -> \y -> \z ->
         case x of {
-          Nil()  -> 
+          Nil()  ->
               letrec h1 = \x -> \y ->
                 case x of {
                   Nil()  -> y;

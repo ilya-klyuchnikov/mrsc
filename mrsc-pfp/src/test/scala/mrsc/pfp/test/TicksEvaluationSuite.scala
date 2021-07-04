@@ -1,14 +1,13 @@
 package mrsc.pfp.test
 
-import org.scalatest.FunSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 import mrsc.pfp._
 import NamelessShows._
 import mrsc.core._
 import mrsc.core.test.DebugInfo
 
-class TicksEvaluationSuite extends FunSuite with DebugInfo {
-  case class SC2(val gc: GContext)
+class TicksEvaluationSuite extends AnyFunSuite with DebugInfo {
+  case class SC2(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with PositiveDriving
@@ -18,7 +17,8 @@ class TicksEvaluationSuite extends FunSuite with DebugInfo {
       with HE3ByCouplingWhistle
       with LowerMsgOrUpperMsgOnBinaryWhistle
 
-  val bindings = io.bingingsFromFile("pfp/defs/list.pfp")
+  val bindings: GContext =
+    io.bingingsFromFile("pfp/defs/list.pfp")
 
   def checkTicks(goal1: Term, goal2: Term, sub: Subst) {
     val e1 = NamelessSyntax.applySubst(goal1, sub)

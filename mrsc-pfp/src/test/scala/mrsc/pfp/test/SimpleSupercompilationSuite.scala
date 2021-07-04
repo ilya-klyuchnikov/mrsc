@@ -1,7 +1,6 @@
 package mrsc.pfp.test
 
-import org.scalatest.FunSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 import mrsc.core._
 import mrsc.pfp._
 
@@ -16,7 +15,7 @@ class ClassicSC(val gc: GContext)
     with HE3ByCouplingWhistle
     with UpperMsgOrLowerMggOnBinaryWhistle
 
-class SimpleSupercompilationSuite extends FunSuite {
+class SimpleSupercompilationSuite extends AnyFunSuite {
 
   test("append residuation") {
     val bindings: GContext =
@@ -25,7 +24,7 @@ class SimpleSupercompilationSuite extends FunSuite {
         case x of {
           Nil()  -> y;
           Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
+        };
       """
     val goal: Term = "app <1> <2>"
 
@@ -47,7 +46,7 @@ class SimpleSupercompilationSuite extends FunSuite {
         case x of {
           Nil()  -> y;
           Cons(x, xs) -> Cons(x, (app xs y))
-        }; 
+        };
       """
     val goal: Term = "app <1> <1>"
 

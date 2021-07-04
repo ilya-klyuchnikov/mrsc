@@ -1,10 +1,10 @@
 package mrsc.pfp.test
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import mrsc.core.test.DebugInfo
 import mrsc.pfp._
 
-class TicksNormalizationSuite extends FunSuite with DebugInfo {
+class TicksNormalizationSuite extends AnyFunSuite with DebugInfo {
   import NamedSyntax._
 
   def testNorm(t: Term, expected: Term) {

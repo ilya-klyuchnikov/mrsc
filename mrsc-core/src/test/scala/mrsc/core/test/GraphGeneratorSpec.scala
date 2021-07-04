@@ -1,9 +1,7 @@
 package mrsc.core.test
 
 import scala.language.postfixOps
-
-import org.scalatest.FunSpec
-
+import org.scalatest.funspec.AnyFunSpec
 import mrsc.core._
 
 object TinyRules extends GraphRewriteRules[Int, String] {
@@ -26,7 +24,7 @@ object TinyRules extends GraphRewriteRules[Int, String] {
   }
 }
 
-class GraphGeneratorSpec extends FunSpec {
+class GraphGeneratorSpec extends AnyFunSpec {
 
   val graph: TGraph[Int, String] = {
     val n1 = TNode[Int, String](conf = 11, outs = List(), base = Some(List()), tPath = List(0))

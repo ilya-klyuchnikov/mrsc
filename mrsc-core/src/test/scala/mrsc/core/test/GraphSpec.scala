@@ -1,10 +1,9 @@
 package mrsc.core.test
 
-import org.scalatest.FunSpec
-
+import org.scalatest.funspec.AnyFunSpec
 import mrsc.core._
 
-class GraphSpec extends FunSpec {
+class GraphSpec extends AnyFunSpec {
 
   def mkGraph(
       root: SNode[Int, Int] = null,

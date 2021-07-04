@@ -13,14 +13,14 @@ lazy val MRSCCore = (project in file("mrsc-core"))
   .settings(commonSettings)
   .settings(
     name := "mrsc-core",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
   )
 
 lazy val MRSCCounters = (project in file("mrsc-counters"))
   .settings(commonSettings)
   .settings(
     name := "mrsc-counters",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
   )
   .dependsOn(MRSCCore)
 
@@ -30,7 +30,7 @@ lazy val MRSCPfp = (project in file("mrsc-pfp"))
     name := "mrsc-pfp",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",
     libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.3.3",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
     unmanagedBase := file("lib"),
     Test / baseDirectory := file("."),
   )

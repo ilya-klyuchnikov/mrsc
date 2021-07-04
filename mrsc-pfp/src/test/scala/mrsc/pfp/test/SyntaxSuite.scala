@@ -1,14 +1,13 @@
 package mrsc.pfp.test
 
-import org.scalatest.FunSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 import mrsc.pfp._
 
-class SyntaxSuite extends FunSuite {
+class SyntaxSuite extends AnyFunSuite {
   test("checking for extraction") {
     val t1: Term = """\x -> x"""
     val extractable = NamelessSyntax.isFreeSubTerm(t1, 0)
-    info(extractable.toString())
+    info(extractable.toString)
   }
 
   test("finding substitutions") {

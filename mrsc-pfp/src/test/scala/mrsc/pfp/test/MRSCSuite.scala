@@ -1,18 +1,19 @@
 package mrsc.pfp.test
 
+import org.scalatest.funsuite.AnyFunSuite
+import scalaz.Show
 import mrsc.core._
 import mrsc.pfp._
 import mrsc.pfp.NamelessShows._
-import org.scalatest.FunSuite
 import mrsc.core.test.DebugInfo
-import scalaz.Show
 
 /** Smoke tests for correctness
   */
-trait MRSCNatHelper extends FunSuite with DebugInfo {
+trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
 
-  val bindings = io.bingingsFromFile("pfp/defs/nat.pfp")
-  val prettyPrinter = new PFPGraphPrettyPrinter {
+  val bindings: GContext =
+    io.bingingsFromFile("pfp/defs/nat.pfp")
+  val prettyPrinter: PFPGraphPrettyPrinter = new PFPGraphPrettyPrinter {
     implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
   }
 
