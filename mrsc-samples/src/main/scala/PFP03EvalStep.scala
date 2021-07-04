@@ -10,10 +10,14 @@ object PFP03EvalStep extends scala.App {
   def sample1(): Unit = {
     var t = term("""letrec nil = \xs -> case xs of { Nil() -> Nil(); Cons(y, ys) -> nil ys } in nil Cons(a, Nil())""")
     println("   " + t.shows)
-    do {
+
+    t = CBNEval.lazyStep(t, Map())
+    println("=> " + t.shows)
+
+    while (!CBNEval.isLazyVal(t)) {
       t = CBNEval.lazyStep(t, Map())
       println("=> " + t.shows)
-    } while (!CBNEval.isLazyVal(t))
+    }
   }
 
   sample1()

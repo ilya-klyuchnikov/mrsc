@@ -29,7 +29,7 @@ lazy val MRSCPfp = (project in file("mrsc-pfp"))
   .settings(
     name := "mrsc-pfp",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",
-    libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.3.3",
+    libraryDependencies += ("org.scalaz" %% "scalaz-core" % "7.3.3").cross(CrossVersion.for3Use2_13),
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
     unmanagedBase := file("lib"),
     Test / baseDirectory := file("."),
@@ -41,7 +41,7 @@ lazy val MRSCSamples = (project in file("mrsc-samples"))
   .settings(
     name := "mrsc-samples",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",
-    libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.3.3",
+    libraryDependencies += ("org.scalaz" %% "scalaz-core" % "7.3.3").cross(CrossVersion.for3Use2_13),
     fork := true,
     baseDirectory in run := file("."),
   )

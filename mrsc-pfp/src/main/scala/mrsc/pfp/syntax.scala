@@ -170,10 +170,12 @@ object TicksNorm {
     var before = Set(t)
     var after = Set(t)
 
-    do {
+    after = cycle(before)
+
+    while (after != before) {
       before = after
       after = cycle(before)
-    } while (after != before)
+    }
 
     after
   }

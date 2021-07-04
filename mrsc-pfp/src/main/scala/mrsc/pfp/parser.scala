@@ -64,37 +64,39 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
 
   lazy val term: PackratParser[Res[Term]] = appTerm |
     withTicks {
-      "\\" ~ lcid ~ "->" ~ term ^^ { case _ ~ v ~ _ ~ t => ctx: PC => Abs(t(ctx.addName(v))) } |
+      "\\" ~ lcid ~ "->" ~ term ^^ { case _ ~ v ~ _ ~ t => (ctx: PC) => Abs(t(ctx.addName(v))) } |
         "case" ~ term ~ "of" ~ "{" ~ branches ~ "}" ^^ { case _ ~ sel ~ _ ~ _ ~ bs ~ _ =>
-          ctx: PC => Case(sel(ctx), bs(ctx))
+          (ctx: PC) => Case(sel(ctx), bs(ctx))
         } |
         "let" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ id ~ _ ~ v ~ _ ~ in =>
-          ctx: PC => Let(v(ctx), in(ctx.addName(id)))
+          (ctx: PC) => Let(v(ctx), in(ctx.addName(id)))
         } |
         "letrec" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ f ~ _ ~ body ~ _ ~ in =>
-          ctx: PC => Let(Fix(body(ctx.addName(f))), in(ctx.addName(f)))
+          (ctx: PC) => Let(Fix(body(ctx.addName(f))), in(ctx.addName(f)))
         }
     }
 
   lazy val appTerm: PackratParser[Res[Term]] =
-    appTerm ~ aTerm ^^ { case t1 ~ t2 => ctx: PC => App(t1(ctx), t2(ctx)) } | aTerm
+    appTerm ~ aTerm ^^ { case t1 ~ t2 => (ctx: PC) => App(t1(ctx), t2(ctx)) } | aTerm
 
   lazy val aTerm: PackratParser[Res[Term]] =
     withTicks {
       "(" ~> term <~ ")" |
-        "<" ~> numericLit <~ ">" ^^ { id => ctx: PC => FVar(id.toInt) } |
-        lcid ^^ { i => ctx: PC => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
-        (ucid ~ ("(" ~> repsep(term, ",") <~ ")")) ^^ { case n ~ ts => ctx: PC => Ctr(n, ts.map(_(ctx))) }
+        "<" ~> numericLit <~ ">" ^^ { id => (ctx: PC) => FVar(id.toInt) } |
+        lcid ^^ { i => (ctx: PC) => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
+        (ucid ~ ("(" ~> repsep(term, ",") <~ ")")) ^^ { case n ~ ts => (ctx: PC) => Ctr(n, ts.map(_(ctx))) }
     }
 
   def withTicks(p: PackratParser[Res[Term]]): PackratParser[Res[Term]] =
-    (rep("*")) ~ p ^^ { case ts ~ t => ctx: PC => Ticks.incrTicks(t(ctx), ts.size) }
+    (rep("*")) ~ p ^^ { case ts ~ t => (ctx: PC) => Ticks.incrTicks(t(ctx), ts.size) }
 
   lazy val branches: PackratParser[Res[List[Branch]]] =
-    rep1sep(branch, ";") ^^ { cs => ctx: PC => cs.map { c => c(ctx) } }
+    rep1sep(branch, ";") ^^ { cs => (ctx: PC) => cs.map { c => c(ctx) } }
 
   lazy val branch: PackratParser[Res[Branch]] =
-    ptr ~ ("->" ~> term) ^^ { case (ptr @ Ptr(name, bs)) ~ t => ctx: PC => (ptr, t(ctx.addNames(bs.map(_.toString)))) }
+    ptr ~ ("->" ~> term) ^^ { case (ptr @ Ptr(name, bs)) ~ t =>
+      (ctx: PC) => (ptr, t(ctx.addNames(bs.map(_.toString))))
+    }
 
   lazy val ptr: PackratParser[Ptr] =
     (ucid ~ ("(" ~> repsep(lcid, ",") <~ ")")) ^^ { case n ~ args => Ptr(n, args) }
