@@ -6,14 +6,15 @@ import mrsc.core._
 import mrsc.pfp._
 
 // only UpperMsg??
-class ClassicSC(val gc: GContext) extends PFPRules
-  with PFPSemantics
-  with PositiveDriving
-  with AllFoldingCandidates
-  with Folding
-  with AllEmbeddingCandidates
-  with HE3ByCouplingWhistle
-  with UpperMsgOrLowerMggOnBinaryWhistle
+class ClassicSC(val gc: GContext)
+    extends PFPRules
+    with PFPSemantics
+    with PositiveDriving
+    with AllFoldingCandidates
+    with Folding
+    with AllEmbeddingCandidates
+    with HE3ByCouplingWhistle
+    with UpperMsgOrLowerMggOnBinaryWhistle
 
 class SimpleSupercompilationSuite extends FunSuite {
 

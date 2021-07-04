@@ -18,7 +18,7 @@ case class RebuildStep[C, D](c: C) extends GraphRewriteStep[C, D]
 case class RollbackStep[C, D](to: SPath, c: C) extends GraphRewriteStep[C, D]
 
 case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHistory: Boolean = false)
-  extends Iterator[SGraph[C, D]] {
+    extends Iterator[SGraph[C, D]] {
 
   private var completeGs: Queue[SGraph[C, D]] = Queue()
   private var pendingGs: List[SGraph[C, D]] = List(initial(conf))
@@ -55,17 +55,16 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
 
 object GraphGenerator {
   def executeStep[C, D](step: GraphRewriteStep[C, D], g: SGraph[C, D], withHistory: Boolean = false): SGraph[C, D] = {
-    val prev = if (withHistory) Some(g) else None 
+    val prev = if (withHistory) Some(g) else None
     step match {
       case AddChildNodesStep(List()) =>
         executeStep(CompleteCurrentNodeStep(), g, withHistory)
       case CompleteCurrentNodeStep() =>
         SGraph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes, prev)
       case AddChildNodesStep(ns) =>
-        val deltaLeaves: List[SNode[C, D]] = ns.zipWithIndex map {
-          case ((conf, dInfo), i) =>
-            val in = SEdge(g.current, dInfo)
-            SNode(conf, in, None, i :: g.current.sPath)
+        val deltaLeaves: List[SNode[C, D]] = ns.zipWithIndex map { case ((conf, dInfo), i) =>
+          val in = SEdge(g.current, dInfo)
+          SNode(conf, in, None, i :: g.current.sPath)
         }
         SGraph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves, g.current :: g.completeNodes, prev)
       case FoldStep(basePath) =>

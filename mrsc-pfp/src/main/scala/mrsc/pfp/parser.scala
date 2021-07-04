@@ -22,7 +22,7 @@ case class PContext(l: List[String] = List()) {
 
 case class Task(goal: Term, bindings: GContext, name: String = "") {
   override def toString =
-    (goal.toString :: (bindings.map{case (k, v) => k + " = " + v + ";"}).toList).mkString("\n")
+    (goal.toString :: (bindings.map { case (k, v) => k + " = " + v + ";" }).toList).mkString("\n")
 }
 
 case class PFPParsers() extends StandardTokenParsers with PackratParsers with ImplicitConversions {
@@ -38,14 +38,22 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
 
   lazy val bindings: PackratParser[GContext] = (binding *) ^^ { bs => Map(bs: _*) }
 
-  lazy val binding: PackratParser[(String, Term)] = (lcid <~ "=") ~ (term <~ ";") ^^ { case f ~ body => (f, body(PContext())) }
+  lazy val binding: PackratParser[(String, Term)] = (lcid <~ "=") ~ (term <~ ";") ^^ { case f ~ body =>
+    (f, body(PContext()))
+  }
 
   lazy val term: PackratParser[Res[Term]] = appTerm |
     withTicks {
       "\\" ~ lcid ~ "->" ~ term ^^ { case _ ~ v ~ _ ~ t => ctx: PC => Abs(t(ctx.addName(v))) } |
-      "case" ~ term ~ "of" ~ "{" ~ branches ~ "}" ^^ { case _ ~ sel ~ _ ~ _ ~ bs ~ _ => ctx: PC => Case(sel(ctx), bs(ctx)) } |
-      "let" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ id ~ _ ~ v ~ _ ~ in => ctx: PC => Let(v(ctx), in(ctx.addName(id))) } |
-      "letrec" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ f ~ _ ~ body ~ _ ~ in => ctx: PC => Let(Fix(body(ctx.addName(f))), in(ctx.addName(f))) }
+        "case" ~ term ~ "of" ~ "{" ~ branches ~ "}" ^^ { case _ ~ sel ~ _ ~ _ ~ bs ~ _ =>
+          ctx: PC => Case(sel(ctx), bs(ctx))
+        } |
+        "let" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ id ~ _ ~ v ~ _ ~ in =>
+          ctx: PC => Let(v(ctx), in(ctx.addName(id)))
+        } |
+        "letrec" ~ lcid ~ "=" ~ term ~ "in" ~ term ^^ { case _ ~ f ~ _ ~ body ~ _ ~ in =>
+          ctx: PC => Let(Fix(body(ctx.addName(f))), in(ctx.addName(f)))
+        }
     }
 
   lazy val appTerm: PackratParser[Res[Term]] =
@@ -54,13 +62,13 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
   lazy val aTerm: PackratParser[Res[Term]] =
     withTicks {
       "(" ~> term <~ ")" |
-      "<" ~> numericLit <~ ">" ^^ { id => ctx: PC => FVar(id.toInt) } |
-      lcid ^^ { i => ctx: PC => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
-      (ucid ~ ("(" ~> repsep(term, ",") <~ ")")) ^^ { case n ~ ts => ctx: PC => Ctr(n, ts.map(_(ctx))) }
+        "<" ~> numericLit <~ ">" ^^ { id => ctx: PC => FVar(id.toInt) } |
+        lcid ^^ { i => ctx: PC => if (ctx.isNameBound(i)) BVar(ctx.name2index(i)) else GVar(i) } |
+        (ucid ~ ("(" ~> repsep(term, ",") <~ ")")) ^^ { case n ~ ts => ctx: PC => Ctr(n, ts.map(_(ctx))) }
     }
 
   def withTicks(p: PackratParser[Res[Term]]): PackratParser[Res[Term]] =
-    (rep("*")) ~ p ^^ {case ts ~ t => ctx: PC => Ticks.incrTicks(t(ctx), ts.size)}
+    (rep("*")) ~ p ^^ { case ts ~ t => ctx: PC => Ticks.incrTicks(t(ctx), ts.size) }
 
   lazy val branches: PackratParser[Res[List[Branch]]] =
     rep1sep(branch, ";") ^^ { cs => ctx: PC => cs.map { c => c(ctx) } }
@@ -82,7 +90,7 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
     case t                 => sys.error(t.toString)
   }
   lazy val task: PackratParser[Task] =
-    (topTerm <~ ";") ~ bindings ^^ {case goal ~ bs => Task(goal, bs)}
+    (topTerm <~ ";") ~ bindings ^^ { case goal ~ bs => Task(goal, bs) }
 
   def inputTask(s: String) = phrase(task)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
@@ -93,9 +101,9 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
 // TODO
 object NamedSyntax {
   def named(t: Term, ctx: PContext = PContext()): String = "*" * t.ticks + (t match {
-    case BVar(i, _)  => ctx.index2Name(i)
-    case fv: FVar => "<" + fv.i.toString + ">"
-    case gv: GVar => gv.n.toString
+    case BVar(i, _) => ctx.index2Name(i)
+    case fv: FVar   => "<" + fv.i.toString + ">"
+    case gv: GVar   => gv.n.toString
     case Abs(t1, _) =>
       val (ctx1, x) = ctx.pickFreshName("x")
       "(\\" + x + " -> " + named(t1, ctx1) + ")"
@@ -111,10 +119,13 @@ object NamedSyntax {
       n + args.map(named(_, ctx)).mkString("(", ", ", ")")
     case Case(sel, bs, _) =>
       "case " + named(sel, ctx) + " of " +
-        (bs.map {
-          case (p @ Ptr(n, args), t) =>
-            val (args1, ctx2) = args.foldLeft((List[String](), ctx)) { (acc, arg) => val (ctx1, a1) = acc._2.pickFreshName(arg); (acc._1 :+ a1, ctx1) }
+        (bs
+          .map { case (p @ Ptr(n, args), t) =>
+            val (args1, ctx2) = args.foldLeft((List[String](), ctx)) { (acc, arg) =>
+              val (ctx1, a1) = acc._2.pickFreshName(arg); (acc._1 :+ a1, ctx1)
+            }
             n + args1.mkString("(", ", ", ")") + " -> " + named(t, ctx2)
-        }).mkString("{", "; ", "}")
+          })
+          .mkString("{", "; ", "}")
   })
 }

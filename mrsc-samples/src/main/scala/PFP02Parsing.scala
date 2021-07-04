@@ -26,37 +26,38 @@ object PFP02Parsing extends scala.App {
 
   showTermParsing(
     "bound vars are represented via indexes",
-    """\x -> \y -> x y"""
+    """\x -> \y -> x y""",
   )
 
   showTermParsing(
     "special syntax for free vars",
-    """<1>"""
+    """<1>""",
   )
 
   showTermParsing(
     "if var is absent in the current context, then it is free var (g)",
-    """g (\x -> x)"""
+    """g (\x -> x)""",
   )
 
   showTermParsing(
     "bound vars in case expressions are represented via indexes",
-    """case xs of { Nil() -> Nil(); Cons(a, b) -> Cons(a, b)}"""
+    """case xs of { Nil() -> Nil(); Cons(a, b) -> Cons(a, b)}""",
   )
 
   showTermParsing(
     "let expression",
-    """let x = Nil() in let f = g in f x"""
+    """let x = Nil() in let f = g in f x""",
   )
 
   showTermParsing(
     "letrec is represented via let + fix",
-    """letrec h = h x in h"""
+    """letrec h = h x in h""",
   )
 
   showBindingParsing(
     "example of definition in a program",
     """a=\x->\y->case x of {Nil()->y; Cons(h, t)->Cons(h,(a t y))};""",
-    "a")
+    "a",
+  )
 
 }

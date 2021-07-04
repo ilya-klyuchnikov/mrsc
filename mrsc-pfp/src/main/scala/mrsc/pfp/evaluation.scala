@@ -2,22 +2,21 @@ package mrsc.pfp
 
 import NamelessSyntax._
 
-/**
- * Call-by-name step-by-step evaluation.
- * The intended use of this module is for extensive testing
- */
+/** Call-by-name step-by-step evaluation.
+  * The intended use of this module is for extensive testing
+  */
 object CBNEval {
 
   def isLazyVal(t: Term) = t match {
     case Abs(_, _)    => true
     case Ctr(_, _, _) => true
-    case _         => false
+    case _            => false
   }
 
   def isVal(t: Term): Boolean = t match {
     case Abs(_, _)       => true
     case Ctr(_, args, _) => args.forall(isVal)
-    case _            => false
+    case _               => false
   }
 
   // one-step reduction evaluation
@@ -60,13 +59,13 @@ object CBNEvalWithTicks {
   def isLazyVal(t: Term) = t match {
     case Abs(_, _)    => true
     case Ctr(_, _, _) => true
-    case _         => false
+    case _            => false
   }
 
   def isVal(t: Term): Boolean = t match {
     case Abs(_, _)       => true
     case Ctr(_, args, _) => args.forall(isVal)
-    case _            => false
+    case _               => false
   }
 
   // one-step reduction evaluation
@@ -112,13 +111,13 @@ object CBNEvalWithTicksResidual {
   def isLazyVal(t: Term) = t match {
     case Abs(_, _)    => true
     case Ctr(_, _, _) => true
-    case _         => false
+    case _            => false
   }
 
   def isVal(t: Term): Boolean = t match {
     case Abs(_, _)       => true
     case Ctr(_, args, _) => args.forall(isVal)
-    case _            => false
+    case _               => false
   }
 
   // TODO: ensure that tick is taken into account exactly once
@@ -139,7 +138,7 @@ object CBNEvalWithTicksResidual {
     case Let(v, body, ticks) =>
       (ticks, termSubstTop(v, body))
     case Fix(body, ticks) =>
-      (ticks, termSubstTop(Ticks.zeroTicks(t) , body))
+      (ticks, termSubstTop(Ticks.zeroTicks(t), body))
     case _ =>
       sys.error("unexpected term: " + t)
   }

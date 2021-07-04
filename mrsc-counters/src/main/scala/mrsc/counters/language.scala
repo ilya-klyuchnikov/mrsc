@@ -59,7 +59,7 @@ object Conf {
       yield c.updated(i, Omega)
 
   def product[T](zs: List[List[T]]): List[List[T]] = zs match {
-    case Nil       => List(List())
+    case Nil     => List(List())
     case x :: xs => for (y <- x; ys <- product(xs)) yield y :: ys
   }
 

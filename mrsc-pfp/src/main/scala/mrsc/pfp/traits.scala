@@ -79,7 +79,9 @@ trait AllFoldingCandidates extends FoldingCandidates {
 
 trait Folding extends FoldingCandidates {
   override def fold(signal: Signal, g: G): List[S] =
-    foldingCandidates(g.current) find { n => subclass.equiv(g.current.conf, n.conf) } map { n => FoldStep(n.sPath): S } toList
+    foldingCandidates(g.current) find { n => subclass.equiv(g.current.conf, n.conf) } map { n =>
+      FoldStep(n.sPath): S
+    } toList
 }
 
 trait EmbeddingCandidates extends PFPRules {
@@ -115,7 +117,7 @@ trait ControlEmbeddingCandidates extends EmbeddingCandidates {
         case Context(RedexLamApp(lam, app)) => true
         case Context(_)                     => false
         // observable
-        case _                              => true
+        case _ => true
       }
   }
 
@@ -171,8 +173,7 @@ trait RebuildingsGenerator extends VarGen {
 
     val rbs1: List[Rebuilding] = e match {
       case Abs(body, _) =>
-        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
-          yield Rebuilding(Abs(t1), sub1)
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) } yield Rebuilding(Abs(t1), sub1)
       case App(a1, a2, _) =>
         for {
           Rebuilding(t1, sub1, _) <- rebuild(a1, sub)
@@ -184,11 +185,9 @@ trait RebuildingsGenerator extends VarGen {
           Rebuilding(t2, sub2, _) <- rebuild(a2, sub1)
         } yield Rebuilding(Let(t1, t2), sub2)
       case Fix(body, _) =>
-        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
-          yield Rebuilding(Fix(t1), sub1)
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) } yield Rebuilding(Fix(t1), sub1)
       case Ctr(n, xs, _) =>
-        for { (ys, sub1) <- rebuild1(xs, sub) }
-          yield Rebuilding(Ctr(n, ys), sub1)
+        for { (ys, sub1) <- rebuild1(xs, sub) } yield Rebuilding(Ctr(n, ys), sub1)
       case Case(sel, bs, _) =>
         val (pts, bodies) = bs.unzip
         for {
@@ -199,7 +198,7 @@ trait RebuildingsGenerator extends VarGen {
         List(Rebuilding(e, sub))
     }
 
-    // extracting a term itself if it is extractable 
+    // extracting a term itself if it is extractable
     val rbs2 =
       if (NamelessSyntax.isFreeSubTerm(e)) {
         val fn = nextVar()
@@ -213,7 +212,7 @@ trait RebuildingsGenerator extends VarGen {
     rbs1 ++ rbs2 ++ rbs3
   }
 
-  // all combinations of rebuildings a list of expressions 
+  // all combinations of rebuildings a list of expressions
   private def rebuild1(es: List[Term], sub: Subst): List[(List[Term], Subst)] =
     (es :\ ((List[Term](), sub) :: Nil)) { (e, acc) =>
       for { (es1, sub) <- acc; Rebuilding(t, sub1, _) <- rebuild(e, sub) } yield (t :: es1, sub1)
@@ -253,8 +252,7 @@ trait SizedRebuildingsGenerator extends RebuildingsGenerator {
 
     val rbs1: List[Rebuilding] = e match {
       case Abs(body, _) =>
-        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
-          yield Rebuilding(Abs(t1), sub1)
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) } yield Rebuilding(Abs(t1), sub1)
       case App(a1, a2, _) =>
         for {
           Rebuilding(t1, sub1, _) <- rebuild(a1, sub)
@@ -266,11 +264,9 @@ trait SizedRebuildingsGenerator extends RebuildingsGenerator {
           Rebuilding(t2, sub2, _) <- rebuild(a2, sub1)
         } yield Rebuilding(Let(t1, t2), sub2)
       case Fix(body, _) =>
-        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) }
-          yield Rebuilding(Fix(t1), sub1)
+        for { Rebuilding(t1, sub1, _) <- rebuild(body, sub) } yield Rebuilding(Fix(t1), sub1)
       case Ctr(n, xs, _) =>
-        for { (ys, sub1) <- rebuild1(xs, sub) }
-          yield Rebuilding(Ctr(n, ys), sub1)
+        for { (ys, sub1) <- rebuild1(xs, sub) } yield Rebuilding(Ctr(n, ys), sub1)
       case Case(sel, bs, _) =>
         val (pts, bodies) = bs.unzip
         for {
@@ -281,7 +277,7 @@ trait SizedRebuildingsGenerator extends RebuildingsGenerator {
         List(Rebuilding(e, sub))
     }
 
-    // extracting a term itself if it is extractable 
+    // extracting a term itself if it is extractable
 
     val rbs2 =
       if (sub.size <= genSize && NamelessSyntax.isFreeSubTerm(e)) {
@@ -296,7 +292,7 @@ trait SizedRebuildingsGenerator extends RebuildingsGenerator {
     rbs1 ++ rbs2 ++ rbs3
   }
 
-  // all combinations of rebuildings a list of expressions 
+  // all combinations of rebuildings a list of expressions
   private def rebuild1(es: List[Term], sub: Subst): List[(List[Term], Subst)] =
     (es :\ ((List[Term](), sub) :: Nil)) { (e, acc) =>
       for { (es1, sub) <- acc; Rebuilding(t, sub1, _) <- rebuild(e, sub) } yield (t :: es1, sub1)
@@ -449,7 +445,9 @@ trait UpperMsgOrLowerMggOnBinaryWhistle extends PFPRules with MSGRebuildings wit
             List(RollbackStep(upper.sPath, rb): S)
           case None =>
             val cands = rebuildings(currentConf)
-            val mgg = cands find { case Rebuilding(c1, _, _) => cands forall { case Rebuilding(c2, _, _) => subclass.lteq(c2, c1) } }
+            val mgg = cands find { case Rebuilding(c1, _, _) =>
+              cands forall { case Rebuilding(c2, _, _) => subclass.lteq(c2, c1) }
+            }
             mgg.map(RebuildStep(_): S).toList
         }
       case None =>
@@ -470,7 +468,9 @@ trait LowerMsgOrUpperMggOnBinaryWhistle extends PFPRules with MSGRebuildings wit
             List(RebuildStep(rb): S)
           case None =>
             val cands = rebuildings(upperConf)
-            val mgg = cands find { case Rebuilding(c1, _, _) => cands forall { case Rebuilding(c2, _, _) => subclass.lteq(c2, c1) } }
+            val mgg = cands find { case Rebuilding(c1, _, _) =>
+              cands forall { case Rebuilding(c2, _, _) => subclass.lteq(c2, c1) }
+            }
             mgg.map(RollbackStep(upper.sPath, _): S).toList
         }
       case None =>
@@ -573,4 +573,3 @@ trait FoldingOnBinaryWhistle extends PFPRules with BinaryWhistle {
   override def rebuild(signal: Signal, g: G): List[S] =
     Nil
 }
-

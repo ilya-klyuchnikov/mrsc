@@ -55,7 +55,7 @@ case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
             val subst = freeVars(rawBody).map { fv => fv -> BVar(extCtx.indexForTerm(fv)) }.toMap
             applySubst(rawBody, subst)
           }
-          val abs = fvars.foldLeft(body){ (a, _) => Abs(a) }
+          val abs = fvars.foldLeft(body) { (a, _) => Abs(a) }
           Let(Fix(abs), app)
         // recursive node
         case Some(_) =>
@@ -81,7 +81,7 @@ case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
           // Adding new binders. Expressions already in the context will be shifted.
           val extCtx = ctx.addBindings(ctr.args.map(TermBinding(_)))
           val rawFolded = fold(n, extCtx)
-          val subst = freeVars(ctr).map{ v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
+          val subst = freeVars(ctr).map { v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
           val folded = applySubst(rawFolded, subst)
           (ptr, folded)
         }
@@ -101,5 +101,3 @@ case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
   def compose(comp: List[Term] => Term, children: List[N], ctx: ResContext) =
     comp(children.map(fold(_, ctx)))
 }
-
-

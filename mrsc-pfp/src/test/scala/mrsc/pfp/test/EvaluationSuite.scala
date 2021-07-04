@@ -26,7 +26,7 @@ class EvaluationSuite extends FunSuite {
     info(evaled.toString())
     assert(evaled === expected)
   }
-  
+
   test("letrec evaluation #1") {
     val goalIn =
       """
@@ -42,5 +42,5 @@ class EvaluationSuite extends FunSuite {
     info(goalIn + " => " + evaled)
     assert(evaled === expected)
   }
-  
+
 }

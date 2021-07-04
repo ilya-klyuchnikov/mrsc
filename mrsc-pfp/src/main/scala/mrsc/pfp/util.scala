@@ -26,10 +26,10 @@ trait PFPGraphPrettyPrinter {
 
   def labelToString(l: Label): String =
     l match {
-      case TransientLabel => "->"
-      case UnfoldLabel => "->*"
+      case TransientLabel                 => "->"
+      case UnfoldLabel                    => "->*"
       case CaseBranchLabel(sel, ptr, alt) => sel.shows + " = " + alt.shows
-      case _ => ""
+      case _                              => ""
     }
 
   def toString(node: TNode[MetaTerm, Label], focus: Option[TPath], indent: String = ""): String = {
@@ -50,7 +50,9 @@ trait PFPGraphPrettyPrinter {
   }
 
   // not showing transient reductions
-  def toStringDense(node: TNode[MetaTerm, Label], focus: Option[TPath], indent: String = "")(implicit g: TGraph[MetaTerm, Label]): String = {
+  def toStringDense(node: TNode[MetaTerm, Label], focus: Option[TPath], indent: String = "")(implicit
+      g: TGraph[MetaTerm, Label]
+  ): String = {
 
     node.outs match {
       case TEdge(n, UnfoldLabel) :: Nil if !g.leaves.exists(_.base == Some(node.tPath)) =>
@@ -88,10 +90,10 @@ trait PFPGraphUI {
 
   def labelToString(l: Label): String =
     l match {
-      case TransientLabel => "->"
-      case UnfoldLabel => "->*"
+      case TransientLabel                 => "->"
+      case UnfoldLabel                    => "->*"
       case CaseBranchLabel(sel, ptr, alt) => sel.shows + " = " + alt.shows
-      case _ => ""
+      case _                              => ""
     }
 
   def createMxGraph(tg: TGraph[MetaTerm, Label]): mxGraph = {
@@ -106,7 +108,7 @@ trait PFPGraphUI {
 
     def createNode(node: TNode[MetaTerm, Label]): AnyRef = {
       val text = node.conf.shows
-      val v = graph.insertVertex(gparent, null, text, 0, 0, 7*text.length + 10, 30)
+      val v = graph.insertVertex(gparent, null, text, 0, 0, 7 * text.length + 10, 30)
       node.conf match {
         case x: Rebuilding =>
           graph.getModel.setStyle(v, "fillColor=white;")
@@ -137,7 +139,7 @@ trait PFPGraphUI {
   var opened = 0
 
   object closer extends WindowAdapter {
-    override def windowClosing( e: WindowEvent ) {
+    override def windowClosing(e: WindowEvent) {
       opened -= 1
       if (opened == 0) {
         System.exit(0)
@@ -160,7 +162,7 @@ trait PFPGraphUI {
 object NatRepl {
   val bindings = io.bingingsFromFile("pfp/defs/nat.pfp")
 
-  def main (args: Array[String]) {
+  def main(args: Array[String]) {
     val in = args(0)
     val goal = PFPParsers().inputTerm(in)
     val rules = new InteractiveMRSC(bindings)

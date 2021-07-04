@@ -8,14 +8,15 @@ import mrsc.core._
 import mrsc.core.test.DebugInfo
 
 class TicksEvaluationSuite extends FunSuite with DebugInfo {
-  case class SC2(val gc: GContext) extends PFPRules
-  with PFPSemantics
-  with PositiveDriving
-  with AllFoldingCandidates
-  with Folding
-  with ControlEmbeddingCandidates
-  with HE3ByCouplingWhistle
-  with LowerMsgOrUpperMsgOnBinaryWhistle
+  case class SC2(val gc: GContext)
+      extends PFPRules
+      with PFPSemantics
+      with PositiveDriving
+      with AllFoldingCandidates
+      with Folding
+      with ControlEmbeddingCandidates
+      with HE3ByCouplingWhistle
+      with LowerMsgOrUpperMsgOnBinaryWhistle
 
   val bindings = io.bingingsFromFile("pfp/defs/list.pfp")
 
@@ -31,8 +32,7 @@ class TicksEvaluationSuite extends FunSuite with DebugInfo {
     assert(ticks1 === ticks2)
   }
 
-
-   test("simple evaluation #1") {
+  test("simple evaluation #1") {
     val goal = PFPParsers().inputTerm("app Nil() Nil()")
     val expected = PFPParsers().inputTerm("Nil()")
     info(s(goal))
@@ -113,7 +113,9 @@ class TicksEvaluationSuite extends FunSuite with DebugInfo {
   }
 
   test("evaluation after hard supercompilation #1") {
-    val goal = PFPParsers().inputTerm("case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}}")
+    val goal = PFPParsers().inputTerm(
+      "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}}"
+    )
     val rules = new SC2(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)
@@ -138,7 +140,9 @@ class TicksEvaluationSuite extends FunSuite with DebugInfo {
   }
 
   test("evaluation after hard supercompilation #2") {
-    val goal = PFPParsers().inputTerm("case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}}")
+    val goal = PFPParsers().inputTerm(
+      "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}}"
+    )
     val rules = new SC2(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)

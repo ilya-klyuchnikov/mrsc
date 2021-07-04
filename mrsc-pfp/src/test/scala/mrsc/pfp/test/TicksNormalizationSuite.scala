@@ -55,20 +55,19 @@ class TicksNormalizationSuite extends FunSuite with DebugInfo {
   test("normalization") {
     testNorm(
       """letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> **case x5 of {S(x10) -> *(f1 x10); Z() -> True()}})) in f2 x3 x3""",
-      """letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> ***(f1 x10); Z() -> **True()}})) in f2 x3 x3"""
+      """letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> ***(f1 x10); Z() -> **True()}})) in f2 x3 x3""",
     )
 
     testNorm(
       """case <1> of {S(x0) -> *(letrec f0 = (\x1 -> (\x2 -> case x1 of {S(x10) -> *((f0 x10) x2); Z() -> (letrec f1 = (\x3 -> **(letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> (f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in (f1 x2))})) in ((f0 x0) x0)); Z() -> True()}""",
-      """case <1> of {S(x0) -> (letrec f0 = (\x1 -> (\x2 -> case x1 of {S(x10) -> *((f0 x10) x2); Z() -> (letrec f1 = (\x3 -> (letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> **(f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in **(f1 x2))})) in *((f0 x0) x0)); Z() -> True()}"""
+      """case <1> of {S(x0) -> (letrec f0 = (\x1 -> (\x2 -> case x1 of {S(x10) -> *((f0 x10) x2); Z() -> (letrec f1 = (\x3 -> (letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> **(f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in **(f1 x2))})) in *((f0 x0) x0)); Z() -> True()}""",
     )
 
     testNorm(
       """case <1> of {S(x0) -> *(letrec f0 = (\x1 -> (\x2 -> case x1 of {S(x10) -> *((f0 x10) x2); Z() -> **(letrec f1 = (\x3 -> *(letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> **case x5 of {S(x10) -> (f1 x10); Z() -> True()}})) in ((f2 x3) x3))) in (f1 x2))})) in ((f0 x0) x0)); Z() -> **True()}""",
-      """case <1> of {S(x0) -> (letrec f0 = (\x1 -> (\x2 -> case x1 of {S(x10) -> *((f0 x10) x2); Z() -> (letrec f1 = (\x3 -> (letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> ***(f1 x10); Z() -> **True()}})) in ((f2 x3) x3))) in ***(f1 x2))})) in *((f0 x0) x0)); Z() -> **True()}"""
+      """case <1> of {S(x0) -> (letrec f0 = (\x1 -> (\x2 -> case x1 of {S(x10) -> *((f0 x10) x2); Z() -> (letrec f1 = (\x3 -> (letrec f2 = (\x4 -> (\x5 -> case x4 of {S(x10) -> *((f2 x10) x5); Z() -> case x5 of {S(x10) -> ***(f1 x10); Z() -> **True()}})) in ((f2 x3) x3))) in ***(f1 x2))})) in *((f0 x0) x0)); Z() -> **True()}""",
     )
 
   }
-
 
 }

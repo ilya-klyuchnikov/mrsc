@@ -35,8 +35,7 @@ object PFP01Syntax extends scala.App {
   showTerm("Constructor", constructor)
 
   // case-expression
-  val caze = Case(FVar(1),
-    (Ptr("Nil", List()) -> FVar(1)) :: (Ptr("Cons", List("a", "b")) -> BVar(2)) :: Nil)
+  val caze = Case(FVar(1), (Ptr("Nil", List()) -> FVar(1)) :: (Ptr("Cons", List("a", "b")) -> BVar(2)) :: Nil)
   showTerm("Case expression", caze)
 
   // fix-point

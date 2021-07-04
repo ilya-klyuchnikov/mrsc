@@ -7,9 +7,8 @@ import org.scalatest.FunSuite
 import mrsc.core.test.DebugInfo
 import scalaz.Show
 
-/**
- * Smoke tests for correctness
- */
+/** Smoke tests for correctness
+  */
 trait MRSCNatHelper extends FunSuite with DebugInfo {
 
   val bindings = io.bingingsFromFile("pfp/defs/nat.pfp")
@@ -18,7 +17,7 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
   }
 
   def allSubs(fvs: List[FVar], seed: Int): List[Subst] =
-    cartesianProduct(fvs.map(_ => values(seed))) map {vs => Map(fvs zip vs:_*)}
+    cartesianProduct(fvs.map(_ => values(seed))) map { vs => Map(fvs zip vs: _*) }
 
   def values(seed: Int): List[Term] =
     (0 to seed).toList.map(nat)
@@ -27,8 +26,8 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     if (i == 0) Ctr("Z", Nil) else Ctr("S", nat(i - 1) :: Nil)
 
   def cartesianProduct[T](xss: List[List[T]]): List[List[T]] = xss match {
-    case Nil => List(Nil)
-    case h :: t => for(xh <- h; xt <- cartesianProduct(t)) yield xh :: xt
+    case Nil    => List(Nil)
+    case h :: t => for (xh <- h; xt <- cartesianProduct(t)) yield xh :: xt
   }
 
   def checkAllSc(in: String, sc: PFPSC, seed: Int) {
@@ -64,7 +63,6 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     val sGraph2 = GraphGenerator(rules, goal2).toList.head
     val tGraph2 = Transformations.transpose(sGraph2)
     val tickedResidual2 = Residuator(tGraph2, true).result
-
 
     info(s"${s(tickedResidual1)}")
     info(s"${s(tickedResidual2)}")
@@ -134,7 +132,6 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     val rules = new DebugMRSC(bindings, steps)
     val sGraph = GraphGenerator(rules, goal).toList.head
 
-
     val tGraph = Transformations.transpose(sGraph)
     val simpleResidual = Residuator(tGraph).result
     val tickedResidual = Residuator(tGraph, true).result
@@ -151,7 +148,7 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     val fvs = freeVars(goal)
     val subs = allSubs(fvs, seed)
 
-    for {sub <- subs} {
+    for { sub <- subs } {
       val val1 = CBNEval.eval(applySubst(goal, sub), bindings)
       val val2 = CBNEval.eval(applySubst(residual, sub), Map())
       assert(NamedSyntax.named(val1) === NamedSyntax.named(val2))
@@ -164,7 +161,7 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     val fvs = freeVars(t1)
     val subs = allSubs(fvs, seed)
 
-    for {sub <- subs} {
+    for { sub <- subs } {
       val e1 = applySubst(t1, sub)
       val e2 = applySubst(t2, sub)
 
@@ -186,7 +183,7 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
     val fvs = freeVars(goal)
     val subs = allSubs(fvs, seed)
 
-    for {sub <- subs} {
+    for { sub <- subs } {
       val e1 = applySubst(goal, sub)
       val e2 = applySubst(residual, sub)
 
@@ -204,7 +201,6 @@ trait MRSCNatHelper extends FunSuite with DebugInfo {
 }
 
 class MRSCNatSuite extends MRSCNatHelper {
-
 
   test("tick normalization") {
     val t1 = PFPParsers().inputTerm(
@@ -228,12 +224,12 @@ class MRSCNatSuite extends MRSCNatHelper {
       SC2,
       5
     )
-    */
+     */
 
     checkImprovementSc(
       "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}}",
       "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}}",
-      SC2
+      SC2,
     )
 
     /*
@@ -269,6 +265,5 @@ class MRSCNatSuite extends MRSCNatHelper {
   test("eq (plus x x) x") {
     checkAllDepth("eq (plus <1> <1>) <1>", 3, 4)
   }
-
 
 }

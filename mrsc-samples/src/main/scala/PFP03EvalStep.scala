@@ -8,7 +8,7 @@ object PFP03EvalStep extends scala.App {
     PFPParsers().inputTerm(in)
 
   def sample1() = {
-    var t = term( """letrec nil = \xs -> case xs of { Nil() -> Nil(); Cons(y, ys) -> nil ys } in nil Cons(a, Nil())""")
+    var t = term("""letrec nil = \xs -> case xs of { Nil() -> Nil(); Cons(y, ys) -> nil ys } in nil Cons(a, Nil())""")
     println("   " + t.shows)
     do {
       t = CBNEval.lazyStep(t, Map())

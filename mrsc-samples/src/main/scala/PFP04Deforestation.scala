@@ -28,8 +28,6 @@ object PFP04Deforestation extends scala.App {
         };
     """
 
-
-
   def sample1 {
     val goal1: Term = "app <1> <2>"
     println("   " + goal1.shows)

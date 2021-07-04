@@ -2,7 +2,7 @@ package mrsc.counters
 
 import mrsc.core._
 
-// Generates Isabelle proof using a graph of configurations. 
+// Generates Isabelle proof using a graph of configurations.
 object ProofGenerator {
   def generate(protocol: Protocol, graph: SGraph[Conf, _]): String = {
     val confs: List[Conf] = graph.completeNodes.map(_.conf).distinct
@@ -46,7 +46,7 @@ object ProofGenerator {
 
     intro + protocolGen + proof
   }
-  
+
   // utility method
   private def conf2Isb(c: Conf): String = c.map(expr2Isb).mkString("(", ", ", ")")
 

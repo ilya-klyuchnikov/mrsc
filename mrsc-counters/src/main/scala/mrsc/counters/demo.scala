@@ -44,7 +44,7 @@ object Demo extends App {
         }
       }
     }
-    
+
     if (minGraph != null) {
       val tgraph = Transformations.transpose(minGraph)
       println("##The minimal graph found by multi-result supercompiler")
@@ -85,5 +85,5 @@ object Demo extends App {
   // many variants here - be patient
   demo(Java)
   demo(ReaderWriter)
-  demo(DataRace) 
+  demo(DataRace)
 }
