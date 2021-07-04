@@ -3,7 +3,7 @@ package mrsc.pfp
 import mrsc.core._
 import NamelessSyntax._
 
-// This is nice residuator because it is written
+// This is a nice residuator because it is written
 // in fully functional style without generation of
 // new variables.
 // The trick here is that all functions are represented
@@ -21,7 +21,7 @@ case class ResContext(l: List[Binding] = List()) {
   def addVar(t: Term): ResContext = ResContext(TermBinding(t) :: l)
   def addBinding(bind: Binding): ResContext = ResContext(bind :: l)
   def addBindings(binds: List[Binding]): ResContext = binds.foldLeft(this)(_.addBinding(_))
-  def indexForTerm(t: Term) = l.indexWhere {
+  def indexForTerm(t: Term): Int = l.indexWhere {
     case DefBinding(t1, _) => renaming(t, t1)
     case TermBinding(t1)   => t == t1
   }
@@ -41,7 +41,7 @@ case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
     case conf: Term =>
       node.base match {
         // base node
-        case None if g.leaves.exists(_.base == Some(node.tPath)) =>
+        case None if g.leaves.exists(_.base.contains(node.tPath)) =>
           // TODO: adjustable for lambda dropping
           val fvars = freeVars(conf)
           // (((0 v1) v2) v3) ...
@@ -79,7 +79,7 @@ case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
       case TEdge(n1, CaseBranchLabel(sel, _, _)) :: _ =>
         val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- node.outs) yield {
           // Adding new binders. Expressions already in the context will be shifted.
-          val extCtx = ctx.addBindings(ctr.args.map(TermBinding(_)))
+          val extCtx = ctx.addBindings(ctr.args.map(TermBinding))
           val rawFolded = fold(n, extCtx)
           val subst = freeVars(ctr).map { v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
           val folded = applySubst(rawFolded, subst)
@@ -98,6 +98,6 @@ case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
         }
     }
 
-  def compose(comp: List[Term] => Term, children: List[N], ctx: ResContext) =
+  def compose(comp: List[Term] => Term, children: List[N], ctx: ResContext): Term =
     comp(children.map(fold(_, ctx)))
 }

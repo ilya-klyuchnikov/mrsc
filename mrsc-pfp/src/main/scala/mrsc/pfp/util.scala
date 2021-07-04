@@ -39,7 +39,7 @@ trait PFPGraphPrettyPrinter {
     if (node.base.isDefined) {
       sb.append("*")
     }
-    if (focus == Some(node.tPath)) {
+    if (focus.contains(node.tPath)) {
       sb.append(" <===")
     }
     for (edge <- node.outs) {
@@ -55,9 +55,9 @@ trait PFPGraphPrettyPrinter {
   ): String = {
 
     node.outs match {
-      case TEdge(n, UnfoldLabel) :: Nil if !g.leaves.exists(_.base == Some(node.tPath)) =>
+      case TEdge(n, UnfoldLabel) :: Nil if !g.leaves.exists(_.base.contains(node.tPath)) =>
         toStringDense(n, focus, indent)
-      case TEdge(n, TransientLabel) :: Nil if !g.leaves.exists(_.base == Some(node.tPath)) =>
+      case TEdge(n, TransientLabel) :: Nil if !g.leaves.exists(_.base.contains(node.tPath)) =>
         toStringDense(n, focus, indent)
       case _ =>
         val sb = new StringBuilder()
@@ -65,7 +65,7 @@ trait PFPGraphPrettyPrinter {
         if (node.base.isDefined) {
           sb.append("*")
         }
-        if (focus == Some(node.tPath)) {
+        if (focus.contains(node.tPath)) {
           sb.append(" <===")
         }
         for (edge <- node.outs) {
@@ -127,11 +127,11 @@ trait PFPGraphUI {
       v
     }
 
-    graph.getModel.beginUpdate
+    graph.getModel.beginUpdate()
     createNode(tg.root)
     val layout = new mxHierarchicalLayout(graph)
     layout.execute(graph.getDefaultParent)
-    graph.getModel.endUpdate
+    graph.getModel.endUpdate()
 
     graph
   }
@@ -139,7 +139,7 @@ trait PFPGraphUI {
   var opened = 0
 
   object closer extends WindowAdapter {
-    override def windowClosing(e: WindowEvent) {
+    override def windowClosing(e: WindowEvent): Unit = {
       opened -= 1
       if (opened == 0) {
         System.exit(0)
@@ -147,7 +147,7 @@ trait PFPGraphUI {
     }
   }
 
-  def showMxGraph(tg: TGraph[MetaTerm, Label], autoExit: Boolean = true) {
+  def showMxGraph(tg: TGraph[MetaTerm, Label], autoExit: Boolean = true): Unit = {
     val frame = new JFrame("mrsc")
     frame.getContentPane.add(new mxGraphComponent(createMxGraph(tg)))
     frame.setSize(800, 600)
@@ -160,12 +160,12 @@ trait PFPGraphUI {
 }
 
 object NatRepl {
-  val bindings = io.bingingsFromFile("pfp/defs/nat.pfp")
+  private val bindings = io.bingingsFromFile("pfp/defs/nat.pfp")
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val in = args(0)
     val goal = PFPParsers().inputTerm(in)
-    val rules = new InteractiveMRSC(bindings)
+    val rules = InteractiveMRSC(bindings)
     val sGraph = GraphGenerator(rules, goal).toList.head
 
     val tGraph = Transformations.transpose(sGraph)

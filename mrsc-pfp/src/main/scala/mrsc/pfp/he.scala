@@ -3,7 +3,7 @@ package mrsc.pfp
 // TODO: move into syntax
 // The notion of homeomorphic embedding.
 trait HE {
-  def he(t1: MetaTerm, t2: MetaTerm) = heByDiving(t1, t2) || heByCoupling(t1, t2)
+  def he(t1: MetaTerm, t2: MetaTerm): Boolean = heByDiving(t1, t2) || heByCoupling(t1, t2)
   def heByDiving(t1: MetaTerm, t2: MetaTerm): Boolean
   def heByCoupling(t1: MetaTerm, t2: MetaTerm): Boolean
 }
@@ -40,18 +40,18 @@ object HE3 extends HE {
     case (a1: App, a2: App)                     => heByCoupling(a1.t1, a2.t1) && he(a1.t2, a2.t2)
     case (l1: Let, l2: Let)                     => he(l1.v, l2.v) && he(l1.in, l2.in)
     case (Fix(f1, _), Fix(f2, _))               => he(f1, f2)
-    case (Ctr(n1, args1, _), Ctr(n2, args2, _)) => n1 == n2 && (args1, args2).zipped.forall(he)
+    case (Ctr(n1, args1, _), Ctr(n2, args2, _)) => n1 == n2 && args1.lazyZip(args2).forall(he)
     case (Case(s1, bs1, _), Case(s2, bs2, _)) =>
-      he(s1, s2) && (bs1, bs2).zipped.forall { case ((p1, b1), (p2, b2)) => p1 == p2 && he(b1, b2) }
+      he(s1, s2) && bs1.lazyZip(bs2).forall { case ((p1, b1), (p2, b2)) => p1 == p2 && he(b1, b2) }
     case _ => false
   }
 
 }
 
 object HE3Ordering extends SimplePartialOrdering[MetaTerm] {
-  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE3.he(t1, t2)
+  override def lteq(t1: MetaTerm, t2: MetaTerm): Boolean = HE3.he(t1, t2)
 }
 
 object HE3ByCouplingOrdering extends SimplePartialOrdering[MetaTerm] {
-  override def lteq(t1: MetaTerm, t2: MetaTerm) = HE3.heByCoupling(t1, t2)
+  override def lteq(t1: MetaTerm, t2: MetaTerm): Boolean = HE3.heByCoupling(t1, t2)
 }

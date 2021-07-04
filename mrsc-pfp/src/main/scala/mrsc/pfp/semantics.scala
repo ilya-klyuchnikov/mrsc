@@ -1,7 +1,6 @@
 package mrsc.pfp
 
 import mrsc.core._
-import java.lang.reflect.InvocationTargetException
 
 // PART 1. Labels.
 // TODO: really it is some kind of LTS.
@@ -10,13 +9,13 @@ import java.lang.reflect.InvocationTargetException
 // We put them on graph edges.
 sealed trait Label
 case object TransientLabel extends Label {
-  override def toString = "->"
+  override def toString: String = "->"
 }
 case object UnfoldLabel extends Label {
-  override def toString = "->*"
+  override def toString: String = "->*"
 }
 case class CaseBranchLabel(sel: Term, ptr: Ptr, alt: Ctr) extends Label {
-  override def toString = sel + " = " + alt
+  override def toString: String = sel.toString + " = " + alt.toString
 }
 case class DecomposeLabel(compose: List[Term] => Term) extends Label {
   override def toString = ""
@@ -35,39 +34,49 @@ sealed trait MStep {
 }
 // Reduction
 case class TransientMStep(next: MetaTerm) extends MStep {
-  val graphStep = AddChildNodesStep[MetaTerm, Label](List((next, TransientLabel)))
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    AddChildNodesStep[MetaTerm, Label](List((next, TransientLabel)))
 }
 // Reduction via unfolding of a function definition
 case class UnfoldMStep(next: MetaTerm) extends MStep {
-  val graphStep = AddChildNodesStep[MetaTerm, Label](List((next, UnfoldLabel)))
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    AddChildNodesStep[MetaTerm, Label](List((next, UnfoldLabel)))
 }
 // Rebuilding (generalization)
 case class RebuildMStep(rb: Rebuilding) extends MStep {
-  val graphStep = RebuildStep[MetaTerm, Label](rb)
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    RebuildStep[MetaTerm, Label](rb)
 }
 // Stop - no more reductions (variable, nullary constructors)
 case object StopMStep extends MStep {
-  val graphStep = CompleteCurrentNodeStep[MetaTerm, Label]()
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    CompleteCurrentNodeStep[MetaTerm, Label]()
 }
 // Drilling into arguments of constructor.
 case class DecomposeCtrMStep(ctr: Ctr) extends MStep {
-  val compose = (args: List[Term]) => Ctr(ctr.name, args)
-  val graphStep = AddChildNodesStep[MetaTerm, Label](ctr.args map { (_, DecomposeLabel(compose)) })
+  val compose: List[Term] => Ctr =
+    args => Ctr(ctr.name, args)
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    AddChildNodesStep[MetaTerm, Label](ctr.args map { (_, DecomposeLabel(compose)) })
 }
 // Drilling into body of lambda abstraction.
 case class DecomposeAbsMStep(body: Term, fv: FVar) extends MStep {
   import NamelessSyntax._
-  val compose = (ls: List[Term]) => Abs(applySubst(termShift(1, ls.head), Map(fv -> BVar(0))))
-  val graphStep = AddChildNodesStep[MetaTerm, Label](List((body, DecomposeLabel(compose))))
+  val compose: List[Term] => Abs =
+    ls => Abs(applySubst(termShift(1, ls.head), Map(fv -> BVar(0))))
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    AddChildNodesStep[MetaTerm, Label](List((body, DecomposeLabel(compose))))
 }
 // Application of an unknown function. Drilling into arguments.
 case class DecomposeVarApp(fv: FVar, args: List[Term]) extends MStep {
-  val compose = (ls: List[Term]) => ls.reduce(App(_, _))
-  val graphStep = AddChildNodesStep[MetaTerm, Label]((fv :: args) map { (_, DecomposeLabel(compose)) })
+  val compose: List[Term] => Term =
+    ls => ls.reduce(App(_, _))
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    AddChildNodesStep[MetaTerm, Label]((fv :: args) map { (_, DecomposeLabel(compose)) })
 }
 // Pattern matching.
 case class VariantsMStep(sel: FVar, cases: List[(Ptr, Ctr, Term)]) extends MStep {
-  val graphStep = {
+  val graphStep: GraphRewriteStep[MetaTerm, Label] = {
     val ns = cases map { v => (v._3, CaseBranchLabel(sel, v._1, v._2)) }
     AddChildNodesStep[MetaTerm, Label](ns)
   }
@@ -75,26 +84,28 @@ case class VariantsMStep(sel: FVar, cases: List[(Ptr, Ctr, Term)]) extends MStep
 // Drilling into parts of rebuilding.
 case class DecomposeRebuildingMStep(t: Rebuilding) extends MStep {
   import NamelessSyntax._
-  val parts = t.sub.toList
-  val vals = parts.map { _._2 }
-  val fvs = parts.map { _._1 }
-  val compose = { (args: List[Term]) =>
+  private val parts = t.sub.toList
+  private val vals = parts.map { _._2 }
+  private val fvs = parts.map { _._1 }
+  val compose: List[Term] => Term = { args =>
     val sub1 = Map(fvs zip args.tail: _*)
     applySubst(args.head, sub1)
   }
-  val graphStep = AddChildNodesStep[MetaTerm, Label]((t.t :: vals) map { (_, DecomposeLabel(compose)) })
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    AddChildNodesStep[MetaTerm, Label]((t.t :: vals) map { (_, DecomposeLabel(compose)) })
 }
 // Drilling into parts of rebuilding. But compose function
 // do not perform substitution - it creates let-expression.
 case class FreezeRebuildingMStep(t: Rebuilding) extends MStep {
   import NamelessSyntax._
-  val parts = t.sub.toList
-  val vals = parts.map { _._2 }
-  val fvs = parts.map { _._1 }
-  val compose = { (args: List[Term]) =>
+  private val parts = t.sub.toList
+  private val vals = parts.map { _._2 }
+  private val fvs = parts.map { _._1 }
+  val compose: List[Term] => Term = { args =>
     (fvs zip args.tail).foldLeft(args.head) { (acc, p) => Let(p._2, applySubst(acc, Map(p._1 -> BVar(0)))) }
   }
-  val graphStep = AddChildNodesStep[MetaTerm, Label]((t.t :: vals) map { (_, DecomposeLabel(compose)) })
+  val graphStep: GraphRewriteStep[MetaTerm, Label] =
+    AddChildNodesStep[MetaTerm, Label]((t.t :: vals) map { (_, DecomposeLabel(compose)) })
 }
 
 // It is an open question how to get rid off this
@@ -134,12 +145,12 @@ trait PFPSemantics extends VarGen {
           TransientMStep(context.replaceHole((termSubstTop(t2, t1))))
         case context @ Context(RedexCaseCtr(Ctr(name, args, _), Case(_, bs, _))) =>
           val Some((ptr, body)) = bs.find(_._1.name == name)
-          val next = args.foldRight(body)(termSubstTop(_, _))
+          val next = args.foldRight(body)(termSubstTop)
           TransientMStep(context.replaceHole(next))
         case context @ Context(RedexCaseAlt(v: FVar, Case(_, bs, _))) =>
           val xs = for { (ptr @ Ptr(name, args), body) <- bs } yield {
             val ctr = Ctr(name, args.map(nextVar))
-            val next = ctr.args.foldRight(body)(termSubstTop(_, _))
+            val next = ctr.args.foldRight(body)(termSubstTop)
             (ptr, ctr, context.replaceHole(next))
           }
           VariantsMStep(v, xs)

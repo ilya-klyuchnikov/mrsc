@@ -140,7 +140,7 @@ class ParserSuite extends org.scalatest.funsuite.AnyFunSuite {
               BVar(1),
               List(
                 (Ptr("Nil", List()), BVar(0)),
-                ((Ptr("Cons", List("x", "xs")), Ctr("Cons", List(BVar(1), App(App(GVar("app"), BVar(0)), BVar(2)))))),
+                (Ptr("Cons", List("x", "xs")), Ctr("Cons", List(BVar(1), App(App(GVar("app"), BVar(0)), BVar(2))))),
               ),
             )
           )
@@ -164,7 +164,7 @@ class ParserSuite extends org.scalatest.funsuite.AnyFunSuite {
               BVar(1, 1),
               List(
                 (Ptr("Nil", List()), BVar(0, 1)),
-                ((Ptr("Cons", List("x", "xs")), Ctr("Cons", List(BVar(1), App(App(GVar("app"), BVar(0)), BVar(2), 2))))),
+                (Ptr("Cons", List("x", "xs")), Ctr("Cons", List(BVar(1), App(App(GVar("app"), BVar(0)), BVar(2), 2)))),
               ),
               2,
             )

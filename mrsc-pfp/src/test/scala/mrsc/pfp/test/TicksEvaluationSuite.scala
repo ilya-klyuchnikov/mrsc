@@ -20,14 +20,14 @@ class TicksEvaluationSuite extends AnyFunSuite with DebugInfo {
   val bindings: GContext =
     io.bingingsFromFile("pfp/defs/list.pfp")
 
-  def checkTicks(goal1: Term, goal2: Term, sub: Subst) {
+  def checkTicks(goal1: Term, goal2: Term, sub: Subst): Unit = {
     val e1 = NamelessSyntax.applySubst(goal1, sub)
     val e2 = NamelessSyntax.applySubst(goal2, sub)
 
     val (ticks1, evaled1) = CBNEvalWithTicks.eval(e1, bindings)
     val (ticks2, evaled2) = CBNEvalWithTicksResidual.eval(e2, Map())
-    debug(s"${s(e1)} ==> ${ticks1} ticks")
-    debug(s"${s(e2)} ==> ${ticks2} ticks")
+    debug(s"${s(e1)} ==> $ticks1 ticks")
+    debug(s"${s(e2)} ==> $ticks2 ticks")
     assert(NamelessShows.s(evaled1) === NamelessShows.s(evaled2))
     assert(ticks1 === ticks2)
   }
@@ -71,7 +71,7 @@ class TicksEvaluationSuite extends AnyFunSuite with DebugInfo {
 
   test("evaluation after deforestation") {
     val goal = PFPParsers().inputTerm("app (app <1> <2>) <3>")
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)
 
@@ -89,7 +89,7 @@ class TicksEvaluationSuite extends AnyFunSuite with DebugInfo {
 
   test("evaluation after hard supercompilation") {
     val goal = PFPParsers().inputTerm("fin2 <1>")
-    val rules = new SC2(bindings)
+    val rules = SC2(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)
 
@@ -116,7 +116,7 @@ class TicksEvaluationSuite extends AnyFunSuite with DebugInfo {
     val goal = PFPParsers().inputTerm(
       "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case <1> of {S(x) -> (fin2 x); Z() -> True()}}"
     )
-    val rules = new SC2(bindings)
+    val rules = SC2(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)
 
@@ -143,7 +143,7 @@ class TicksEvaluationSuite extends AnyFunSuite with DebugInfo {
     val goal = PFPParsers().inputTerm(
       "case case <1> of {S(x) -> (fin1 x); Z() -> True()} of {False() -> False(); True() -> case S(<1>) of {S(x) -> (fin2 x); Z() -> True()}}"
     )
-    val rules = new SC2(bindings)
+    val rules = SC2(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)
 

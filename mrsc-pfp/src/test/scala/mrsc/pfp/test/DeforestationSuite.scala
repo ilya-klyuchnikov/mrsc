@@ -17,7 +17,7 @@ class DeforestationSuite extends AnyFunSuite {
         };
       """
     val goal: Term = "app <1> <2>"
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     GraphGenerator(rules, goal).toList
   }
 
@@ -31,7 +31,7 @@ class DeforestationSuite extends AnyFunSuite {
         };
       """
     val goal: Term = "app (app <1> <2>) <3> "
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val graphs = GraphGenerator(rules, goal).toList
   }
 
@@ -58,7 +58,7 @@ class DeforestationSuite extends AnyFunSuite {
 
   test("naive folding") {
     val bindings: GContext = """f = \x -> f x;"""
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val goal: Term = "f <2>"
 
     val expectedResult: Term = """letrec h = \x -> h x in h <2>"""
@@ -77,7 +77,7 @@ class DeforestationSuite extends AnyFunSuite {
           Cons(x, xs) -> Cons(x, (app xs y))
         };
       """
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val goal: Term = "app <1> <2>"
 
     val expectedResult: Term =
@@ -98,7 +98,7 @@ class DeforestationSuite extends AnyFunSuite {
     val bindings: GContext =
       """
       """
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val goal: Term =
       """
       letrec h = \x -> \y ->
@@ -131,7 +131,7 @@ class DeforestationSuite extends AnyFunSuite {
           Cons(x, xs) -> Cons(x, (app xs y))
         };
       """
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val goal: Term = "app (app <1> <2>) <3>"
 
     val expectedResult: Term =
@@ -161,7 +161,7 @@ class DeforestationSuite extends AnyFunSuite {
         Branch(xt, yt) -> Branch(flip yt, flip xt)
       };
       """
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val goal: Term = "flip (flip <1>)"
 
     val expectedResult: Term =
@@ -178,7 +178,7 @@ class DeforestationSuite extends AnyFunSuite {
   }
 
   def testExample(bindings: GContext, goal: Term, expectedResult: Term): Unit = {
-    val rules = new Deforester(bindings)
+    val rules = Deforester(bindings)
     val graphs = GraphGenerator(rules, goal).toList
     val tGraph = Transformations.transpose(graphs.head)
     val result = Residuator(tGraph).result

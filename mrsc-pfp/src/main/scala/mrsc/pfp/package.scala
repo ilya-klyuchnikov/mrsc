@@ -1,5 +1,7 @@
 package mrsc
 
+import scala.language.implicitConversions
+
 package object pfp {
   // Field in constructor
   type Field = (String, Term)

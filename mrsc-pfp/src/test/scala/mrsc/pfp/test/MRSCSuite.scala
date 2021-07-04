@@ -31,7 +31,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     case h :: t => for (xh <- h; xt <- cartesianProduct(t)) yield xh :: xt
   }
 
-  def checkAllSc(in: String, sc: PFPSC, seed: Int) {
+  def checkAllSc(in: String, sc: PFPSC, seed: Int): Unit = {
     val goal = PFPParsers().inputTerm(in)
     info(s"${s(goal)}")
     val rules = sc(bindings)
@@ -51,7 +51,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     info(s"checked $checked outputs")
   }
 
-  def checkImprovementSc(in1: String, in2: String, sc: PFPSC) {
+  def checkImprovementSc(in1: String, in2: String, sc: PFPSC): Unit = {
     val goal1 = PFPParsers().inputTerm(in1)
     val goal2 = PFPParsers().inputTerm(in2)
     info(s"${s(goal1)}")
@@ -84,7 +84,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     assert(Ticks.isImprovement(tickedResidual1N, tickedResidual2N))
   }
 
-  def checkAllImprovementSc(in1: String, in2: String, sc: PFPSC, seed: Int) {
+  def checkAllImprovementSc(in1: String, in2: String, sc: PFPSC, seed: Int): Unit = {
     val goal1 = PFPParsers().inputTerm(in1)
     val goal2 = PFPParsers().inputTerm(in2)
     info(s"${s(goal1)}")
@@ -107,7 +107,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     checkImprovement(tickedResidual1, tickedResidual2, seed)
   }
 
-  def checkAllDepth(in: String, depth: Int, seed: Int) {
+  def checkAllDepth(in: String, depth: Int, seed: Int): Unit = {
     val goal = PFPParsers().inputTerm(in)
     info(s"${s(goal)}, depth=${depth}, seed=${seed}")
     val rules = new DepthBoundMRSC(bindings, depth)
@@ -127,7 +127,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     info(s"checked $checked outputs")
   }
 
-  def checkDebug(in: String, steps: List[Int]) {
+  def checkDebug(in: String, steps: List[Int]): Unit = {
     val goal = PFPParsers().inputTerm(in)
     info(s(goal))
     val rules = new DebugMRSC(bindings, steps)
@@ -143,7 +143,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     checkTicks(goal, tickedResidual, 2)
   }
 
-  def checkCorrectness(goal: Term, residual: Term, seed: Int) {
+  def checkCorrectness(goal: Term, residual: Term, seed: Int): Unit = {
     import NamelessSyntax._
 
     val fvs = freeVars(goal)
@@ -156,7 +156,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     }
   }
 
-  def checkImprovement(t1: Term, t2: Term, seed: Int) {
+  def checkImprovement(t1: Term, t2: Term, seed: Int): Unit = {
     import NamelessSyntax._
 
     val fvs = freeVars(t1)
@@ -178,7 +178,7 @@ trait MRSCNatHelper extends AnyFunSuite with DebugInfo {
     }
   }
 
-  def checkTicks(goal: Term, residual: Term, seed: Int) {
+  def checkTicks(goal: Term, residual: Term, seed: Int): Unit = {
     import NamelessSyntax._
 
     val fvs = freeVars(goal)

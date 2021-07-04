@@ -2,12 +2,14 @@ package mrsc.pfp
 
 import NamelessSyntax._
 
+import scala.annotation.tailrec
+
 /** Call-by-name step-by-step evaluation.
   * The intended use of this module is for extensive testing
   */
 object CBNEval {
 
-  def isLazyVal(t: Term) = t match {
+  def isLazyVal(t: Term): Boolean = t match {
     case Abs(_, _)    => true
     case Ctr(_, _, _) => true
     case _            => false
@@ -27,7 +29,7 @@ object CBNEval {
       g(n)
     case Case(Ctr(name, args, _), bs, _) =>
       val Some((ptr, body)) = bs.find(_._1.name == name)
-      args.foldRight(body)(termSubstTop(_, _))
+      args.foldRight(body)(termSubstTop)
     case Case(t1, bs, _) =>
       Case(lazyStep(t1, g), bs)
     case App(Abs(t1, _), t2, _) =>
@@ -56,7 +58,7 @@ object CBNEval {
 // Implies that original program is without ticks.
 object CBNEvalWithTicks {
 
-  def isLazyVal(t: Term) = t match {
+  def isLazyVal(t: Term): Boolean = t match {
     case Abs(_, _)    => true
     case Ctr(_, _, _) => true
     case _            => false
@@ -76,7 +78,7 @@ object CBNEvalWithTicks {
       (1, g(n))
     case Case(Ctr(name, args, _), bs, _) =>
       val Some((ptr, body)) = bs.find(_._1.name == name)
-      (0, args.foldRight(body)(termSubstTop(_, _)))
+      (0, args.foldRight(body)(termSubstTop))
     case Case(t1, bs, _) =>
       val (ticks, evaled) = lazyStep(t1, g)
       (ticks, Case(evaled, bs))
@@ -108,7 +110,7 @@ object CBNEvalWithTicks {
 // Simplification
 object CBNEvalWithTicksResidual {
 
-  def isLazyVal(t: Term) = t match {
+  def isLazyVal(t: Term): Boolean = t match {
     case Abs(_, _)    => true
     case Ctr(_, _, _) => true
     case _            => false
@@ -126,7 +128,7 @@ object CBNEvalWithTicksResidual {
       (t.ticks, Ticks.zeroTicks(t))
     case Case(Ctr(name, args, _), bs, _) =>
       val Some((ptr, body)) = bs.find(_._1.name == name)
-      (t.ticks, args.foldRight(body)(termSubstTop(_, _)))
+      (t.ticks, args.foldRight(body)(termSubstTop))
     case Case(t1, bs, ticks) =>
       val (ticks1, evaled) = lazyStep(t1, g)
       (ticks + ticks1, Case(evaled, bs))
@@ -143,6 +145,7 @@ object CBNEvalWithTicksResidual {
       sys.error("unexpected term: " + t)
   }
 
+  @tailrec
   def eval1(t: Term, ticks: Int): (Int, Term) = {
     //println(ticks + ", " + NamelessShows.s(t))
     if (isLazyVal(t)) {

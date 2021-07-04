@@ -1,5 +1,7 @@
 package mrsc.pfp
 
+import scala.annotation.tailrec
+
 // PART 1. AST
 sealed trait MetaTerm { self =>
   val ticks: Int
@@ -10,35 +12,35 @@ sealed trait Term extends MetaTerm {
   def size: Int
 }
 case class BVar(i: Int, ticks: Int = 0) extends Term {
-  override lazy val size = 1
+  override lazy val size: Int = 1
 }
 case class FVar(i: Int, ticks: Int = 0) extends Term {
-  override lazy val size = 1
+  override lazy val size: Int = 1
 }
 case class GVar(n: String, ticks: Int = 0) extends Term {
-  override lazy val size = 1
+  override lazy val size: Int = 1
 }
 case class Abs(t: Term, ticks: Int = 0) extends Term {
-  override lazy val size = 1 + t.size
+  override lazy val size: Int = 1 + t.size
 }
 case class App(t1: Term, t2: Term, ticks: Int = 0) extends Term {
-  override lazy val size = t1.size + t2.size
+  override lazy val size: Int = t1.size + t2.size
 }
 // Simple let-expression. `v` is represented by `BVar(0)` in `in`.
 case class Let(v: Term, in: Term, ticks: Int = 0) extends Term {
-  override lazy val size = 1 + v.size + in.size
+  override lazy val size: Int = 1 + v.size + in.size
 }
 // Term itself is represented as `BVar(0)` in `t`.
 // In terms of TAPL we use only Fix(Abs(_)) combination.
 // Let(Fix(_), e) is a letrec
 case class Fix(t: Term, ticks: Int = 0) extends Term {
-  override lazy val size = 1 + t.size
+  override lazy val size: Int = 1 + t.size
 }
 case class Ctr(name: String, args: List[Term], ticks: Int = 0) extends Term {
-  override lazy val size = 1 + args.map(_.size).sum
+  override lazy val size: Int = 1 + args.map(_.size).sum
 }
 case class Case(sel: Term, branches: List[Branch], ticks: Int = 0) extends Term {
-  override lazy val size = sel.size + branches.map { b => b._2.size }.sum
+  override lazy val size: Int = sel.size + branches.map { b => b._2.size }.sum
 }
 case class Ptr(name: String, args: List[String])
 
@@ -100,9 +102,10 @@ object Ticks {
   }
 
   // without normalization
-  def isImprovement(t1: Term, t2: Term) = i(t1, t2)
+  def isImprovement(t1: Term, t2: Term): Boolean =
+    i(t1, t2)
 
-  def reset(t: Term): Term = (t match {
+  def reset(t: Term): Term = t match {
     case t: BVar          => t.Z
     case t: FVar          => t.Z
     case t: GVar          => t.Z
@@ -112,11 +115,11 @@ object Ticks {
     case Fix(e1, _)       => Fix(reset(e1))
     case Ctr(n, args, _)  => Ctr(n, args.map(reset))
     case Case(sel, bs, _) => Case(reset(sel), bs.map { case (p, e) => (p, reset(e)) })
-  })
+  }
 
   implicit class TickOps(t: Term) {
-    def I(delta: Int) = Ticks.incrTicks(t, delta)
-    def Z = Ticks.zeroTicks(t)
+    def I(delta: Int): Term = Ticks.incrTicks(t, delta)
+    def Z: Term = Ticks.zeroTicks(t)
   }
 }
 
@@ -147,8 +150,10 @@ object TicksNorm {
   }
 
   def nrule2wrule(nr: NRule): WRule = { case (_, t) if nr.isDefinedAt(t) => nr(t) }
-  val normRules: List[NRule] = List(caseNorm, letRecNorm1, letNorm)
-  val wRules = normRules.map(nrule2wrule)
+  val normRules: List[NRule] =
+    List(caseNorm, letRecNorm1, letNorm)
+  val wRules: List[WRule] =
+    normRules.map(nrule2wrule)
 
   private def cycle(s: Set[Term]): Set[Term] = {
     var out = s
@@ -229,13 +234,13 @@ object NamelessSyntax {
     def walk(c: Int, t: Term): Term = t match {
       case v: BVar => v
       // ticks propagation
-      case v: FVar if s.get(v).isDefined => Ticks.incrTicks(termShift(c, s(v)), v.ticks)
-      case v: FVar                       => v
-      case v: GVar                       => v
-      case Abs(t2, ticks)                => Abs(walk(c + 1, t2), ticks)
-      case App(t1, t2, ticks)            => App(walk(c, t1), walk(c, t2), ticks)
-      case Let(t1, t2, ticks)            => Let(walk(c, t1), walk(c + 1, t2), ticks)
-      case Fix(t1, ticks)                => Fix(walk(c + 1, t1), ticks)
+      case v: FVar if s.contains(v) => Ticks.incrTicks(termShift(c, s(v)), v.ticks)
+      case v: FVar                  => v
+      case v: GVar                  => v
+      case Abs(t2, ticks)           => Abs(walk(c + 1, t2), ticks)
+      case App(t1, t2, ticks)       => App(walk(c, t1), walk(c, t2), ticks)
+      case Let(t1, t2, ticks)       => Let(walk(c, t1), walk(c + 1, t2), ticks)
+      case Fix(t1, ticks)           => Fix(walk(c + 1, t1), ticks)
       case Case(t, bs, ticks) =>
         Case(walk(c, t), bs.map { case (ptr, ti) => (ptr, walk(c + ptr.args.size, ti)) }, ticks)
       case Ctr(n, fs, ticks) => Ctr(n, fs.map(walk(c, _)), ticks)
@@ -344,13 +349,13 @@ object NamelessSyntax {
     case App(t1, t2, _)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
     case Let(t1, t2, _)   => List(freeVars(t1), freeVars(t2)).flatten.distinct
     case Fix(t1, _)       => freeVars(t1)
-    case Ctr(_, args, _)  => args.map(freeVars).flatten.distinct
+    case Ctr(_, args, _)  => args.flatMap(freeVars).distinct
     case Case(sel, bs, _) => (freeVars(sel) :: bs.map(_._2).map(freeVars)).flatten.distinct
   }
 
   // here we mean subclass in semantical sense (as subset)
   val subclass: PartialOrdering[MetaTerm] = new SimplePartialOrdering[MetaTerm] {
-    override def lteq(t1: MetaTerm, t2: MetaTerm) = (t1, t2) match {
+    override def lteq(t1: MetaTerm, t2: MetaTerm): Boolean = (t1, t2) match {
       case (t1: Term, t2: Term) => findSubst(t2, t1).isDefined
       case _                    => false
     }
@@ -378,10 +383,12 @@ abstract case class Context(val redex: Redex) extends TermDecomposition {
 }
 private class ContextHole(override val redex: Redex) extends Context(redex)
 private class ContextApp(head: Context, app: App) extends Context(head.redex) {
-  override def replaceHole(t: Term) = App(head.replaceHole(t), app.t2)
+  override def replaceHole(t: Term): Term =
+    App(head.replaceHole(t), app.t2)
 }
 private class ContextCase(selector: Context, ce: Case) extends Context(selector.redex) {
-  override def replaceHole(t: Term) = Case(selector.replaceHole(t), ce.branches)
+  override def replaceHole(t: Term): Term =
+    Case(selector.replaceHole(t), ce.branches)
 }
 
 // Naive (slow) decomposition.
@@ -415,6 +422,7 @@ object Decomposition {
     case _                                       => sys.error("unexpected context: " + t)
   }
 
+  @tailrec
   private def headVar_?(app: App): Boolean = app.t1 match {
     case v: FVar => true
     case a: App  => headVar_?(a)

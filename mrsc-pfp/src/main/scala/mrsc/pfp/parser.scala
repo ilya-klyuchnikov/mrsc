@@ -9,7 +9,7 @@ import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 case class PContext(l: List[String] = List()) {
   def addName(s: String): PContext = PContext(s :: l)
   def addNames(names: List[String]): PContext = names.foldLeft(this)(_.addName(_))
-  def isNameBound(s: String): Boolean = l.exists { _ == s }
+  def isNameBound(s: String): Boolean = l.contains(s)
   def name2index(s: String): Int = l.indexWhere { _ == s } match {
     case -1 => throw new Exception("identifier " + s + " is unbound")
     case i  => i
@@ -21,13 +21,33 @@ case class PContext(l: List[String] = List()) {
 }
 
 case class Task(goal: Term, bindings: GContext, name: String = "") {
-  override def toString =
-    (goal.toString :: (bindings.map { case (k, v) => k + " = " + v + ";" }).toList).mkString("\n")
+  override def toString: String =
+    (goal.toString :: bindings.map { case (k, v) => k + " = " + v + ";" }.toList).mkString("\n")
 }
 
 case class PFPParsers() extends StandardTokenParsers with PackratParsers with ImplicitConversions {
-  lexical.delimiters += ("(", ")", ";", "->", "=", "{", "}", "==>", ",", "|", "\\", "->", "[", "]", ":", ".", "<", ">", "*")
-  lexical.reserved += ("case", "of", "let", "letrec", "in")
+  lexical.delimiters ++= Seq(
+    "(",
+    ")",
+    ";",
+    "->",
+    "=",
+    "{",
+    "}",
+    "==>",
+    ",",
+    "|",
+    "\\",
+    "->",
+    "[",
+    "]",
+    ":",
+    ".",
+    "<",
+    ">",
+    "*",
+  )
+  lexical.reserved ++= Seq("case", "of", "let", "letrec", "in")
 
   lazy val lcid: PackratParser[String] = ident ^? { case id if id.charAt(0).isLower => id }
   lazy val ucid: PackratParser[String] = ident ^? { case id if id.charAt(0).isUpper => id }
@@ -81,18 +101,18 @@ case class PFPParsers() extends StandardTokenParsers with PackratParsers with Im
 
   lazy val topTerm: PackratParser[Term] = term ^^ { _(PContext()) }
 
-  def inputTerm(s: String) = phrase(topTerm)(new lexical.Scanner(s)) match {
+  def inputTerm(s: String): Term = phrase(topTerm)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
     case t                 => sys.error(t.toString)
   }
-  def inputBindings(s: String) = phrase(bindings)(new lexical.Scanner(s)) match {
+  def inputBindings(s: String): GContext = phrase(bindings)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
     case t                 => sys.error(t.toString)
   }
   lazy val task: PackratParser[Task] =
     (topTerm <~ ";") ~ bindings ^^ { case goal ~ bs => Task(goal, bs) }
 
-  def inputTask(s: String) = phrase(task)(new lexical.Scanner(s)) match {
+  def inputTask(s: String): Task = phrase(task)(new lexical.Scanner(s)) match {
     case t if t.successful => t.get
     case t                 => sys.error(t.toString)
   }

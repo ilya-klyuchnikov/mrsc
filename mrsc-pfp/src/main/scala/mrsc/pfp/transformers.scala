@@ -4,7 +4,7 @@ import mrsc.core._
 import scalaz.Show
 
 // classical deforestation transformation
-case class Deforester(val gc: GContext)
+case class Deforester(gc: GContext)
     extends PFPRules
     with PFPSemantics
     with Driving
@@ -15,7 +15,7 @@ case class Deforester(val gc: GContext)
 
 // A supercompiler driven by a user.
 // (User decides which way to go).
-case class InteractiveMRSC(val gc: GContext)
+case class InteractiveMRSC(gc: GContext)
     extends PFPRules
     with PFPSemantics
     with Driving
@@ -25,7 +25,7 @@ case class InteractiveMRSC(val gc: GContext)
     with NoWhistle
     with AllRebuildings {
 
-  val prettyPrinter = new PFPGraphPrettyPrinter {
+  val prettyPrinter: PFPGraphPrettyPrinter = new PFPGraphPrettyPrinter {
     implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
   }
 
@@ -45,7 +45,7 @@ case class InteractiveMRSC(val gc: GContext)
     allSteps(idx) :: Nil
   }
 
-  def showStep(step: S) = step match {
+  def showStep(step: S): String = step match {
     case RebuildStep(c)            => "RB: " + NamelessShows.s(c)
     case AddChildNodesStep(cs)     => "CH: " + cs.map(x => NamelessShows.s(x._1)).mkString(", ")
     case FoldStep(_)               => "FOLD"
@@ -64,7 +64,7 @@ case class DebugMRSC(gc: GContext, userSteps: List[Int])
     with NoWhistle
     with AllRebuildings {
 
-  val prettyPrinter = new PFPGraphPrettyPrinter {
+  val prettyPrinter: PFPGraphPrettyPrinter = new PFPGraphPrettyPrinter {
     implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
   }
 
@@ -79,7 +79,7 @@ case class DebugMRSC(gc: GContext, userSteps: List[Int])
 
 // Supercompiler considering all variants
 // The depth of the graph is bound.
-case class DepthBoundMRSC(val gc: GContext, val maxDepth: Int)
+case class DepthBoundMRSC(gc: GContext, maxDepth: Int)
     extends PFPRules
     with PFPSemantics
     with Driving
@@ -90,7 +90,7 @@ case class DepthBoundMRSC(val gc: GContext, val maxDepth: Int)
     with AllRebuildings
     with DepthGraphFilter
 
-case class SC1(val gc: GContext)
+case class SC1(gc: GContext)
     extends PFPRules
     with PFPSemantics
     with PositiveDriving
@@ -102,7 +102,7 @@ case class SC1(val gc: GContext)
 
 object SC1 extends PFPSC
 
-case class SC2(val gc: GContext)
+case class SC2(gc: GContext)
     extends PFPRules
     with PFPSemantics
     with PositiveDriving
@@ -114,7 +114,7 @@ case class SC2(val gc: GContext)
 
 object SC2 extends PFPSC
 
-case class SC3(val gc: GContext)
+case class SC3(gc: GContext)
     extends PFPRules
     with PFPSemantics
     with PositiveDriving

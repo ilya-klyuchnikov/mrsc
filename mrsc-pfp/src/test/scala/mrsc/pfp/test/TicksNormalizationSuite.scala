@@ -7,7 +7,7 @@ import mrsc.pfp._
 class TicksNormalizationSuite extends AnyFunSuite with DebugInfo {
   import NamedSyntax._
 
-  def testNorm(t: Term, expected: Term) {
+  def testNorm(t: Term, expected: Term): Unit = {
     val tNorm = TicksNorm.norm(t)
     info(s"${tNorm.size} normalized terms")
     assert(tNorm(expected))
