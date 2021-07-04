@@ -6,9 +6,8 @@ import org.scalatest.FunSuite
   * To turn on verbose mode in sbt: set javaOptions += "-Dmrsc.verbose=true"
   */
 trait DebugInfo extends FunSuite {
-  val verbose = System.getProperty("mrsc.verbose", "false").toBoolean
+  val verbose: Boolean = System.getProperty("mrsc.verbose", "false").toBoolean
 
-  def debug(message: String) {
+  def debug(message: String): Unit =
     if (verbose) info(message)
-  }
 }

@@ -44,7 +44,7 @@ class GraphGeneratorSpec extends FunSpec {
     }
 
     it("should build graph in depth first manner") {
-      assert(tgraphs(0) === graph)
+      assert(tgraphs.head === graph)
     }
   }
 

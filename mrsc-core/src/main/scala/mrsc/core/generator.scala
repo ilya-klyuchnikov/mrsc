@@ -1,6 +1,7 @@
 package mrsc.core
 
-import scala.collection.mutable.Queue
+import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 trait GraphRewriteRules[C, D] {
@@ -20,7 +21,7 @@ case class RollbackStep[C, D](to: SPath, c: C) extends GraphRewriteStep[C, D]
 case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHistory: Boolean = false)
     extends Iterator[SGraph[C, D]] {
 
-  private var completeGs: Queue[SGraph[C, D]] = Queue()
+  private val completeGs: mutable.Queue[SGraph[C, D]] = mutable.Queue()
   private var pendingGs: List[SGraph[C, D]] = List(initial(conf))
 
   private def initial(c: C): SGraph[C, D] = {
@@ -29,7 +30,7 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
   }
 
   private def normalize(): Unit =
-    while (completeGs.isEmpty && !pendingGs.isEmpty) {
+    while (completeGs.isEmpty && pendingGs.nonEmpty) {
       val pendingDelta = ListBuffer[SGraph[C, D]]()
       val g = pendingGs.head
       val rewrittenGs = rules.steps(g) map { GraphGenerator.executeStep(_, g, withHistory) }
@@ -44,7 +45,7 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
 
   def hasNext: Boolean = {
     normalize()
-    !completeGs.isEmpty
+    completeGs.nonEmpty
   }
 
   def next(): SGraph[C, D] = {
@@ -54,6 +55,7 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
 }
 
 object GraphGenerator {
+  @tailrec
   def executeStep[C, D](step: GraphRewriteStep[C, D], g: SGraph[C, D], withHistory: Boolean = false): SGraph[C, D] = {
     val prev = if (withHistory) Some(g) else None
     step match {

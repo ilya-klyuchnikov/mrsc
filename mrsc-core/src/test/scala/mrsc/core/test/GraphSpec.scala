@@ -10,7 +10,7 @@ class GraphSpec extends FunSpec {
       root: SNode[Int, Int] = null,
       nodes: List[SNode[Int, Int]] = List(),
       leaves: List[SNode[Int, Int]] = List(),
-  ) = SGraph(List(), leaves, nodes)
+  ): SGraph[Int, Int] = SGraph(List(), leaves, nodes)
 
   var graph1, graph1a, graph2, graph2a: SGraph[Int, Int] = _
   var tgraph1, tgraph2: TGraph[Int, Int] = _
