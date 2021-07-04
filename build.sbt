@@ -43,5 +43,6 @@ lazy val MRSCSamples = (project in file("mrsc-samples"))
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",
     libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.3.3",
     fork := true,
+    baseDirectory in run := file("."),
   )
   .dependsOn(MRSCCore % "test->test", MRSCPfp % "compile->compile,test->test")
