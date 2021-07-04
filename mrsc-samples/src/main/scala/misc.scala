@@ -1,21 +1,19 @@
-import mrsc.pfp._
 import mrsc.core._
+import mrsc.pfp._
 
 package object misc {
   type SC = GContext => PFPRules
 }
 
 package misc {
-
-  import mrsc.core.{SGraph, Transformations, GraphGenerator}
-  import annotation.tailrec
+  import scala.annotation.tailrec
 
 // checks the correctness of simple programs
 // assumes that all free variables in a program are natural numbers
 // and that a program terminates
   object SimpleChecker {
 
-    def run(f: String, sc: PFPSC) {
+    def run(f: String, sc: PFPSC): Unit = {
       import scala.io.Source
       val text = Source.fromFile(f).mkString
       val task0 = PFPParsers().inputTask(text)
@@ -37,7 +35,7 @@ package misc {
       Console.println("OK, checked %d results".format(checked))
     }
 
-    def check(original: Task, transformed: Task, seed: Int = 2) {
+    def check(original: Task, transformed: Task, seed: Int = 2): Unit = {
       import NamelessSyntax._
 
       val fvs = freeVars(original.goal)
@@ -71,8 +69,8 @@ package misc {
 // single-result supercompilers
   object SREPL {
 
-    def sc(sc: SC, t: String) {
-      if (!tasks.tasks.get(t).isDefined) {
+    def sc(sc: SC, t: String): Unit = {
+      if (!tasks.tasks.contains(t)) {
         Console.println("no such task")
         return
       }
@@ -80,7 +78,7 @@ package misc {
       runTask(sc, task)
     }
 
-    private def runTask(sc: SC, task: Task) {
+    private def runTask(sc: SC, task: Task): Unit = {
       Console.println(task.name)
       Console.println(task.goal)
 
@@ -102,7 +100,7 @@ package misc {
     var history: List[SGraph[_, _]] = _
 
     @tailrec
-    def trace() {
+    def trace(): Unit = {
       scala.io.StdIn.readLine() match {
         case "" if current < history.size - 1 =>
           clear()
@@ -122,29 +120,29 @@ package misc {
       trace()
     }
 
-    private def clear() {
+    private def clear(): Unit = {
       Console.println("\u001b[2J")
       Console.println("\u001b[0;0H")
       Console.flush()
     }
 
-    def ls() {
+    def ls(): Unit = {
       val ts = tasks.tasks.values.toList.sortBy(_.name)
-      ts map { t => Console.println(t.name + ": " + t.goal) }
+      ts foreach { t => Console.println(t.name + ": " + t.goal) }
     }
 
-    def scAll(sc: SC) {
+    def scAll(sc: SC): Unit = {
       val ts = tasks.tasks.values.toList.sortBy(_.name)
-      ts map { runTask(sc, _) }
+      ts foreach { runTask(sc, _) }
     }
 
     def history(g: SGraph[_, _]): List[SGraph[_, _]] =
-      g :: (g.prev.map(history).getOrElse(Nil))
+      g :: g.prev.map(history).getOrElse(Nil)
   }
 
   object tasks {
 
-    var tasks = Map[String, Task]()
+    var tasks: Map[String, Task] = Map()
 
     def apply(name: String): Task = tasks(name)
 
@@ -282,7 +280,7 @@ package misc {
 
   }
 
-  case class SC1(val gc: GContext)
+  case class SC1(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with PositiveDriving
@@ -294,7 +292,7 @@ package misc {
 
   object SC1 extends SC
 
-  case class SC2(val gc: GContext)
+  case class SC2(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with PositiveDriving
@@ -306,7 +304,7 @@ package misc {
 
   object SC2 extends SC
 
-  case class SC3(val gc: GContext)
+  case class SC3(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with PositiveDriving
@@ -318,7 +316,7 @@ package misc {
 
   object SC3 extends SC
 
-  case class AllMSC(val gc: GContext)
+  case class AllMSC(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with Driving
@@ -330,8 +328,8 @@ package misc {
 
   object AllMSC extends SC
 
-// All rebuildings but only on whistle
-  case class MSC1(val gc: GContext)
+  // All rebuildings but only on whistle
+  case class MSC1(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with Driving
@@ -343,7 +341,7 @@ package misc {
 
   object MSC1 extends SC
 
-  case class MSC2(val gc: GContext)
+  case class MSC2(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with Driving
@@ -355,9 +353,9 @@ package misc {
 
   object MSC2 extends SC
 
-  case class MSC3(val gc: GContext)
+  case class MSC3(gc: GContext)
       extends PFPRules
-//with PFPSyntax
+      //with PFPSyntax
       with PFPSemantics
       with Driving
       with AllFoldingCandidates
@@ -368,7 +366,7 @@ package misc {
 
   object MSC3 extends SC
 
-  case class MSC4(val gc: GContext)
+  case class MSC4(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with Driving
@@ -380,7 +378,7 @@ package misc {
 
   object MSC4 extends SC
 
-  case class MSC5(val gc: GContext)
+  case class MSC5(gc: GContext)
       extends PFPRules
       with SizedRebuildingsGenerator
       with PFPSemantics
@@ -396,7 +394,7 @@ package misc {
 
   object MSC5 extends SC
 
-  case class MSC6(val gc: GContext)
+  case class MSC6(gc: GContext)
       extends PFPRules
       with SizedRebuildingsGenerator
       with PFPSemantics
@@ -411,7 +409,7 @@ package misc {
 
   object MSC6 extends SC
 
-  case class AllMSC1(val gc: GContext)
+  case class AllMSC1(gc: GContext)
       extends PFPRules
       with PFPSemantics
       with Driving
@@ -427,7 +425,7 @@ package misc {
   object AllMSC1 extends SC
 
   object EmbeddingsDetectors {
-    case class SC1(val gc: GContext)
+    case class SC1(gc: GContext)
         extends PFPRules
         with PFPSemantics
         with PositiveDriving
@@ -437,7 +435,7 @@ package misc {
 
     object SC1 extends PFPSC
 
-    case class SC2(val gc: GContext)
+    case class SC2(gc: GContext)
         extends PFPRules
         with PFPSemantics
         with PositiveDriving
@@ -450,11 +448,11 @@ package misc {
 
   object repl {
 
+    import NamelessShows._
     import scalaz._
     import Scalaz._
-    import NamelessShows._
 
-    val mxUI = new PFPGraphUI {
+    private val mxUI = new PFPGraphUI {
       implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
     }
 
@@ -464,17 +462,17 @@ package misc {
       GraphGenerator(rules, task.goal, false)
     }
 
-    val prettyPrinter = new PFPGraphPrettyPrinter {
+    private val prettyPrinter = new PFPGraphPrettyPrinter {
       implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
     }
 
-    def showGraphs(file: String, sc: PFPSC) =
+    def showGraphs(file: String, sc: PFPSC): Unit =
       for { sGraph <- graphs(file, sc) } {
         val tGraph = Transformations.transpose(sGraph)
         Console.println(prettyPrinter.toString(tGraph))
       }
 
-    def showFoldings(file: String, sc: PFPSC) =
+    def showFoldings(file: String, sc: PFPSC): Unit =
       graphs(file, sc).zipWithIndex.foreach { case (sGraph, i) =>
         Console.println("### graph %s ###".format(i + 1))
         sGraph.completeLeaves.foreach {
@@ -488,7 +486,7 @@ package misc {
         }
       }
 
-    def showResiduals(file: String, sc: PFPSC, showGraphs: Boolean = false) =
+    def showResiduals(file: String, sc: PFPSC, showGraphs: Boolean = false): Unit =
       graphs(file, sc).zipWithIndex.foreach { case (sGraph, i) =>
         val tGraph = Transformations.transpose(sGraph)
         if (showGraphs) {
@@ -500,10 +498,10 @@ package misc {
       }
   }
 
-// For performing different experiments with multi-result supercompilers
+  // For performing different experiments with multi-result supercompilers
   object multi {
 
-    case class AllMSC1(val gc: GContext, val maxGraphSize: Int)
+    case class AllMSC1(gc: GContext, maxGraphSize: Int)
         extends PFPRules
         with PFPSemantics
         with Driving
@@ -515,7 +513,7 @@ package misc {
         with SizeGraphFilter
 
     // it doesn't allow to substitute let-expressions during residualization
-    case class AllMSC2(val gc: GContext, val maxGraphSize: Int)
+    case class AllMSC2(gc: GContext, maxGraphSize: Int)
         extends PFPRules
         with PFPSemantics
         with LetDriving
@@ -531,7 +529,7 @@ package misc {
     def allDepthBound2(depth: Int): PFPSC = gc => AllMSC2(gc, depth)
 
     // shows all possible variants of supercompilation of a given program
-    def run(f: String, sc: PFPSC) {
+    def run(f: String, sc: PFPSC): Unit = {
       import scala.io.Source
       val text = Source.fromFile(f).mkString
       val task = PFPParsers().inputTask(text)

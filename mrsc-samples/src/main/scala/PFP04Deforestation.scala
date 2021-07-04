@@ -11,8 +11,8 @@ object PFP04Deforestation extends scala.App {
     implicit def termShow[T <: MetaTerm]: Show[T] = NamelessShows.TermShow
   }
 
-  def deforest(bindings: GContext, goal: Term) = {
-    val rules = new Deforester(bindings)
+  def deforest(bindings: GContext, goal: Term): Term = {
+    val rules = Deforester(bindings)
     val g = GraphGenerator(rules, goal).toList.head
     val tg = Transformations.transpose(g)
     mxUI.showMxGraph(tg)
@@ -28,7 +28,7 @@ object PFP04Deforestation extends scala.App {
         };
     """
 
-  def sample1 {
+  def sample1: Unit = {
     val goal1: Term = "app <1> <2>"
     println("   " + goal1.shows)
     val deforested1 = deforest(bindings, goal1)
@@ -36,7 +36,7 @@ object PFP04Deforestation extends scala.App {
     println()
   }
 
-  def sample2 {
+  def sample2: Unit = {
     val goal2: Term = "app (app <1> <2>) <3>"
     println("   " + goal2.shows)
     val deforested2 = deforest(bindings, goal2)
@@ -44,7 +44,7 @@ object PFP04Deforestation extends scala.App {
     println()
   }
 
-  def sample3 {
+  def sample3: Unit = {
     val goal3: Term = "app <1> (app <2> <3>)"
     println("   " + goal3.shows)
     val deforested3 = deforest(bindings, goal3)

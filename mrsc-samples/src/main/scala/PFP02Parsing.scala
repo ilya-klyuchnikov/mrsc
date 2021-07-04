@@ -9,14 +9,14 @@ object PFP02Parsing extends scala.App {
   def bindings(in: String) =
     PFPParsers().inputBindings(in)
 
-  def showTermParsing(comment: String, in: String) {
+  def showTermParsing(comment: String, in: String): Unit = {
     println(comment)
     println(in)
     println(term(in).shows)
     println()
   }
 
-  def showBindingParsing(comment: String, in: String, fname: String) {
+  def showBindingParsing(comment: String, in: String, fname: String): Unit = {
     println(comment)
     println(in)
     val bs = bindings(in)
@@ -59,5 +59,4 @@ object PFP02Parsing extends scala.App {
     """a=\x->\y->case x of {Nil()->y; Cons(h, t)->Cons(h,(a t y))};""",
     "a",
   )
-
 }

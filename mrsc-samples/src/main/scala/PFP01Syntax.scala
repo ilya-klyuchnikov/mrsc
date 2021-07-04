@@ -5,7 +5,7 @@ import NamelessShows._
 
 object PFP01Syntax extends scala.App {
 
-  def showTerm(comment: String, t: MetaTerm) {
+  def showTerm(comment: String, t: MetaTerm): Unit = {
     println(s"== $comment== ")
     println(t)
     println(t.shows)
