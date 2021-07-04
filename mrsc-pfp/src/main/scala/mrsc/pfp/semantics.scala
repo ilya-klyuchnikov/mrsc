@@ -1,6 +1,7 @@
 package mrsc.pfp
 
 import mrsc.core._
+import mrsc.core.GraphRewriteStep._
 
 // PART 1. Labels.
 // TODO: really it is some kind of LTS.

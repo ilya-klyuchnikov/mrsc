@@ -11,12 +11,13 @@ trait GraphRewriteRules[C, D] {
   def steps(g: G): List[S]
 }
 
-sealed trait GraphRewriteStep[C, D]
-case class CompleteCurrentNodeStep[C, D]() extends GraphRewriteStep[C, D]
-case class AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphRewriteStep[C, D]
-case class FoldStep[C, D](to: SPath) extends GraphRewriteStep[C, D]
-case class RebuildStep[C, D](c: C) extends GraphRewriteStep[C, D]
-case class RollbackStep[C, D](to: SPath, c: C) extends GraphRewriteStep[C, D]
+enum GraphRewriteStep[C, D] {
+  case CompleteCurrentNodeStep() extends GraphRewriteStep[C, D]
+  case AddChildNodesStep[C, D](ns: List[(C, D)]) extends GraphRewriteStep[C, D]
+  case FoldStep[C, D](to: SPath) extends GraphRewriteStep[C, D]
+  case RebuildStep[C, D](c: C) extends GraphRewriteStep[C, D]
+  case RollbackStep[C, D](to: SPath, c: C) extends GraphRewriteStep[C, D]
+}
 
 case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHistory: Boolean = false)
     extends Iterator[SGraph[C, D]] {
@@ -57,6 +58,7 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
 object GraphGenerator {
   @tailrec
   def executeStep[C, D](step: GraphRewriteStep[C, D], g: SGraph[C, D], withHistory: Boolean = false): SGraph[C, D] = {
+    import GraphRewriteStep._
     val prev = if (withHistory) Some(g) else None
     step match {
       case AddChildNodesStep(List()) =>

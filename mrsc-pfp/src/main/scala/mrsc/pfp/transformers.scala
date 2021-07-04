@@ -1,6 +1,7 @@
 package mrsc.pfp
 
 import mrsc.core._
+import mrsc.core.GraphRewriteStep._
 import scalaz.Show
 
 // classical deforestation transformation

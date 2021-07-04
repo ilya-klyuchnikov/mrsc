@@ -3,6 +3,7 @@ package mrsc.core.test
 import scala.language.postfixOps
 import org.scalatest.funspec.AnyFunSpec
 import mrsc.core._
+import mrsc.core.GraphRewriteStep._
 
 object TinyRules extends GraphRewriteRules[Int, String] {
 

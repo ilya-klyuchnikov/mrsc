@@ -1,6 +1,7 @@
 package mrsc.counters
 
 import mrsc.core._
+import mrsc.core.GraphRewriteStep._
 import Conf._
 
 // Naive multi-result supercompiler.

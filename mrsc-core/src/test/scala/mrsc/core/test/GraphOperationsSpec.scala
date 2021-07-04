@@ -2,6 +2,7 @@ package mrsc.core.test
 
 import org.scalatest.funspec.AnyFunSpec
 import mrsc.core._
+import mrsc.core.GraphRewriteStep._
 
 class GraphOperationsSpec extends AnyFunSpec {
 

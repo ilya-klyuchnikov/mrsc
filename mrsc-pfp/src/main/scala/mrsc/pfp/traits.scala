@@ -3,6 +3,7 @@ package mrsc.pfp
 import scala.language.postfixOps
 
 import mrsc.core._
+import mrsc.core.GraphRewriteStep._
 import NamelessSyntax._
 
 trait PFPRules extends MRSCRules[MetaTerm, Label] {
