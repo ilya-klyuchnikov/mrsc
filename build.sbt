@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
     scalaVersion := "3.0.0",
     organization := "mrsc",
-    version := "0.5.4",
+    version := "0.6.0-SNAPSHOT",
     scalacOptions ++= Seq("-deprecation", "-feature"),
     fork  := true,
     Test / baseDirectory in run := file("."),
