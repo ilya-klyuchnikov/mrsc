@@ -205,8 +205,7 @@ trait RebuildingsGenerator extends VarGen {
       if (NamelessSyntax.isFreeSubTerm(e)) {
         val fn = nextVar()
         List(Rebuilding(fn, sub + (fn -> e)))
-      } else
-        List()
+      } else List()
 
     // term is already extracted
     val rbs3 = for { (k, e1) <- sub if e1 == e } yield Rebuilding(k, sub)
@@ -285,8 +284,7 @@ trait SizedRebuildingsGenerator extends RebuildingsGenerator {
       if (sub.size <= genSize && NamelessSyntax.isFreeSubTerm(e)) {
         val fn = nextVar()
         List(Rebuilding(fn, sub + (fn -> e)))
-      } else
-        List()
+      } else List()
 
     // term is already extracted
     val rbs3 = for { (k, e1) <- sub if e1 == e } yield Rebuilding(k, sub)

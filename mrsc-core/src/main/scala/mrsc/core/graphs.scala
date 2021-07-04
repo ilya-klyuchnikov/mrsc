@@ -197,10 +197,8 @@ object GraphPrettyPrinter {
 object PathOrdering extends Ordering[TPath] {
   @tailrec
   final def compare(p1: TPath, p2: TPath): Int =
-    if (p1.length < p2.length)
-      -1
-    else if (p1.length > p2.length)
-      +1
+    if (p1.length < p2.length) -1
+    else if (p1.length > p2.length) +1
     else {
       val result = p1.head compare p2.head
       if (result == 0) {
