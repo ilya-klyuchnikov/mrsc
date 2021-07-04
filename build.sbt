@@ -7,6 +7,8 @@ lazy val commonSettings = Seq(
     Test / baseDirectory in run := file("."),
     Test / testOptions += Tests.Argument("-oD"),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
+    githubOwner := "ilya-klyuchnikov",
+    githubRepository := "mrsc",
 )
 
 lazy val MRSCCore = (project in file("mrsc-core"))
