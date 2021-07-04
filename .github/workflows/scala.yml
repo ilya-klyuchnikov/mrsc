@@ -1,0 +1,16 @@
+name: MRSC CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: adopt
+        java-version: 11
+    - name: test
+      run: sbt test
