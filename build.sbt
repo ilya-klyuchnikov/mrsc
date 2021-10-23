@@ -1,5 +1,5 @@
 lazy val commonSettings = Seq(
-    scalaVersion := "3.0.0",
+    scalaVersion := "3.1.0",
     organization := "mrsc",
     version := "0.6.0-SNAPSHOT",
     scalacOptions ++= Seq("-deprecation", "-feature"),
@@ -13,14 +13,14 @@ lazy val MRSCCore = (project in file("mrsc-core"))
   .settings(commonSettings)
   .settings(
     name := "mrsc-core",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.10" % "test",
   )
 
 lazy val MRSCCounters = (project in file("mrsc-counters"))
   .settings(commonSettings)
   .settings(
     name := "mrsc-counters",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.10" % "test",
   )
   .dependsOn(MRSCCore)
 
@@ -28,9 +28,9 @@ lazy val MRSCPfp = (project in file("mrsc-pfp"))
   .settings(commonSettings)
   .settings(
     name := "mrsc-pfp",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",
-    libraryDependencies += ("org.scalaz" %% "scalaz-core" % "7.3.3").cross(CrossVersion.for3Use2_13),
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0",
+    libraryDependencies += ("org.scalaz" %% "scalaz-core" % "7.3.5").cross(CrossVersion.for3Use2_13),
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.10" % "test",
     unmanagedBase := file("lib"),
     Test / baseDirectory := file("."),
   )
@@ -40,8 +40,8 @@ lazy val MRSCSamples = (project in file("mrsc-samples"))
   .settings(commonSettings)
   .settings(
     name := "mrsc-samples",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.0.0",
-    libraryDependencies += ("org.scalaz" %% "scalaz-core" % "7.3.3").cross(CrossVersion.for3Use2_13),
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0",
+    libraryDependencies += ("org.scalaz" %% "scalaz-core" % "7.3.5").cross(CrossVersion.for3Use2_13),
     fork := true,
     baseDirectory in run := file("."),
   )
