@@ -79,7 +79,7 @@ case class Residuator(g: TGraph[MetaTerm, Label], withTicks: Boolean = false) {
       case TEdge(n1, CaseBranchLabel(sel, _, _)) :: _ =>
         val bs1 = for (TEdge(n, CaseBranchLabel(_, ptr, ctr)) <- node.outs) yield {
           // Adding new binders. Expressions already in the context will be shifted.
-          val extCtx = ctx.addBindings(ctr.args.map(TermBinding))
+          val extCtx = ctx.addBindings(ctr.args.map(TermBinding.apply))
           val rawFolded = fold(n, extCtx)
           val subst = freeVars(ctr).map { v => v -> BVar(extCtx.indexForTerm(v)) }.toMap
           val folded = applySubst(rawFolded, subst)
