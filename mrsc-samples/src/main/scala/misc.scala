@@ -22,7 +22,7 @@ package misc {
       Console.println(task.goal)
 
       val rules = sc(task.bindings)
-      val graphs = GraphGenerator(rules, task.goal, false)
+      val graphs = GraphGenerator(rules, task.goal)
 
       var checked = 0
       for { sGraph <- graphs } {
@@ -83,11 +83,9 @@ package misc {
       Console.println(task.goal)
 
       val rules = sc(task.bindings)
-      val graphs = GraphGenerator(rules, task.goal, true).toList
+      val graphs = GraphGenerator(rules, task.goal).toList
       val sGraph = graphs.head
       val tGraph = Transformations.transpose(sGraph)
-
-      history = history(sGraph).reverse
       current = -1
 
       Console.println(tGraph)
@@ -135,9 +133,6 @@ package misc {
       val ts = tasks.tasks.values.toList.sortBy(_.name)
       ts foreach { runTask(sc, _) }
     }
-
-    def history(g: SGraph[_, _]): List[SGraph[_, _]] =
-      g :: g.prev.map(history).getOrElse(Nil)
   }
 
   object tasks {
@@ -459,7 +454,7 @@ package misc {
     def graphs(file: String, sc: PFPSC): Iterator[SGraph[MetaTerm, Label]] = {
       val (_, task) = io.taskFromFile(file)
       val rules = sc(task.bindings)
-      GraphGenerator(rules, task.goal, false)
+      GraphGenerator(rules, task.goal)
     }
 
     private val prettyPrinter = new PFPGraphPrettyPrinter {
@@ -537,7 +532,7 @@ package misc {
       Console.println(task.goal)
 
       val rules = sc(task.bindings)
-      val graphs = GraphGenerator(rules, task.goal, false)
+      val graphs = GraphGenerator(rules, task.goal)
 
       var count = 0
       var uniques: Set[Term] = Set()

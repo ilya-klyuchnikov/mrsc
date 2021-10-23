@@ -64,7 +64,6 @@ case class SGraph[C, D](
     incompleteLeaves: List[SNode[C, D]],
     completeLeaves: List[SNode[C, D]],
     completeNodes: List[SNode[C, D]],
-    prev: Option[SGraph[C, D]] = None,
 ) {
 
   val isComplete: Boolean = incompleteLeaves.isEmpty

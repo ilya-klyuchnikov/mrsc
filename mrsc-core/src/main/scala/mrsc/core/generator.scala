@@ -19,8 +19,7 @@ enum GraphRewriteStep[C, D] {
   case RollbackStep[C, D](to: SPath, c: C) extends GraphRewriteStep[C, D]
 }
 
-case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHistory: Boolean = false)
-    extends Iterator[SGraph[C, D]] {
+case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C) extends Iterator[SGraph[C, D]] {
 
   private val completeGs: mutable.Queue[SGraph[C, D]] = mutable.Queue()
   private var pendingGs: List[SGraph[C, D]] = List(initial(conf))
@@ -34,7 +33,7 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
     while (completeGs.isEmpty && pendingGs.nonEmpty) {
       val pendingDelta = ListBuffer[SGraph[C, D]]()
       val g = pendingGs.head
-      val rewrittenGs = rules.steps(g) map { GraphGenerator.executeStep(_, g, withHistory) }
+      val rewrittenGs = rules.steps(g) map { GraphGenerator.executeStep(_, g) }
       for (g1 <- rewrittenGs)
         if (g1.isComplete) {
           completeGs.enqueue(g1)
@@ -57,26 +56,25 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
 
 object GraphGenerator {
   @tailrec
-  def executeStep[C, D](step: GraphRewriteStep[C, D], g: SGraph[C, D], withHistory: Boolean = false): SGraph[C, D] = {
+  def executeStep[C, D](step: GraphRewriteStep[C, D], g: SGraph[C, D]): SGraph[C, D] = {
     import GraphRewriteStep._
-    val prev = if (withHistory) Some(g) else None
     step match {
       case AddChildNodesStep(List()) =>
-        executeStep(CompleteCurrentNodeStep(), g, withHistory)
+        executeStep(CompleteCurrentNodeStep(), g)
       case CompleteCurrentNodeStep() =>
-        SGraph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes, prev)
+        SGraph(g.incompleteLeaves.tail, g.current :: g.completeLeaves, g.current :: g.completeNodes)
       case AddChildNodesStep(ns) =>
         val deltaLeaves: List[SNode[C, D]] = ns.zipWithIndex map { case ((conf, dInfo), i) =>
           val in = SEdge(g.current, dInfo)
           SNode(conf, in, None, i :: g.current.sPath)
         }
-        SGraph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves, g.current :: g.completeNodes, prev)
+        SGraph(deltaLeaves ++ g.incompleteLeaves.tail, g.completeLeaves, g.current :: g.completeNodes)
       case FoldStep(basePath) =>
         val node = g.current.copy(base = Some(basePath))
-        SGraph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes, prev)
+        SGraph(g.incompleteLeaves.tail, node :: g.completeLeaves, node :: g.completeNodes)
       case RebuildStep(c) =>
         val node = g.current.copy(conf = c)
-        SGraph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes, prev)
+        SGraph(node :: g.incompleteLeaves.tail, g.completeLeaves, g.completeNodes)
       case RollbackStep(sPath, c) =>
         // it is possible to optimize this part
         // if we keep history, then we can to find a graph
@@ -87,7 +85,7 @@ object GraphGenerator {
         val completeNodes1 = g.completeNodes.filterNot(prune_?)
         val completeLeaves1 = g.completeLeaves.filterNot(prune_?)
         val incompleteLeaves1 = g.incompleteLeaves.tail.filterNot(prune_?)
-        SGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1, prev)
+        SGraph(node :: incompleteLeaves1, completeLeaves1, completeNodes1)
     }
   }
 }
