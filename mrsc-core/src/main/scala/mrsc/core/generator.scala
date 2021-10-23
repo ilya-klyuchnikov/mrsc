@@ -44,12 +44,12 @@ case class GraphGenerator[C, D](rules: GraphRewriteRules[C, D], conf: C, withHis
       pendingGs = pendingDelta ++: pendingGs.tail
     }
 
-  def hasNext: Boolean = {
+  override def hasNext: Boolean = {
     normalize()
     completeGs.nonEmpty
   }
 
-  def next(): SGraph[C, D] = {
+  override def next(): SGraph[C, D] = {
     if (!hasNext) throw new NoSuchElementException("no graph")
     completeGs.dequeue()
   }
